@@ -37,7 +37,7 @@
     .btn-secondary:hover { background: #e2e8f0; }
     .btn-secondary.active-mode { background: var(--primary); color: white; }
 
-    /* בר ניווט דביק (Sticky Header Area) */
+    /* בר ניווט דביק */
     .sticky-nav-wrapper {
       position: sticky;
       top: 0;
@@ -49,13 +49,11 @@
       box-shadow: 0 4px 10px -4px rgba(247, 248, 250, 0.95);
     }
 
-    /* בר חיפוש */
     .search-wrapper { margin-bottom: 12px; position: relative; }
     .search-input { width: 100%; padding: 10px 40px 10px 16px; font-size: 0.95rem; border: 1px solid var(--border); border-radius: 24px; background: var(--card-bg); outline: none; box-shadow: var(--shadow); transition: all 0.2s; color: var(--text-main); }
     .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(92, 118, 141, 0.08); }
     .search-icon { position: absolute; top: 50%; right: 16px; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; font-size: 0.9rem; }
 
-    /* בר קטגוריות */
     .categories-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; align-items: center; }
     .categories-bar::-webkit-scrollbar { display: none; }
     .cat-chip { padding: 5px 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; color: var(--text-muted); transition: all 0.2s; user-select: none; display: flex; align-items: center; gap: 6px; }
@@ -66,7 +64,6 @@
     .cat-delete-btn { font-size: 0.75rem; color: inherit; opacity: 0.8; background: rgba(0,0,0,0.06); border-radius: 50%; width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
     .cat-delete-btn:hover { background: rgba(225,29,72,0.2); color: #e11d48; }
 
-    /* רשת הפתקים */
     .notes-list { 
       display: grid; 
       grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
@@ -81,7 +78,7 @@
       box-shadow: var(--shadow); 
       display: flex; 
       flex-direction: column; 
-      height: 210px; 
+      height: 220px; 
       position: relative;
       transition: all 0.2s ease;
     }
@@ -100,7 +97,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .note-date { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; }
@@ -115,21 +112,45 @@
       border: 1px solid var(--cat-border-color);
     }
 
-    .note-text { 
-      font-size: 0.95rem; 
-      line-height: 1.5; 
-      white-space: pre-wrap; 
-      word-break: break-word; 
-      overflow-y: auto; 
-      flex: 1; 
+    /* שדה עריכה ישיר מתוך הכרטיסייה */
+    .inline-textarea {
+      width: 100%;
+      flex: 1;
+      border: 1px solid transparent;
+      background: transparent;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      resize: none;
+      outline: none;
       color: var(--text-main);
-      padding-left: 2px;
+      font-family: 'Assistant', sans-serif;
+      padding: 2px;
+      border-radius: 4px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .inline-textarea:focus {
+      border-color: var(--border);
+      background: #fafafa;
     }
     
-    .note-text::-webkit-scrollbar { width: 3px; }
-    .note-text::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    .inline-textarea::-webkit-scrollbar { width: 3px; }
+    .inline-textarea::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 
-    /* תפריט נפתח */
+    /* כפתור שמירה מהירה שמופיע בזמן עריכה */
+    .save-inline-btn {
+      display: none;
+      align-self: flex-end;
+      margin-top: 4px;
+      padding: 3px 10px;
+      font-size: 0.75rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .save-inline-btn.show { display: block; }
+
     .menu-wrapper { position: relative; display: inline-block; }
     .menu-btn { background: none; border: none; font-size: 1.1rem; color: var(--text-muted); cursor: pointer; padding: 2px 6px; border-radius: 4px; }
     .menu-btn:hover { background: #f1f5f9; color: var(--text-main); }
@@ -178,8 +199,8 @@
     .btn-fullscreen { font-size: 0.85rem; color: var(--text-muted); padding: 4px 10px; border-radius: 16px; background: #f1f5f9; font-weight: 500; }
     .btn-fullscreen:hover { color: var(--primary); }
 
-    textarea { width: 100%; height: 180px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; font-size: 0.95rem; resize: none; outline: none; color: var(--text-main); transition: border-color 0.2s; }
-    textarea:focus { border-color: var(--primary); }
+    textarea.modal-textarea { width: 100%; height: 180px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; font-size: 0.95rem; resize: none; outline: none; color: var(--text-main); transition: border-color 0.2s; }
+    textarea.modal-textarea:focus { border-color: var(--primary); }
 
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group label { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); }
@@ -193,7 +214,7 @@
     .btn-cancel:hover { background: #e2e6ea; }
 
     .modal.fullscreen-mode { max-width: 100vw !important; height: 100vh !important; max-height: 100vh !important; border-radius: 0 !important; animation: none; }
-    .modal.fullscreen-mode textarea { flex: 1 !important; height: auto !important; }
+    .modal.fullscreen-mode textarea.modal-textarea { flex: 1 !important; height: auto !important; }
 
     #toast { position: fixed; bottom: 85px; right: 50%; transform: translateX(50%); background: rgba(30,41,59,0.9); color: white; padding: 6px 16px; border-radius: 16px; font-size: 0.85rem; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
   </style>
@@ -213,7 +234,6 @@
       </div>
     </header>
 
-    <!-- אזור חיפוש וקטגוריות קבוע/דביק בגלילה -->
     <div class="sticky-nav-wrapper">
       <div class="search-wrapper">
         <span class="search-icon">🔍</span>
@@ -233,7 +253,7 @@
         <h3 id="modal-title">פתק חדש</h3>
         <button class="btn btn-fullscreen" onclick="toggleFullscreenModal()" id="fs-btn">🔲 מסך מלא</button>
       </div>
-      <textarea id="note-text-input" placeholder="הקלד כאן..."></textarea>
+      <textarea id="note-text-input" class="modal-textarea" placeholder="הקלד כאן..."></textarea>
       <div class="form-group" id="cat-select-group">
         <label>קטגוריה</label>
         <div style="display: flex; gap: 8px;">
@@ -250,7 +270,6 @@
 
   <div id="toast"></div>
 
-  <!-- טעינת ספריות Firebase וניהול לוגיקה -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -427,7 +446,7 @@
         const cardVars = `style="--cat-bg-color: ${colors.bg}; --cat-border-color: ${colors.border}; --cat-text-color: ${colors.text};"`;
 
         html += `
-          <div class="note-card ${isUrgentClass}" id="note-${id}" ${cardVars}>
+          <div class="note-card ${isUrgentClass}" id="note-card-${id}" ${cardVars}>
             <div class="note-header-top">
               <span class="cat-badge">${catName}</span>
               <div style="display: flex; align-items: center; gap: 4px;">
@@ -435,7 +454,7 @@
                 <div class="menu-wrapper">
                   <button class="menu-btn" onclick="toggleDropdown(event, '${id}')">⋮</button>
                   <div class="dropdown-menu" id="dropdown-${id}">
-                    <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(text || '')}\`, '${catName}')">✏️ עריכה</button>
+                    <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(text || '')}\`, '${catName}')">✏️ עריכה מלאה</button>
                     <button class="dropdown-item" onclick="toggleUrgent('${id}')">${urgent === 'דחוף' ? '☆ הסר דחוף' : '⭐ סמן כדחוף'}</button>
                     <button class="dropdown-item" onclick="shareNote('${id}', false)">🔗 שיתוף (קריאה)</button>
                     <button class="dropdown-item" onclick="shareNote('${id}', true)">🔗 שיתוף (עריכה)</button>
@@ -445,11 +464,39 @@
                 </div>
               </div>
             </div>
-            <div class="note-text">${escapeHtml(text || '')}</div>
+            <textarea class="inline-textarea" id="inline-text-${id}" oninput="showInlineSave('${id}')">${escapeHtml(text || '')}</textarea>
+            <button class="save-inline-btn" id="save-btn-${id}" onclick="saveInlineNote('${id}')">שמור שינויים</button>
           </div>
         `;
       });
       container.innerHTML = html;
+    }
+
+    window.showInlineSave = function(id) {
+      const btn = document.getElementById(`save-btn-${id}`);
+      if (btn) btn.classList.add('show');
+    }
+
+    window.saveInlineNote = async function(id) {
+      const textarea = document.getElementById(`inline-text-${id}`);
+      const btn = document.getElementById(`save-btn-${id}`);
+      const newText = textarea.value.trim();
+
+      btn.disabled = true;
+      btn.innerText = 'שומר...';
+
+      try {
+        await updateDoc(doc(db, "notes", id), { text: newText });
+        const noteObj = allNotes.find(n => n.id === id);
+        if (noteObj) noteObj.text = newText;
+        showToast("הפתק עודכן בהצלחה");
+        btn.classList.remove('show');
+      } catch (err) {
+        console.error(err);
+        showToast("שגיאה בשמירה");
+      }
+      btn.disabled = false;
+      btn.innerText = 'שמור שינויים';
     }
 
     window.toggleDropdown = function(event, id) {
