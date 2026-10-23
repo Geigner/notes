@@ -41,13 +41,15 @@
     .search-icon { position: absolute; top: 50%; right: 16px; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; font-size: 0.9rem; }
 
     /* בר קטגוריות */
-    .categories-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 20px; scrollbar-width: none; }
+    .categories-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 20px; scrollbar-width: none; align-items: center; }
     .categories-bar::-webkit-scrollbar { display: none; }
-    .cat-chip { padding: 5px 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; color: var(--text-muted); transition: all 0.2s; user-select: none; }
+    .cat-chip { padding: 5px 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; color: var(--text-muted); transition: all 0.2s; user-select: none; display: flex; align-items: center; gap: 6px; }
     .cat-chip:hover { background: #f1f5f9; color: var(--text-main); }
     .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: 500; }
     .cat-chip.urgent-chip { border-color: #fde68a; background: #fffbeb; color: #b45309; }
     .cat-chip.urgent-chip.active { background: var(--urgent); color: white; border-color: var(--urgent); }
+    .cat-delete-btn { font-size: 0.75rem; color: inherit; opacity: 0.7; background: none; border: none; cursor: pointer; padding: 0 2px; }
+    .cat-delete-btn:hover { opacity: 1; }
 
     /* רשת הפתקים */
     .notes-list { 
@@ -79,7 +81,6 @@
       box-shadow: 0 0 10px var(--urgent-glow), var(--shadow);
     }
     
-    /* כותרת הפתק העליונה בכרטיס (תאריך, תגית, תפריט נפתח) */
     .note-header-top {
       display: flex;
       justify-content: space-between;
@@ -113,7 +114,7 @@
     .note-text::-webkit-scrollbar { width: 3px; }
     .note-text::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 
-    /* תפריט נפתח (Dropdown) שקט ואלגנטי */
+    /* תפריט נפתח */
     .menu-wrapper { position: relative; display: inline-block; }
     .menu-btn { background: none; border: none; font-size: 1.1rem; color: var(--text-muted); cursor: pointer; padding: 2px 6px; border-radius: 4px; }
     .menu-btn:hover { background: #f1f5f9; color: var(--text-main); }
@@ -302,7 +303,14 @@
         const colors = getCategoryColor(c);
         const chip = document.createElement('div');
         chip.className = `cat-chip ${currentCategory === c ? 'active' : ''}`;
-        chip.innerText = c;
+        
+        let chipContent = `<span>${c}</span>`;
+        // מאפשר מחיקת קטגוריות שאינן ברירת מחדל בסיסית אם רוצים, חוץ מ-'כללי'
+        if (c !== 'כללי') {
+          chipContent += `<button class="cat-delete-btn" onclick="event.stopPropagation(); deleteCategory('${c}')" title="מחק קטגוריה">✕</button>`;
+        }
+        
+        chip.innerHTML = chipContent;
         if (currentCategory !== c) {
           chip.style.background = colors.bg;
           chip.style.color = colors.text;
@@ -314,6 +322,33 @@
 
       const select = document.getElementById('note-cat-select');
       select.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    window.deleteCategory = async function(catName) {
+      if (!confirm(`האם למחוק את הקטגוריה "${catName}"? פתקים שהיו תחתיה יועברו אוטומטית לקטגוריה "כללי".`)) return;
+      
+      // הסרת הקטגוריה מהמערך המקומי
+      categories = categories.filter(c => c !== catName);
+      saveCategoriesToStorage();
+
+      // מעבר על הפתקים בפיירבייס ששייכים לקטגוריה הזו ועדכון שלהם ל-"כללי"
+      try {
+        for (let note of allNotes) {
+          if (note.category === catName) {
+            const noteRef = doc(db, "notes", note.id);
+            await updateDoc(noteRef, { category: 'כללי' });
+          }
+        }
+        if (currentCategory === catName) {
+          currentCategory = 'הכל';
+        }
+        showToast("הקטגוריה נמחקה והפתקים הועברו ל'כללי'");
+        await loadNotes();
+        renderCategories();
+      } catch (e) {
+        console.error(e);
+        showToast("שגיאה בעדכון הפתקים תחת הקטגוריה");
+      }
     }
 
     window.renderNotes = function() {
