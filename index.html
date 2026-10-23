@@ -26,10 +26,12 @@
 
     .container { max-width: 1000px; margin: 0 auto; }
     
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
     h1 { font-size: 1.4rem; font-weight: 600; color: #334155; letter-spacing: -0.3px; }
     
-    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
+    .notes-counter-badge { font-size: 0.8rem; color: var(--text-muted); background: #edf2f7; padding: 5px 12px; border-radius: 16px; font-weight: 500; white-space: nowrap; }
+    
     .btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
     .btn-secondary { font-size: 0.85rem; color: var(--primary); font-weight: 500; padding: 6px 14px; border-radius: 20px; background: #edf2f7; border: 1px solid transparent; }
     .btn-secondary:hover { background: #e2e8f0; }
@@ -189,6 +191,7 @@
     <header>
       <h1 id="app-title">פנקס פתקים</h1>
       <div class="header-actions">
+        <span class="notes-counter-badge" id="notes-counter">מחשב פתקים...</span>
         <button class="btn btn-secondary" onclick="exportBackup()" title="ייצוא קובץ גיבוי מקומי">💾 גיבוי</button>
         <button class="btn btn-secondary" id="archive-view-btn" onclick="toggleArchiveView()">ארכיון</button>
       </div>
@@ -276,10 +279,20 @@
         querySnapshot.forEach((docSnap) => {
           allNotes.push({ id: docSnap.id, ...docSnap.data() });
         });
+        updateCounter();
         renderNotes();
       } catch (err) {
         console.error("שגיאה בטעינת פתקים:", err);
         showToast("שגיאה בטעינת פתקים");
+      }
+    }
+
+    window.updateCounter = function() {
+      const activeCount = allNotes.filter(n => !n.archived).length;
+      const archivedCount = allNotes.filter(n => n.archived).length;
+      const counterElem = document.getElementById('notes-counter');
+      if (counterElem) {
+        counterElem.innerText = `${activeCount} פעילים | ${archivedCount} בארכיון`;
       }
     }
 
@@ -305,7 +318,6 @@
         chip.className = `cat-chip ${currentCategory === c ? 'active' : ''}`;
         
         let chipContent = `<span>${c}</span>`;
-        // מאפשר מחיקת קטגוריות שאינן ברירת מחדל בסיסית אם רוצים, חוץ מ-'כללי'
         if (c !== 'כללי') {
           chipContent += `<button class="cat-delete-btn" onclick="event.stopPropagation(); deleteCategory('${c}')" title="מחק קטגוריה">✕</button>`;
         }
@@ -327,11 +339,9 @@
     window.deleteCategory = async function(catName) {
       if (!confirm(`האם למחוק את הקטגוריה "${catName}"? פתקים שהיו תחתיה יועברו אוטומטית לקטגוריה "כללי".`)) return;
       
-      // הסרת הקטגוריה מהמערך המקומי
       categories = categories.filter(c => c !== catName);
       saveCategoriesToStorage();
 
-      // מעבר על הפתקים בפיירבייס ששייכים לקטגוריה הזו ועדכון שלהם ל-"כללי"
       try {
         for (let note of allNotes) {
           if (note.category === catName) {
@@ -363,7 +373,7 @@
       if (currentCategory === '⭐ דחוף') {
         filtered = filtered.filter(note => note.urgent === 'דחוף');
       } else if (currentCategory !== 'הכל') {
-        filtered = filtered.filter(note => note.category === currentCategory);
+        filtered = filtered.filter(note => (note.category || 'כללי') === currentCategory);
       }
 
       if (searchQuery !== "") {
@@ -381,20 +391,21 @@
       let html = '';
       filtered.forEach(note => {
         const { id, text, date, category, urgent } = note;
+        const catName = category || 'כללי';
         const isUrgentClass = urgent === 'דחוף' ? 'is-urgent' : '';
-        const colors = getCategoryColor(category || 'כללי');
+        const colors = getCategoryColor(catName);
         const cardVars = `style="--cat-bg-color: ${colors.bg}; --cat-border-color: ${colors.border}; --cat-text-color: ${colors.text};"`;
 
         html += `
           <div class="note-card ${isUrgentClass}" id="note-${id}" ${cardVars}>
             <div class="note-header-top">
-              <span class="cat-badge">${category || 'כללי'}</span>
+              <span class="cat-badge">${catName}</span>
               <div style="display: flex; align-items: center; gap: 4px;">
                 <span class="note-date">${date || ''}</span>
                 <div class="menu-wrapper">
                   <button class="menu-btn" onclick="toggleDropdown(event, '${id}')">⋮</button>
                   <div class="dropdown-menu" id="dropdown-${id}">
-                    <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(text || '')}\`, '${category || 'כללי'}')">✏️ עריכה</button>
+                    <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(text || '')}\`, '${catName}')">✏️ עריכה</button>
                     <button class="dropdown-item" onclick="toggleUrgent('${id}')">${urgent === 'דחוף' ? '☆ הסר דחוף' : '⭐ סמן כדחוף'}</button>
                     <button class="dropdown-item" onclick="shareNote('${id}', false)">🔗 שיתוף (קריאה)</button>
                     <button class="dropdown-item" onclick="shareNote('${id}', true)">🔗 שיתוף (עריכה)</button>
