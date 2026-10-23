@@ -381,6 +381,7 @@
       editingNoteId = null;
       document.getElementById('modal-title').innerText = 'פתק חדש';
       document.getElementById('note-text-input').value = '';
+      document.getElementById('note-cat-select').value = categories[0] || 'כללי';
       document.getElementById('note-modal').style.display = 'flex';
     }
 
@@ -398,6 +399,7 @@
 
     window.saveNote = async function() {
       const text = document.getElementById('note-text-input').value.trim();
+      const cat = document.getElementById('note-cat-select').value;
       if (!text) return;
       const btn = document.getElementById('save-modal-btn');
       btn.disabled = true;
@@ -408,10 +410,10 @@
       try {
         if (editingNoteId) {
           const noteRef = doc(db, "notes", editingNoteId);
-          await updateDoc(noteRef, { text: text });
+          // עדכון גם של הטקסט וגם של הקטגוריה שנבחרה
+          await updateDoc(noteRef, { text: text, category: cat });
           showToast("הפתק עודכן בהצלחה");
         } else {
-          const cat = document.getElementById('note-cat-select').value;
           await addDoc(collection(db, "notes"), {
             text: text,
             category: cat,
@@ -422,7 +424,7 @@
           showToast("הפתק נוסף בהצלחה");
         }
         closeModal();
-        loadNotes();
+        await loadNotes(); // טעינה מחדש של הנתונים מיד למסך
       } catch (err) {
         console.error(err);
         showToast("שגיאה בשמירת הפתק");
@@ -437,7 +439,7 @@
       const newUrgent = note.urgent === 'דחוף' ? 'רגיל' : 'דחוף';
       try {
         await updateDoc(doc(db, "notes", id), { urgent: newUrgent });
-        loadNotes();
+        await loadNotes();
       } catch(e) { showToast("שגיאה בעדכון"); }
     }
 
@@ -448,7 +450,7 @@
       try {
         await updateDoc(doc(db, "notes", id), { archived: newArchived });
         showToast(newArchived ? "הועבר לארכיון" : "שוחזר מהארכיון");
-        loadNotes();
+        await loadNotes();
       } catch(e) { showToast("שגיאה בעדכון"); }
     }
 
@@ -457,7 +459,7 @@
       try {
         await deleteDoc(doc(db, "notes", id));
         showToast("הפתק נמחק");
-        loadNotes();
+        await loadNotes();
       } catch(e) { showToast("שגיאה במחיקה"); }
     }
 
