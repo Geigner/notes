@@ -253,7 +253,6 @@
       loadNotes();
     };
 
-    // ניהול קטגוריות מקומיות או פיירבייס
     window.loadCategoriesFromStorage = function() {
       const saved = localStorage.getItem('notes_categories');
       if (saved) {
@@ -448,7 +447,7 @@
       const newArchived = !note.archived;
       try {
         await updateDoc(doc(db, "notes", id), { archived: newArchived });
-        showToast(newArchived ? "הועבר לארכיון"קות : "שוחזר מהארכיון");
+        showToast(newArchived ? "הועבר לארכיון" : "שוחזר מהארכיון");
         loadNotes();
       } catch(e) { showToast("שגיאה בעדכון"); }
     }
