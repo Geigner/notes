@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>פנקס פתקים</title>
+  <title>פנקס פתקים - Firebase</title>
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -84,10 +84,6 @@
       box-shadow: 0 0 16px var(--urgent-glow), var(--shadow-hover);
     }
     
-    .note-card.is-shared {
-      border-bottom: 3px solid var(--shared-color);
-    }
-    
     .note-text { 
       font-size: 0.95rem; 
       line-height: 1.5; 
@@ -121,7 +117,6 @@
       align-items: center;
     }
     .note-date { font-weight: 500; }
-    .shared-badge { color: var(--shared-color); font-weight: 600; font-size: 0.8rem; display: flex; align-items: center; gap: 2px; }
     
     .cat-badge {
       font-weight: 600;
@@ -149,13 +144,12 @@
     
     .note-actions .btn { color: var(--text-muted); font-size: 1.1rem; padding: 2px; }
     .note-actions .btn:hover { color: var(--text-main); transform: scale(1.15); }
-    .note-actions .btn-revoke { color: #ef4444 !important; }
 
     .fab { position: fixed; bottom: 20px; left: 20px; width: 56px; height: 56px; background: var(--primary); color: white; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.2); font-size: 1.8rem; z-index: 10; transition: all 0.2s; }
     .fab:hover { background: var(--primary-hover); transform: scale(1.05); }
 
     .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: flex-end; z-index: 100; transition: all 0.3s ease; }
-    .modal { background: white; width: 100%; max-width: 600px; border-radius: 20px 20px 0 0; padding: 20px; display: flex; flex-direction: column; gap: 16px; animation: slideUp 0.3s ease-out; max-height: 85vh; position: relative; transition: all 0.25s ease-in-out; }
+    .modal { background: white; width: 100%; max-width: 600px; border-radius: 20px 20px 0 0; padding: 20px; display: flex; flex-direction: column; gap: 16px; animation: slideUp 0.3s ease-out; max-height: 85vh; position: relative; }
     
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
@@ -184,51 +178,29 @@
       border-radius: 0 !important;
       animation: none;
     }
-    .modal.fullscreen-mode textarea {
-      flex: 1 !important;
-      height: auto !important;
-    }
+    .modal.fullscreen-mode textarea { flex: 1 !important; height: auto !important; }
 
-    #password-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-color); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
-    .lock-box { background: white; padding: 30px; border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; max-width: 360px; text-align: center; display: flex; flex-direction: column; gap: 16px; }
-    .lock-box input { padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 1.1rem; text-align: center; outline: none; }
-    
     #toast { position: fixed; bottom: 90px; right: 50%; transform: translateX(50%); background: rgba(0,0,0,0.8); color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; display: none; z-index: 1000; }
-
-    .single-mode header .btn-archive-toggle, .single-mode .fab, .single-mode .categories-bar, .single-mode .search-wrapper { display: none !important; }
-    .single-mode .notes-list { grid-template-columns: 1fr; }
-    .single-mode .note-card { height: auto; min-height: 200px; }
-    .single-mode .note-card:hover { transform: none; box-shadow: var(--shadow); border-color: var(--border); }
-    .single-mode .note-text { overflow-y: visible; }
   </style>
 </head>
 <body>
 
-  <div id="password-screen" style="display: none;">
-    <div class="lock-box">
-      <h2 id="lock-title">פנקס מאובטח</h2>
-      <input type="password" id="pass-input" placeholder="הקש סיסמה לתצוגה" onkeydown="if(event.key === 'Enter') verifyPassword()">
-      <button class="btn btn-block btn-submit" onclick="verifyPassword()">כניסה</button>
-      <div id="login-err" style="color:var(--urgent); font-size:0.9rem; display:none;">סיסמה שגויה, נסה שוב.</div>
-    </div>
-  </div>
-
-  <div class="container" id="main-container" style="display: none;">
+  <div class="container" id="main-container">
     <header>
-      <h1 id="app-title">פנקס פתקים</h1>
+      <h1 id="app-title">פנקס פתקים (Firebase)</h1>
       <button class="btn btn-archive-toggle" id="archive-view-btn" onclick="toggleArchiveView()">ארכיון</button>
     </header>
 
     <div class="search-wrapper">
       <span class="search-icon">🔍</span>
-      <input type="text" id="search-input" class="search-input" placeholder="חפש בתוך הפתקים שלך..." oninput="handleSearch()">
+      <input type="text" id="search-input" class="search-input" placeholder="חפש בתוך הפתקים שלך..." oninput="renderNotes()">
     </div>
 
     <div class="categories-bar" id="categories-container"></div>
     <div class="notes-list" id="notes-container"></div>
   </div>
 
-  <button class="btn fab" id="fab-btn" style="display: none;" onclick="openAddModal()">+</button>
+  <button class="btn fab" id="fab-btn" onclick="openAddModal()">+</button>
 
   <div class="overlay" id="note-modal" onclick="if(event.target===this) closeModal()">
     <div class="modal" id="modal-box">
@@ -253,257 +225,114 @@
 
   <div id="toast"></div>
 
-  <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyPDoqiVrsEe10L4zdaxgGMZkGCTgo9du7ahskvsX5QhnPHrTaWLNbfYjCKzDXEiTHW/exec";
+  <!-- טעינת ספריות Firebase וניהול לוגיקה -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAngVWlat_rJQO3lxU6QgiubCCg39EgTtU",
+      authDomain: "notes-1ea7c.firebaseapp.com",
+      projectId: "notes-1ea7c",
+      storageBucket: "notes-1ea7c.firebasestorage.app",
+      messagingSenderId: "708973221800",
+      appId: "1:708973221800:web:d68ddcb51e69e8a450af9d"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
     let currentView = 'active'; 
     let currentCategory = 'הכל';
     let allNotes = [];
-    let categories = [];
+    let categories = ['כללי', 'עבודה', 'אישי', 'רעיונות'];
     let editingNoteId = null;
-    let editTokenFromUrl = null;
-    let userSessionPassword = ""; // שומר את הסיסמה לשימוש בשאר הבקשות
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const noteIdParam = urlParams.get('noteId');
-    editTokenFromUrl = urlParams.get('token');
 
     window.onload = function() {
-      if (noteIdParam) {
-        document.body.classList.add('single-mode');
-        currentView = 'single';
-        document.getElementById('main-container').style.display = 'block';
-        loadSingleNoteView();
-      } else {
-        checkSecurity();
-      }
-      
-      window.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape' || event.key === 'Esc') {
-          const modal = document.getElementById('note-modal');
-          if (modal.style.display === 'flex') {
-            closeModal();
-          } else if (currentView === 'single') {
-            window.location.href = window.location.origin + window.location.pathname;
-          }
-        }
-      });
+      loadCategoriesFromStorage();
+      loadNotes();
     };
 
-    // הזרקת הסיסמה באופן אוטומטי לכל קריאות ה-API
-    async function callAPI(action, data = {}) {
-      data.action = action;
-      data.password = userSessionPassword; 
-      try {
-        const response = await fetch(GAS_URL, {
-          method: 'POST',
-          body: JSON.stringify(data)
-        });
-        return await response.json();
-      } catch (err) {
-        showToast("שגיאת תקשורת בשרת");
-        console.error(err);
-        return null;
+    // ניהול קטגוריות מקומיות או פיירבייס
+    window.loadCategoriesFromStorage = function() {
+      const saved = localStorage.getItem('notes_categories');
+      if (saved) {
+        try { categories = JSON.parse(saved); } catch(e) {}
       }
+      renderCategories();
     }
 
-    function checkSecurity() {
-      // אבטחה משופרת: בדיקה ראשונית מול ה-sessionStorage הזמני
-      const savedPassword = sessionStorage.getItem('userPassword');
-      if (savedPassword) {
-        fetch(GAS_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'checkUserPassword', password: savedPassword })
-        })
-        .then(res => res.json())
-        .then(isValid => {
-          if (isValid) {
-            userSessionPassword = savedPassword;
-            document.getElementById('main-container').style.display = 'block';
-            document.getElementById('fab-btn').style.display = 'flex';
-            initApp();
-            return;
-          }
-          runSecurityFallback();
-        })
-        .catch(() => runSecurityFallback());
-      } else {
-        runSecurityFallback();
-      }
+    window.saveCategoriesToStorage = function() {
+      localStorage.setItem('notes_categories', JSON.stringify(categories));
     }
 
-    function runSecurityFallback() {
-      // בודק אם השרת מאשר גישה בלי סיסמה (במידה ובוטלה בסקריפט)
-      fetch(GAS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'checkUserPassword', password: '' })
-      })
-      .then(res => res.json())
-      .then(isValidWithoutPassword => {
-        if (isValidWithoutPassword) {
-          userSessionPassword = ''; 
-          document.getElementById('main-container').style.display = 'block';
-          document.getElementById('fab-btn').style.display = 'flex';
-          initApp();
-        } else {
-          document.getElementById('password-screen').style.display = 'flex';
-          document.getElementById('pass-input').focus();
-        }
-      })
-      .catch(err => {
-        console.error("שגיאה בבדיקת אבטחה:", err);
-        document.getElementById('password-screen').style.display = 'flex';
-      });
-    }
-
-    function verifyPassword() {
-      const pass = document.getElementById('pass-input').value;
-      fetch(GAS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'checkUserPassword', password: pass })
-      })
-      .then(res => res.json())
-      .then(isValid => {
-        if (isValid) {
-          userSessionPassword = pass; 
-          // אבטחה משופרת: שמירת הסיסמה בלשונית הנוכחית בלבד
-          sessionStorage.setItem('userPassword', pass);
-          document.getElementById('password-screen').style.display = 'none';
-          document.getElementById('main-container').style.display = 'block';
-          document.getElementById('fab-btn').style.display = 'flex';
-          initApp();
-        } else {
-          document.getElementById('login-err').style.display = 'block';
-        }
-      });
-    }
-
-    function initApp() {
-      callAPI('getAppTitle').then(title => { 
-        if(title) {
-          document.getElementById('app-title').innerText = title; 
-          document.title = title; 
-        }
-      });
-      loadCategories();
-      loadNotes();
-    }
-
-    function getCategoryColor(catName) {
-      if (catName === 'הכל' || catName === '⭐ דחוף') return { bg: '#ffffff', border: '#cbd5e1', text: '#1e293b' };
-      let hash = 0;
-      for (let i = 0; i < catName.length; i++) {
-        hash = catName.charCodeAt(i) + ((hash << 5) - hash);
-      }
-      const hue = Math.abs(hash % 360);
-      return {
-        bg: `hsl(${hue}, 85%, 96%)`,
-        border: `hsl(${hue}, 65%, 75%)`,
-        text: `hsl(${hue}, 60%, 30%)`
-      };
-    }
-
-    function loadCategories() {
-      callAPI('getCategories').then(cats => {
-        if (!cats) return;
-        categories = cats;
-        const container = document.getElementById('categories-container');
-        container.innerHTML = '';
-        
-        const allChip = document.createElement('div');
-        allChip.className = `cat-chip ${currentCategory === 'הכל' ? 'active' : ''}`;
-        allChip.innerText = 'הכל';
-        allChip.onclick = () => filterCategory('הכל');
-        container.appendChild(allChip);
-
-        const urgentChip = document.createElement('div');
-        urgentChip.className = `cat-chip urgent-chip ${currentCategory === '⭐ דחוף' ? 'active' : ''}`;
-        urgentChip.innerText = '⭐ דחוף';
-        urgentChip.onclick = () => filterCategory('⭐ דחוף');
-        container.appendChild(urgentChip);
-
-        cats.forEach(c => {
-          const colors = getCategoryColor(c);
-          const chip = document.createElement('div');
-          chip.className = `cat-chip ${currentCategory === c ? 'active' : ''}`;
-          chip.innerText = c;
-          
-          if (currentCategory !== c) {
-            chip.style.background = colors.bg;
-            chip.style.color = colors.text;
-            chip.style.borderColor = colors.border;
-          }
-          
-          chip.onclick = () => filterCategory(c);
-          
-          if (c !== 'כללי') {
-            chip.oncontextmenu = (e) => { e.preventDefault(); deleteCategoryPrompt(c); };
-            let pressTimer;
-            chip.addEventListener('touchstart', () => { pressTimer = setTimeout(() => deleteCategoryPrompt(c), 800); });
-            chip.addEventListener('touchend', () => { clearTimeout(pressTimer); });
-          }
-          container.appendChild(chip);
-        });
-
-        const select = document.getElementById('note-cat-select');
-        select.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-      });
-    }
-
-    function deleteCategoryPrompt(catName) {
-      if (confirm(`האם למחוק את הקטגוריה "${catName}"?\nכל הפתקים שמשתמשים בה יועברו אוטומטית לקטגוריה "כללי".`)) {
-        callAPI('deleteCategory', { name: catName }).then(success => {
-          if (success) {
-            showToast(`הקטגוריה "${catName}" נמחקה`);
-            if (currentCategory === catName) currentCategory = 'הכל';
-            loadCategories();
-            loadNotes();
-          }
-        });
-      }
-    }
-
-    function addNewCategory() {
-      const newCat = prompt("הכנס את שם הקטגוריה החדשה:");
-      if (newCat && newCat.trim() !== "") {
-        callAPI('addCategory', { name: newCat.trim() }).then(success => {
-          if (success) {
-            showToast("הקטגוריה התווספה בהצלחה!");
-            loadCategories();
-          }
-        });
-      }
-    }
-
-    function loadNotes() {
-      const action = currentView === 'active' ? 'getNotes' : 'getArchivedNotes';
+    window.loadNotes = async function() {
       document.getElementById('notes-container').innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column: 1/-1;">טוען פתקים...</p>';
-      callAPI(action).then(notes => {
-        allNotes = notes || [];
-        renderNotesList(allNotes);
+      try {
+        const querySnapshot = await getDocs(collection(db, "notes"));
+        allNotes = [];
+        querySnapshot.forEach((docSnap) => {
+          allNotes.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        renderNotes();
+      } catch (err) {
+        console.error("שגיאה בטעינת פתקים:", err);
+        showToast("שגיאה בטעינת פתקים (ייתכן שאופליין)");
+      }
+    }
+
+    window.renderCategories = function() {
+      const container = document.getElementById('categories-container');
+      container.innerHTML = '';
+      
+      const allChip = document.createElement('div');
+      allChip.className = `cat-chip ${currentCategory === 'הכל' ? 'active' : ''}`;
+      allChip.innerText = 'הכל';
+      allChip.onclick = () => { currentCategory = 'הכל'; renderCategories(); renderNotes(); };
+      container.appendChild(allChip);
+
+      const urgentChip = document.createElement('div');
+      urgentChip.className = `cat-chip urgent-chip ${currentCategory === '⭐ דחוף' ? 'active' : ''}`;
+      urgentChip.innerText = '⭐ דחוף';
+      urgentChip.onclick = () => { currentCategory = '⭐ דחוף'; renderCategories(); renderNotes(); };
+      container.appendChild(urgentChip);
+
+      categories.forEach(c => {
+        const colors = getCategoryColor(c);
+        const chip = document.createElement('div');
+        chip.className = `cat-chip ${currentCategory === c ? 'active' : ''}`;
+        chip.innerText = c;
+        if (currentCategory !== c) {
+          chip.style.background = colors.bg;
+          chip.style.color = colors.text;
+          chip.style.borderColor = colors.border;
+        }
+        chip.onclick = () => { currentCategory = c; renderCategories(); renderNotes(); };
+        container.appendChild(chip);
       });
+
+      const select = document.getElementById('note-cat-select');
+      select.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
     }
 
-    function handleSearch() {
-      renderNotesList(allNotes);
-    }
-
-    function renderNotesList(notes) {
+    window.renderNotes = function() {
       const container = document.getElementById('notes-container');
       const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
       
-      let filtered = [];
-      if (currentCategory === 'הכל') {
-        filtered = notes;
-      } else if (currentCategory === '⭐ דחוף') {
-        filtered = notes.filter(note => note[4] === 'דחוף');
-      } else {
-        filtered = notes.filter(note => note[3] === currentCategory);
+      let filtered = allNotes.filter(note => {
+        const isArchived = note.archived === true;
+        return currentView === 'active' ? !isArchived : isArchived;
+      });
+
+      if (currentCategory === '⭐ דחוף') {
+        filtered = filtered.filter(note => note.urgent === 'דחוף');
+      } else if (currentCategory !== 'הכל') {
+        filtered = filtered.filter(note => note.category === currentCategory);
       }
 
       if (searchQuery !== "") {
         filtered = filtered.filter(note => {
-          const text = note[1] ? note[1].toLowerCase() : "";
+          const text = note.text ? note.text.toLowerCase() : "";
           return text.includes(searchQuery);
         });
       }
@@ -515,29 +344,24 @@
 
       let html = '';
       filtered.forEach(note => {
-        const [id, text, date, cat, urgent, token] = note;
+        const { id, text, date, category, urgent } = note;
         const isUrgentClass = urgent === 'דחוף' ? 'is-urgent' : '';
-        const isShared = token && token.trim() !== ''; 
-        const isSharedClass = isShared ? 'is-shared' : '';
-        
-        const colors = getCategoryColor(cat || 'כללי');
+        const colors = getCategoryColor(category || 'כללי');
         const cardVars = `style="--cat-bg-color: ${colors.bg}; --cat-border-color: ${colors.border}; --cat-text-color: ${colors.text};"`;
 
         html += `
-          <div class="note-card ${isUrgentClass} ${isSharedClass}" id="note-${id}" ${cardVars}>
-            <div class="note-text">${escapeHtml(text)}</div>
+          <div class="note-card ${isUrgentClass}" id="note-${id}" ${cardVars}>
+            <div class="note-text">${escapeHtml(text || '')}</div>
             <div class="note-footer">
               <div class="note-meta">
-                <span class="note-date">${date}</span>
-                ${isShared ? `<span class="shared-badge" title="פתק משותף">👥 <span class="cat-badge">${cat || 'כללי'}</span></span>` : `<span class="cat-badge">${cat || 'כללי'}</span>`}
+                <span class="note-date">${date || ''}</span>
+                <span class="cat-badge">${category || 'כללי'}</span>
               </div>
               <div class="note-actions">
-                <button class="btn" onclick="toggleUrgentServer('${id}')" title="דחוף">${urgent === 'דחוף' ? '⭐' : '☆'}</button>
-                <button class="btn" onclick="openEditModal('${id}', \`${escapeRowText(text)}\`, '${cat || 'כללי'}')" title="עריכה">✏️</button>
-                <button class="btn" onclick="shareNote('${id}')" title="שיתוף">🔗</button>
-                ${isShared ? `<button class="btn btn-revoke" onclick="revokeShareServer('${id}')" title="בטל שיתוף וחסום גישה">🔓</button>` : ''}
-                <button class="btn" onclick="toggleArchiveServer('${id}')" title="${currentView === 'active' ? 'ארכיון' : 'שחזר'}">${currentView === 'active' ? '📦' : '📤'}</button>
-                <button class="btn" onclick="deleteNoteServer('${id}')" title="מחיקה">🗑️</button>
+                <button class="btn" onclick="toggleUrgent('${id}')" title="דחוף">${urgent === 'דחוף' ? '⭐' : '☆'}</button>
+                <button class="btn" onclick="openEditModal('${id}', \`${escapeRowText(text || '')}\`, '${category || 'כללי'}')" title="עריכה">✏️</button>
+                <button class="btn" onclick="toggleArchive('${id}')" title="${currentView === 'active' ? 'ארכיון' : 'שחזר'}">${currentView === 'active' ? '📦' : '📤'}</button>
+                <button class="btn" onclick="deleteNote('${id}')" title="מחיקה">🗑️</button>
               </div>
             </div>
           </div>
@@ -546,68 +370,120 @@
       container.innerHTML = html;
     }
 
-    function loadSingleNoteView() {
-      document.getElementById('notes-container').innerHTML = '<p style="text-align:center; color:var(--text-muted);">טוען פתק משותף...</p>';
-      
-      // שליחת בקשה שמציינת מצב שיתוף מורשה יחד עם הטוקן שהתקבל בכתובת
-      const sharePayload = { isShareMode: true, token: editTokenFromUrl || "" };
-      
-      callAPI('getNotes', sharePayload).then(active => {
-        callAPI('getArchivedNotes', sharePayload).then(archived => {
-          const combined = [...(active || []), ...(archived || [])];
-          const note = combined.find(n => n[0].toString() === noteIdParam.toString());
-          
-          if (!note) {
-            document.getElementById('notes-container').innerHTML = '<p style="text-align:center; color:var(--urgent);">הפתק לא נמצא או שהשיתוף בוטל</p>';
-            return;
-          }
-
-          const [id, text, date, cat, urgent, token] = note;
-          
-          // בדיקת מצב העריכה על פי הסימון שייצרנו ב-URL
-          const isEditLink = urlParams.get('mode') === 'edit';
-          const canEdit = isEditLink && editTokenFromUrl && token && editTokenFromUrl === token;
-          
-          const colors = getCategoryColor(cat || 'כללי');
-          const cardVars = `style="--cat-bg-color: ${colors.bg}; --cat-border-color: ${colors.border}; --cat-text-color: ${colors.text};"`;
-
-          if (isEditLink && (!token || editTokenFromUrl !== token)) {
-            document.getElementById('notes-container').innerHTML = '<p style="text-align:center; color:var(--urgent); margin-top:20px;">הגישה לעריכת פתק זה בוטלה על ידי הבעלים</p>';
-            return;
-          }
-
-          let html = `
-            <div class="note-card ${urgent === 'דחוף' ? 'is-urgent' : ''}" ${cardVars}>
-              <div class="note-text" id="single-text">${escapeHtml(text)}</div>
-              <div class="note-footer">
-                <div class="note-meta"><span class="note-date">${date}</span><span class="cat-badge">${cat || 'כללי'}</span></div>
-                <div class="note-actions" style="justify-content: flex-start;">
-                  ${canEdit ? `<button class="btn" onclick="openEditModal('${id}', \`${escapeRowText(text)}\`, '${cat || 'כללי'}')">✏️ עריכת פתק משותף</button>` : '👁️ תצוגת קריאה בלבד'}
-                </div>
-              </div>
-            </div>
-          `;
-          document.getElementById('notes-container').innerHTML = html;
-        });
-      });
+    window.getCategoryColor = function(catName) {
+      if (catName === 'הכל' || catName === '⭐ דחוף') return { bg: '#ffffff', border: '#cbd5e1', text: '#1e293b' };
+      let hash = 0;
+      for (let i = 0; i < catName.length; i++) { hash = catName.charCodeAt(i) + ((hash << 5) - hash); }
+      const hue = Math.abs(hash % 360);
+      return { bg: `hsl(${hue}, 85%, 96%)`, border: `hsl(${hue}, 65%, 75%)`, text: `hsl(${hue}, 60%, 30%)` };
     }
 
-    function filterCategory(cat) {
-      currentCategory = cat;
-      loadCategories();
-      if (currentView !== 'single') renderNotesList(allNotes);
+    window.openAddModal = function() {
+      editingNoteId = null;
+      document.getElementById('modal-title').innerText = 'פתק חדש';
+      document.getElementById('note-text-input').value = '';
+      document.getElementById('note-modal').style.display = 'flex';
     }
 
-    function toggleArchiveView() {
+    window.openEditModal = function(id, text, cat) {
+      editingNoteId = id;
+      document.getElementById('modal-title').innerText = 'עריכת פתק';
+      document.getElementById('note-text-input').value = text;
+      document.getElementById('note-cat-select').value = cat || "כללי";
+      document.getElementById('note-modal').style.display = 'flex';
+    }
+
+    window.closeModal = function() {
+      document.getElementById('note-modal').style.display = 'none';
+    }
+
+    window.saveNote = async function() {
+      const text = document.getElementById('note-text-input').value.trim();
+      if (!text) return;
+      const btn = document.getElementById('save-modal-btn');
+      btn.disabled = true;
+      btn.innerText = 'שומר...';
+
+      const dateStr = new Date().toLocaleDateString('he-IL') + ' ' + new Date().toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'});
+
+      try {
+        if (editingNoteId) {
+          const noteRef = doc(db, "notes", editingNoteId);
+          await updateDoc(noteRef, { text: text });
+          showToast("הפתק עודכן בהצלחה");
+        } else {
+          const cat = document.getElementById('note-cat-select').value;
+          await addDoc(collection(db, "notes"), {
+            text: text,
+            category: cat,
+            date: dateStr,
+            urgent: 'רגיל',
+            archived: false
+          });
+          showToast("הפתק נוסף בהצלחה");
+        }
+        closeModal();
+        loadNotes();
+      } catch (err) {
+        console.error(err);
+        showToast("שגיאה בשמירת הפתק");
+      }
+      btn.disabled = false;
+      btn.innerText = 'שמירה';
+    }
+
+    window.toggleUrgent = async function(id) {
+      const note = allNotes.find(n => n.id === id);
+      if (!note) return;
+      const newUrgent = note.urgent === 'דחוף' ? 'רגיל' : 'דחוף';
+      try {
+        await updateDoc(doc(db, "notes", id), { urgent: newUrgent });
+        loadNotes();
+      } catch(e) { showToast("שגיאה בעדכון"); }
+    }
+
+    window.toggleArchive = async function(id) {
+      const note = allNotes.find(n => n.id === id);
+      if (!note) return;
+      const newArchived = !note.archived;
+      try {
+        await updateDoc(doc(db, "notes", id), { archived: newArchived });
+        showToast(newArchived ? "הועבר לארכיון"קות : "שוחזר מהארכיון");
+        loadNotes();
+      } catch(e) { showToast("שגיאה בעדכון"); }
+    }
+
+    window.deleteNote = async function(id) {
+      if (!confirm("האם למחוק פתק זה לצמיתות?")) return;
+      try {
+        await deleteDoc(doc(db, "notes", id));
+        showToast("הפתק נמחק");
+        loadNotes();
+      } catch(e) { showToast("שגיאה במחיקה"); }
+    }
+
+    window.addNewCategory = function() {
+      const newCat = prompt("הכנס את שם הקטגוריה החדשה:");
+      if (newCat && newCat.trim() !== "") {
+        const name = newCat.trim();
+        if (!categories.includes(name)) {
+          categories.push(name);
+          saveCategoriesToStorage();
+          renderCategories();
+          showToast("הקטגוריה התווספה!");
+        }
+      }
+    }
+
+    window.toggleArchiveView = function() {
       currentView = currentView === 'active' ? 'archived' : 'active';
       document.getElementById('archive-view-btn').innerText = currentView === 'active' ? 'ארכיון' : 'פתקים פעילים';
       document.getElementById('archive-view-btn').style.background = currentView === 'active' ? '#eef2f7' : '#4a6fa5';
       document.getElementById('archive-view-btn').style.color = currentView === 'active' ? 'var(--primary)' : 'white';
-      document.getElementById('search-input').value = "";
-      loadNotes();
+      renderNotes();
     }
 
-    function toggleFullscreenModal() {
+    window.toggleFullscreenModal = function() {
       const modal = document.getElementById('modal-box');
       const btn = document.getElementById('fs-btn');
       if (modal.classList.contains('fullscreen-mode')) {
@@ -619,141 +495,18 @@
       }
     }
 
-    function openAddModal() {
-      editingNoteId = null;
-      document.getElementById('modal-title').innerText = 'פתק חדש';
-      document.getElementById('note-text-input').value = '';
-      document.getElementById('cat-select-group').style.display = 'flex';
-      document.getElementById('modal-box').classList.remove('fullscreen-mode');
-      document.getElementById('fs-btn').innerHTML = '🔲 מסך מלא';
-      document.getElementById('note-modal').style.display = 'flex';
-    }
-
-    function openEditModal(id, text, cat) {
-      editingNoteId = id;
-      document.getElementById('modal-title').innerText = 'עריכת פתק';
-      document.getElementById('note-text-input').value = text;
-      document.getElementById('modal-box').classList.remove('fullscreen-mode');
-      document.getElementById('fs-btn').innerHTML = '🔲 מסך מלא';
-
-      if (currentView === 'single') {
-        document.getElementById('cat-select-group').style.display = 'none';
-      } else {
-        document.getElementById('cat-select-group').style.display = 'flex';
-        document.getElementById('note-cat-select').value = cat || "כללי";
-      }
-      document.getElementById('note-modal').style.display = 'flex';
-    }
-
-    function closeModal() {
-      document.getElementById('note-modal').style.display = 'none';
-    }
-
-    function logout() {
-      sessionStorage.removeItem('userPassword');
-      window.location.reload();
-    }
-
-    function saveNote() {
-      const text = document.getElementById('note-text-input').value.trim();
-      if (!text) return;
-      document.getElementById('save-modal-btn').disabled = true;
-      document.getElementById('save-modal-btn').innerText = 'שומר...';
-
-      if (editingNoteId) {
-        const token = currentView === 'single' ? editTokenFromUrl : "";
-        callAPI('updateNoteInSheet', { id: editingNoteId, text: text, token: token }).then(success => {
-          if (success) {
-            showToast("הפתק עודכן בהצלחה");
-            closeModal();
-            if (currentView === 'single') loadSingleNoteView(); else loadNotes();
-          } else {
-            showToast("שגיאה: אין הרשאת עריכה או שהשיתוף בוטל");
-          }
-          resetModalButton();
-        });
-      } else {
-        const cat = document.getElementById('note-cat-select').value;
-        callAPI('addNoteToSheet', { text: text, category: cat }).then(success => {
-          if (success) {
-            showToast("הפתק התווספה");
-            closeModal();
-            loadNotes();
-          }
-          resetModalButton();
-        });
-      }
-    }
-
-    function resetModalButton() {
-      document.getElementById('save-modal-btn').disabled = false;
-      document.getElementById('save-modal-btn').innerText = 'שמירה';
-    }
-
-    function toggleUrgentServer(id) {
-      callAPI('toggleUrgent', { id: id }).then(() => loadNotes());
-    }
-
-    function toggleArchiveServer(id) {
-      callAPI('toggleArchive', { id: id }).then(() => loadNotes());
-    }
-
-    function deleteNoteServer(id) {
-      if (confirm("האם למחוק פתק זה לצמיתות?")) {
-        callAPI('deleteNoteFromSheet', { id: id }).then(() => loadNotes());
-      }
-    }
-
-    function revokeShareServer(id) {
-      if (confirm("האם אתה בטוח שברצונך לבטל את שיתוף הפתק?\nכל מי שקיבל את הקישור לעריכה ייחסם מיד.")) {
-        callAPI('revokeShare', { id: id }).then(success => {
-          if (success) {
-            showToast("השיתוף בוטל בהצלחה והגישה נחסמה!");
-            loadNotes();
-          } else {
-            showToast("שגיאה בביטול השיתוף");
-          }
-        });
-      }
-    }
-
-    function shareNote(id) {
-      const choice = confirm("לחץ 'אישור' ליצירת קישור לעריכה\nלחץ 'ביטול' ליצירת קישור לצפייה בלבד");
-      callAPI('getShareLinkData', { id: id, edit: choice }).then(data => {
-        if (!data) return;
-        let shareUrl = window.location.origin + window.location.pathname + "?noteId=" + data.id;
-        
-        // הזרקה קבועה של הטוקן כדי לעבור את חומת האבטחה הגלובלית ב-GAS
-        if (data.token) {
-          shareUrl += "&token=" + data.token;
-        }
-        
-        // סימון מצב הגישה המבוקש בכתובת עצמה
-        if (data.allowEdit) {
-          shareUrl += "&mode=edit";
-        } else {
-          shareUrl += "&mode=view";
-        }
-        
-        navigator.clipboard.writeText(shareUrl).then(() => {
-          showToast("הקישור הועתק ללוח!");
-          loadNotes(); 
-        });
-      });
-    }
-
-    function showToast(msg) {
+    window.showToast = function(msg) {
       const toast = document.getElementById('toast');
       toast.innerText = msg;
       toast.style.display = 'block';
       setTimeout(() => { toast.style.display = 'none'; }, 2500);
     }
 
-    function escapeHtml(text) {
+    window.escapeHtml = function(text) {
       return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    function escapeRowText(text) {
+    window.escapeRowText = function(text) {
       return text.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/"/g, '&quot;');
     }
   </script>
