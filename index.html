@@ -35,6 +35,7 @@
     .btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
     .btn-secondary { font-size: 0.85rem; color: var(--primary); font-weight: 500; padding: 6px 12px; border-radius: 20px; background: #edf2f7; border: 1px solid transparent; }
     .btn-secondary:hover { background: #e2e8f0; }
+    .btn-secondary.active-mode { background: var(--primary); color: white; }
 
     /* בר חיפוש */
     .search-wrapper { margin-bottom: 16px; position: relative; }
@@ -45,11 +46,13 @@
     /* בר קטגוריות */
     .categories-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 20px; scrollbar-width: none; align-items: center; }
     .categories-bar::-webkit-scrollbar { display: none; }
-    .cat-chip { padding: 5px 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; color: var(--text-muted); transition: all 0.2s; user-select: none; }
+    .cat-chip { padding: 5px 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; color: var(--text-muted); transition: all 0.2s; user-select: none; display: flex; align-items: center; gap: 6px; }
     .cat-chip:hover { background: #f1f5f9; color: var(--text-main); }
     .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: 500; }
     .cat-chip.urgent-chip { border-color: #fde68a; background: #fffbeb; color: #b45309; }
     .cat-chip.urgent-chip.active { background: var(--urgent); color: white; border-color: var(--urgent); }
+    .cat-delete-btn { font-size: 0.75rem; color: inherit; opacity: 0.8; background: rgba(0,0,0,0.06); border-radius: 50%; width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
+    .cat-delete-btn:hover { background: rgba(225,29,72,0.2); color: #e11d48; }
 
     /* רשת הפתקים */
     .notes-list { 
@@ -175,7 +178,7 @@
     .btn-submit { background: var(--primary); color: white; }
     .btn-submit:hover { background: var(--primary-hover); }
     .btn-cancel { background: #f1f5f9; color: var(--text-main); }
-    .btn-cancel:hover { background: #e2e8f0; }
+    .btn-cancel:hover { background: #e2e6ea; }
 
     .modal.fullscreen-mode { max-width: 100vw !important; height: 100vh !important; max-height: 100vh !important; border-radius: 0 !important; animation: none; }
     .modal.fullscreen-mode textarea { flex: 1 !important; height: auto !important; }
@@ -193,7 +196,7 @@
         <button class="btn btn-secondary" onclick="exportBackup()" title="ייצוא קובץ גיבוי מקומי">💾 גיבוי</button>
         <button class="btn btn-secondary" onclick="triggerImport()" title="ייבוא פתקים מקובץ JSON">📥 ייבוא</button>
         <input type="file" id="import-file-input" style="display: none" accept=".json" onchange="importBackup(event)">
-        <button class="btn btn-secondary" onclick="manageCategories()" title="ניהול קטגוריות">⚙️ קטגוריות</button>
+        <button class="btn btn-secondary" id="manage-cat-btn" onclick="toggleCategoryManagement()" title="ניהול ומחיקת קטגוריות">⚙️ ניהול קטגוריות</button>
         <button class="btn btn-secondary" id="archive-view-btn" onclick="toggleArchiveView()">ארכיון</button>
       </div>
     </header>
@@ -254,6 +257,7 @@
     let allNotes = [];
     let categories = ['כללי', 'עבודה', 'אישי', 'רעיונות'];
     let editingNoteId = null;
+    let isManagingCategories = false; // מצב ניהול קטגוריות כבוי כברירת מחדל
 
     window.onload = function() {
       loadCategoriesFromStorage();
@@ -297,6 +301,19 @@
       }
     }
 
+    window.toggleCategoryManagement = function() {
+      isManagingCategories = !isManagingCategories;
+      const btn = document.getElementById('manage-cat-btn');
+      if (isManagingCategories) {
+        btn.classList.add('active-mode');
+        btn.innerText = '⚙️ סיום ניהול';
+      } else {
+        btn.classList.remove('active-mode');
+        btn.innerText = '⚙️ ניהול קטגוריות';
+      }
+      renderCategories();
+    }
+
     window.renderCategories = function() {
       const container = document.getElementById('categories-container');
       container.innerHTML = '';
@@ -317,7 +334,14 @@
         const colors = getCategoryColor(c);
         const chip = document.createElement('div');
         chip.className = `cat-chip ${currentCategory === c ? 'active' : ''}`;
-        chip.innerText = c;
+        
+        let chipContent = `<span>${c}</span>`;
+        // מציג את כפתור ה-✕ רק אם מצב ניהול קטגוריות פתוח וזו לא קטגוריית "כללי"
+        if (isManagingCategories && c !== 'כללי') {
+          chipContent += `<button class="cat-delete-btn" onclick="event.stopPropagation(); deleteCategory('${c}')" title="מחק קטגוריה">✕</button>`;
+        }
+
+        chip.innerHTML = chipContent;
         if (currentCategory !== c) {
           chip.style.background = colors.bg;
           chip.style.color = colors.text;
@@ -331,37 +355,24 @@
       select.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
     }
 
-    window.manageCategories = async function() {
-      const catListStr = categories.join(', ');
-      const action = prompt(`קטגוריות קיימות: [ ${catListStr} ]\n\nהקלד שם קטגוריה שתרצה למחוק, או לחץ ביטול. (פתקים שתחתיה יעברו ל'כללי')`);
-      if (!action) return;
-      const catToDelete = action.trim();
+    window.deleteCategory = async function(catName) {
+      if (!confirm(`האם למחוק את הקטגוריה "${catName}"? פתקים שהיו תחתיה יועברו אוטומטית לקטגוריה "כללי".`)) return;
       
-      if (!categories.includes(catToDelete)) {
-        alert("הקטגוריה לא נמצאה.");
-        return;
-      }
-      if (catToDelete === 'כללי') {
-        alert("לא ניתן למחוק את קטגוריית ברירת המחדל 'כללי'.");
-        return;
-      }
-
-      if (!confirm(`האם למחוק את הקטגוריה "${catToDelete}"? פתקים תחתיה יועברו ל'כללי'.`)) return;
-
-      categories = categories.filter(c => c !== catToDelete);
+      categories = categories.filter(c => c !== catName);
       saveCategoriesToStorage();
 
       try {
         for (let note of allNotes) {
-          if (note.category === catToDelete) {
+          if (note.category === catName) {
             await updateDoc(doc(db, "notes", note.id), { category: 'כללי' });
           }
         }
-        if (currentCategory === catToDelete) currentCategory = 'הכל';
-        showToast("הקטגוריה נמחקה בהצלחה");
+        if (currentCategory === catName) currentCategory = 'הכל';
+        showToast("הקטגוריה נמחקה והפתקים הועברו ל'כללי'");
         await loadNotes();
         renderCategories();
-      } catch(e) {
+      } catch (e) {
+        console.error(e);
         showToast("שגיאה במחיקת הקטגוריה");
       }
     }
@@ -581,9 +592,8 @@
 
           if (!confirm(`האם לייבא ${importedNotes.length} פתקים חדשים אל תוך מסד הנתונים?`)) return;
 
-          showStatMessage("מייבא פתקים...");
+          document.getElementById('notes-container').innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column: 1/-1;">מייבא פתקים...</p>';
           for (let note of importedNotes) {
-            // הוספה כפתקים חדשים לפיירבייס
             await addDoc(collection(db, "notes"), {
               text: note.text || '',
               category: note.category || 'כללי',
@@ -592,7 +602,6 @@
               archived: note.archived || false
             });
 
-            // אם יש קטגוריות חדשות שלא קיימות, נוסיף אותן לרשימה
             if (note.category && !categories.includes(note.category)) {
               categories.push(note.category);
             }
@@ -606,7 +615,7 @@
           console.error(err);
           alert("שגיאה בקריאת קובץ ה-JSON.");
         }
-        event.target.value = ''; // איפוס האינפוט
+        event.target.value = '';
       };
       reader.readAsText(file);
     }
@@ -647,10 +656,6 @@
       toast.innerText = msg;
       toast.style.display = 'block';
       setTimeout(() => { toast.style.display = 'none'; }, 2500);
-    }
-
-    window.showStatMessage = function(msg) {
-      document.getElementById('notes-container').innerHTML = `<p style="text-align:center; color:var(--text-muted); grid-column: 1/-1;">${msg}</p>`;
     }
 
     window.escapeHtml = function(text) {
