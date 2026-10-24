@@ -25,8 +25,47 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Assistant', sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; padding-bottom: 90px; }
 
-    .container { max-width: 1000px; margin: 0 auto; }
+    .container { max-width: 1000px; margin: 0 auto; display: none; } /* מוסתר עד להזדהות */
     
+    #auth-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+      text-align: center;
+      gap: 16px;
+    }
+
+    .auth-card {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: var(--shadow-hover);
+      border: 1px solid var(--border);
+      max-width: 380px;
+      width: 100%;
+    }
+
+    .btn-google {
+      background: #4285f4;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 24px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      margin-top: 16px;
+      transition: background 0.2s;
+    }
+    .btn-google:hover { background: #3367d6; }
+
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
     h1 { font-size: 1.4rem; font-weight: 600; color: #334155; letter-spacing: -0.3px; }
     
@@ -194,7 +233,7 @@
     .dropdown-item.danger { color: #e11d48; }
     .dropdown-item.danger:hover { background: #fff1f2; }
 
-    .fab { position: fixed; bottom: 24px; left: 24px; width: 52px; height: 52px; background: var(--primary); color: white; border-radius: 50%; box-shadow: 0 4px 12px rgba(92,118,141,0.3); font-size: 1.6rem; z-index: 100; transition: transform 0.2s; }
+    .fab { position: fixed; bottom: 24px; left: 24px; width: 52px; height: 52px; background: var(--primary); color: white; border-radius: 50%; box-shadow: 0 4px 12px rgba(92,118,141,0.3); font-size: 1.6rem; z-index: 100; transition: transform 0.2s; display: none; }
     .fab:hover { background: var(--primary-hover); transform: scale(1.04); }
 
     .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); display: none; justify-content: center; align-items: flex-end; z-index: 200; backdrop-filter: blur(2px); }
@@ -258,6 +297,20 @@
 </head>
 <body onclick="closeAllDropdowns(event)">
 
+  <!-- מסך התחברות -->
+  <div id="auth-screen">
+    <div class="auth-card">
+      <h2>🧠 הפנקס - אישי</h2>
+      <p style="color: var(--text-muted); margin-top: 8px; font-size: 0.9rem;">
+        הפנקס מוגן. התחבר עם חשבון גוגל שלך כדי לצפות בפתקים.
+      </p>
+      <button class="btn-google" onclick="loginWithGoogle()">
+        <span>🔑 התחברות עם Google</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- האפליקציה הראשית -->
   <div class="container" id="main-container">
     <header>
       <h1 id="app-title">הפנקס</h1>
@@ -268,6 +321,7 @@
         <input type="file" id="import-file-input" style="display: none" accept=".json" onchange="importBackup(event)">
         <button class="btn btn-secondary" id="manage-cat-btn" onclick="toggleCategoryManagement()" title="ניהול ומחיקת קטגוריות">⚙️ ניהול קטגוריות</button>
         <button class="btn btn-secondary" id="archive-view-btn" onclick="toggleArchiveView()">ארכיון</button>
+        <button class="btn btn-secondary" onclick="logoutFromGoogle()" title="התנתקות">🚪 התנתק</button>
       </div>
     </header>
 
@@ -313,6 +367,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAngVWlat_rJQO3lxU6QgiubCCg39EgTtU",
@@ -325,7 +380,10 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
+    let currentUser = null;
     let currentView = 'active'; 
     let currentCategory = 'הכל';
     let allNotes = [];
@@ -334,7 +392,35 @@
     let isManagingCategories = false;
     let unsubscribeNotes = null;
 
-    // מנגנון זיהוי דיבור משופר (מצטבר נכון)
+    // האזנה להתחברות
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('main-container').style.display = 'block';
+        document.getElementById('fab-btn').style.display = 'flex';
+        startRealtimeListener();
+      } else {
+        currentUser = null;
+        if (unsubscribeNotes) unsubscribeNotes();
+        document.getElementById('auth-screen').style.display = 'flex';
+        document.getElementById('main-container').style.display = 'none';
+        document.getElementById('fab-btn').style.display = 'none';
+      }
+    });
+
+    window.loginWithGoogle = function() {
+      signInWithPopup(auth, provider).catch(error => {
+        console.error("שגיאה בהתחברות:", error);
+        alert("שגיאה בהתחברות עם גוגל");
+      });
+    }
+
+    window.logoutFromGoogle = function() {
+      signOut(auth);
+    }
+
+    // מנגנון זיהוי דיבור
     let recognition = null;
     let isRecording = false;
     let baseTextBeforeRecording = '';
@@ -352,7 +438,6 @@
           interimTranscript += event.results[i][0].transcript;
         }
         const input = document.getElementById('note-text-input');
-        // שומר על מה שהיה לפני שהתחלנו להקליט, ומוסיף את מה שהוקלט כרגע
         input.value = baseTextBeforeRecording + (baseTextBeforeRecording && interimTranscript ? ' ' : '') + interimTranscript;
       };
 
@@ -402,19 +487,16 @@
     }
 
     window.onload = function() {
-      startRealtimeListener();
-
       document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") {
+        if (document.visibilityState === "visible" && currentUser) {
           startRealtimeListener();
         }
       });
     };
 
     function startRealtimeListener() {
-      if (unsubscribeNotes) {
-        unsubscribeNotes();
-      }
+      if (!currentUser) return;
+      if (unsubscribeNotes) unsubscribeNotes();
 
       document.getElementById('notes-container').innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column: 1/-1;">מתחבר לענן בזמן אמת...</p>';
       
@@ -437,7 +519,7 @@
         renderNotes();
       }, (error) => {
         console.error("שגיאה בסנכרון פתקים:", error);
-        showToast("שגיאה בחיבור לענן - בדוק חיבור אינטרנט");
+        showToast("שגיאה בחיבור לענן - בדוק הרשאות או חיבור");
       });
     }
 
@@ -667,7 +749,7 @@
       editingNoteId = id;
       document.getElementById('modal-title').innerText = 'עריכת פתק';
       document.getElementById('note-text-input').value = text;
-      baseTextBeforeRecording = text; // אם נרצה להוסיף הקלטה על פתק קיים
+      baseTextBeforeRecording = text;
       document.getElementById('note-cat-select').value = cat || "כללי";
       document.getElementById('note-modal').style.display = 'flex';
       stopVoiceRecognition();
