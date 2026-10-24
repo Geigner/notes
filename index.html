@@ -878,8 +878,16 @@
       } else {
         shareUrl += "&mode=view";
       }
+      
       navigator.clipboard.writeText(shareUrl).then(() => {
-        showToast(allowEdit ? "קישור לעריכה הועתק ללוח!" : "קישור לצפייה הועתק ללוח!");
+        showToast(allowEdit ? "קישור לעריכה הועתק! פותח וואטסאפ..." : "קישור לצפייה הועתק! פותח וואטסאפ...");
+        
+        const text = encodeURIComponent(`הנה הקישור לפתק:\n${shareUrl}`);
+        window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+      }).catch(err => {
+        console.error(err);
+        const text = encodeURIComponent(`הנה הקישור לפתק:\n${shareUrl}`);
+        window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
       });
     }
 
