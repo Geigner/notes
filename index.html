@@ -56,8 +56,14 @@
     .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(92, 118, 141, 0.08); }
     .search-icon { position: absolute; top: 50%; right: 16px; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; font-size: 0.9rem; }
 
-    .categories-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; align-items: center; }
-    .categories-bar::-webkit-scrollbar { display: none; }
+    /* בר קטגוריות מותאם גם לנייד עם ירידת שורה אוטומטית */
+    .categories-bar { 
+      display: flex; 
+      gap: 8px; 
+      flex-wrap: wrap; 
+      padding-bottom: 4px; 
+      align-items: center; 
+    }
     .cat-chip { padding: 5px 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; color: var(--text-muted); transition: all 0.2s; user-select: none; display: flex; align-items: center; gap: 6px; }
     .cat-chip:hover { background: #f1f5f9; color: var(--text-main); }
     .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: 500; }
@@ -410,7 +416,6 @@
       }
     }
 
-    // פונקציית רינדור מהירה עם אופטימיזציית ביצועים (Batching / Lazy Rendering)
     window.renderNotes = function() {
       const container = document.getElementById('notes-container');
       const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
@@ -438,7 +443,6 @@
         return;
       }
 
-      // אופטימיזציה למניעת עומס על ה-Main Thread: רינדור ראשוני של 12 פתקים ראשונים ואת השאר מיד אחר כך
       const criticalBatch = filtered.slice(0, 12);
       const remainingBatch = filtered.slice(12);
 
