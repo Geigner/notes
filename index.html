@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>הפנקס - ניהול אישי</title>
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- פאביקון המוח -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
   <style>
     :root {
@@ -39,7 +38,6 @@
     .btn-secondary:hover { background: #e2e8f0; }
     .btn-secondary.active-mode { background: var(--primary); color: white; }
 
-    /* בר ניווט דביק */
     .sticky-nav-wrapper {
       position: sticky;
       top: 0;
@@ -56,7 +54,6 @@
     .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(92, 118, 141, 0.08); }
     .search-icon { position: absolute; top: 50%; right: 16px; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; font-size: 0.9rem; }
 
-    /* בר קטגוריות רספונסיבי */
     .categories-bar { 
       display: flex; 
       gap: 8px; 
@@ -278,7 +275,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAngVWlat_rJQO3lxU6QgiubCCg39EgTtU",
@@ -304,7 +301,7 @@
       listenToNotesRealtime();
     };
 
-    // מאזין בזמן אמת לקטגוריות מתוך ענן Firebase
+    // מאזין בזמן אמת לקטגוריות מהענן
     function listenToCategoriesRealtime() {
       onSnapshot(collection(db, "categories"), (snapshot) => {
         const cloudCats = ['כללי', 'עבודה', 'אישי', 'רעיונות'];
@@ -317,7 +314,7 @@
         categories = cloudCats;
         renderCategories();
       }, (err) => {
-        console.error("שגיאה בטעינת קטגוריות מהענן:", err);
+        console.error("שגיאה בטעינת קטגוריות:", err);
       });
     }
 
@@ -331,7 +328,7 @@
           const noteData = { id: docSnap.id, ...docSnap.data() };
           allNotes.push(noteData);
           
-          // אם במקרה יש פתק עם קטגוריה שלא רשומה בענן, נוסיף אותה אוטומטית לענן!
+          // אם מופיעה קטגוריה בפתק שעדיין לא קיימת בענן, נוסיף אותה אוטומטית לענן
           if (noteData.category && !categories.includes(noteData.category)) {
             addCategoryToCloud(noteData.category);
           }
@@ -347,9 +344,17 @@
 
     async function addCategoryToCloud(catName) {
       try {
-        await addDoc(collection(db, "categories"), { name: catName });
+        // בדיקה שהקטגוריה לא קיימת כבר בכדי כפילויות
+        const snapshot = await getDocs(collection(db, "categories"));
+        let exists = false;
+        snapshot.forEach(docSnap => {
+          if (docSnap.data().name === catName) exists = true;
+        });
+        if (!exists) {
+          await addDoc(collection(db, "categories"), { name: catName });
+        }
       } catch(e) {
-        console.error(e);
+        console.error("שגיאה בהוספת קטגוריה לענן:", e);
       }
     }
 
@@ -419,9 +424,6 @@
       if (!confirm(`האם למחוק את הקטגוריה "${catName}"? פתקים שהיו תחתיה יועברו אוטומטית לקטגוריה "כללי".`)) return;
 
       try {
-        // מחיקת הקטגוריה מאוסף הקטגוריות בענן
-        // (נמצא את המסמך התואם ונמחק אותו)
-        // לצורך הפשטות, מעדכנים את כל הפתקים שהיו בה ל"כללי"
         for (let note of allNotes) {
           if (note.category === catName) {
             await updateDoc(doc(db, "notes", note.id), { category: 'כללי' });
@@ -591,6 +593,9 @@
       const dateStr = new Date().toLocaleDateString('he-IL') + ' ' + new Date().toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'});
 
       try {
+        // לוודא שהקטגוריה עצמה קיימת בענן לפני שמירת הפתק תחתיה
+        await addCategoryToCloud(cat);
+
         if (editingNoteId) {
           const noteRef = doc(db, "notes", editingNoteId);
           await updateDoc(noteRef, { text: text, category: cat });
@@ -697,7 +702,7 @@
               archived: note.archived || false
             });
 
-            if (note.category && !categories.includes(note.category)) {
+            if (note.category) {
               await addCategoryToCloud(note.category);
             }
           }
@@ -716,10 +721,8 @@
       const newCat = prompt("הכנס את שם הקטגוריה החדשה:");
       if (newCat && newCat.trim() !== "") {
         const name = newCat.trim();
-        if (!categories.includes(name)) {
-          await addCategoryToCloud(name);
-          showToast("הקטגוריה נוספה לענן בהצלחה!");
-        }
+        await addCategoryToCloud(name);
+        showToast("הקטגוריה נוספה לענן בהצלחה!");
       }
     }
 
