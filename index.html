@@ -410,6 +410,7 @@
       }
     }
 
+    // פונקציית רינדור מהירה עם אופטימיזציית ביצועים (Batching / Lazy Rendering)
     window.renderNotes = function() {
       const container = document.getElementById('notes-container');
       const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
@@ -437,8 +438,23 @@
         return;
       }
 
+      // אופטימיזציה למניעת עומס על ה-Main Thread: רינדור ראשוני של 12 פתקים ראשונים ואת השאר מיד אחר כך
+      const criticalBatch = filtered.slice(0, 12);
+      const remainingBatch = filtered.slice(12);
+
+      container.innerHTML = generateNotesHTML(criticalBatch);
+
+      if (remainingBatch.length > 0) {
+        setTimeout(() => {
+          const additionalHTML = generateNotesHTML(remainingBatch);
+          container.insertAdjacentHTML('beforeend', additionalHTML);
+        }, 0);
+      }
+    }
+
+    function generateNotesHTML(notesArray) {
       let html = '';
-      filtered.forEach(note => {
+      notesArray.forEach(note => {
         const { id, text, date, category, urgent } = note;
         const catName = category || 'כללי';
         const isUrgentClass = urgent === 'דחוף' ? 'is-urgent' : '';
@@ -469,7 +485,7 @@
           </div>
         `;
       });
-      container.innerHTML = html;
+      return html;
     }
 
     window.showInlineSave = function(id) {
