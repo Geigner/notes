@@ -212,7 +212,7 @@
       box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
       display: none;
       z-index: 50;
-      min-width: 150px;
+      min-width: 160px;
       padding: 4px 0;
     }
     .dropdown-menu.show { display: block; }
@@ -621,7 +621,6 @@
         });
       }
 
-      // מיון חכם: קודם מוצמדים, אחר כך לפי תאריך/סדר חדש
       filtered.sort((a, b) => {
         const aPinned = a.pinned ? 1 : 0;
         const bPinned = b.pinned ? 1 : 0;
@@ -670,6 +669,7 @@
                   <button class="menu-btn" onclick="toggleDropdown(event, '${id}')">⋮</button>
                   <div class="dropdown-menu" id="dropdown-${id}">
                     <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(text || '')}\`, '${catName}')">✏️ עריכה מלאה</button>
+                    <button class="dropdown-item" onclick="copyNoteText('${id}')">📋 העתק טקסט</button>
                     <button class="dropdown-item" onclick="togglePin('${id}')">${pinned ? '📌 שחרר סיכה' : '📌 הצמד לראש'}</button>
                     <button class="dropdown-item" onclick="toggleUrgent('${id}')">${urgent === 'דחוף' ? '☆ הסר דחוף' : '⭐ סמן כדחוף'}</button>
                     <button class="dropdown-item" onclick="downloadSingleNote('${id}')">📥 הורד כקובץ TXT</button>
@@ -687,6 +687,19 @@
         `;
       });
       return html;
+    }
+
+    window.copyNoteText = function(id) {
+      closeAllDropdowns();
+      const note = allNotes.find(n => n.id === id);
+      if (!note || !note.text) return;
+      
+      navigator.clipboard.writeText(note.text).then(() => {
+        showToast("הטקסט הועתק ללוח!");
+      }).catch(err => {
+        console.error(err);
+        showToast("שגיאה בהעתקת הטקסט");
+      });
     }
 
     window.downloadSingleNote = function(id) {
