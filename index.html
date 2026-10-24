@@ -56,7 +56,7 @@
     .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(92, 118, 141, 0.08); }
     .search-icon { position: absolute; top: 50%; right: 16px; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; font-size: 0.9rem; }
 
-    /* בר קטגוריות מותאם גם לנייד עם ירידת שורה אוטומטית */
+    /* בר קטגוריות רספונדלי ויורד שורה אוטומטית */
     .categories-bar { 
       display: flex; 
       gap: 8px; 
@@ -309,6 +309,10 @@
       if (saved) {
         try { categories = JSON.parse(saved); } catch(e) {}
       }
+      // הבטחה שקטגוריות הבסיס תמיד קיימות
+      ['כללי', 'עבודה', 'אישי', 'רעיונות'].forEach(c => {
+        if (!categories.includes(c)) categories.push(c);
+      });
       renderCategories();
     }
 
@@ -316,14 +320,24 @@
       localStorage.setItem('notes_categories', JSON.stringify(categories));
     }
 
+    // טעינת פתקים וסנכרון אוטומטי של כל הקטגוריות הקיימות מהענן
     window.loadNotes = async function() {
       document.getElementById('notes-container').innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column: 1/-1;">טוען פתקים...</p>';
       try {
         const querySnapshot = await getDocs(collection(db, "notes"));
         allNotes = [];
         querySnapshot.forEach((docSnap) => {
-          allNotes.push({ id: docSnap.id, ...docSnap.data() });
+          const noteData = { id: docSnap.id, ...docSnap.data() };
+          allNotes.push(noteData);
+          
+          // שאיבה אוטומטית של כל קטגוריה שקיימת בפתקים בענן לתוך רשימת הקטגוריות במכשיר
+          if (noteData.category && !categories.includes(noteData.category)) {
+            categories.push(noteData.category);
+          }
         });
+
+        saveCategoriesToStorage();
+        renderCategories();
         updateCounter();
         renderNotes();
       } catch (err) {
