@@ -261,7 +261,7 @@
         <label>קטגוריה</label>
         <div style="display: flex; gap: 8px;">
           <select id="note-cat-select" style="flex: 1;"></select>
-          <button class="btn" onclick="addNewCategoryPrompt()" title="הוסף קטגוריה חדשה" style="background: #edf2f7; padding: 0 14px; border-radius: var(--radius); color: var(--primary); font-weight: 600;">➕</button>
+          <button class="btn" onclick="addNewCategory()" title="הוסף קטגוריה חדשה" style="background: #edf2f7; padding: 0 14px; border-radius: var(--radius); color: var(--primary); font-weight: 600;">➕</button>
         </div>
       </div>
       <div class="modal-buttons">
@@ -275,7 +275,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAngVWlat_rJQO3lxU6QgiubCCg39EgTtU",
@@ -297,65 +297,35 @@
     let isManagingCategories = false;
 
     window.onload = function() {
-      listenToCategoriesRealtime();
       listenToNotesRealtime();
     };
 
-    // מאזין בזמן אמת לקטגוריות מהענן
-    function listenToCategoriesRealtime() {
-      onSnapshot(collection(db, "categories"), (snapshot) => {
-        const cloudCats = ['כללי', 'עבודה', 'אישי', 'רעיונות'];
-        snapshot.forEach(docSnap => {
-          const data = docSnap.data();
-          if (data.name && !cloudCats.includes(data.name)) {
-            cloudCats.push(data.name);
-          }
-        });
-        categories = cloudCats;
-        renderCategories();
-      }, (err) => {
-        console.error("שגיאה בטעינת קטגוריות:", err);
-      });
-    }
-
-    // מאזין בזמן אמת לפתקים
+    // מאזין בזמן אמת לפתקים ושואב מהם את כל הקטגוריות אוטומטית (פתרון מוחלט למנוע תקלות סנכרון)
     function listenToNotesRealtime() {
-      document.getElementById('notes-container').innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column: 1/-1;">מתחבר בזמן אמת...</p>';
+      document.getElementById('notes-container').innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column: 1/-1;">מתחבר לענן בזמן אמת...</p>';
       
       onSnapshot(collection(db, "notes"), (querySnapshot) => {
         allNotes = [];
+        const dynamicCategories = ['כללי', 'עבודה', 'אישי', 'רעיונות'];
+
         querySnapshot.forEach((docSnap) => {
           const noteData = { id: docSnap.id, ...docSnap.data() };
           allNotes.push(noteData);
           
-          // אם מופיעה קטגוריה בפתק שעדיין לא קיימת בענן, נוסיף אותה אוטומטית לענן
-          if (noteData.category && !categories.includes(noteData.category)) {
-            addCategoryToCloud(noteData.category);
+          // שאיבת הקטגוריה הישירה מתוך הפתק עצמו בענן
+          if (noteData.category && !dynamicCategories.includes(noteData.category)) {
+            dynamicCategories.push(noteData.category);
           }
         });
 
+        categories = dynamicCategories;
         updateCounter();
+        renderCategories();
         renderNotes();
       }, (error) => {
         console.error("שגיאה בסנכרון פתקים:", error);
-        showToast("שגיאה בסנכרון הנתונים");
+        showToast("שגיאה בחיבור לענן - בדוק חיבור אינטרנט");
       });
-    }
-
-    async function addCategoryToCloud(catName) {
-      try {
-        // בדיקה שהקטגוריה לא קיימת כבר בכדי כפילויות
-        const snapshot = await getDocs(collection(db, "categories"));
-        let exists = false;
-        snapshot.forEach(docSnap => {
-          if (docSnap.data().name === catName) exists = true;
-        });
-        if (!exists) {
-          await addDoc(collection(db, "categories"), { name: catName });
-        }
-      } catch(e) {
-        console.error("שגיאה בהוספת קטגוריה לענן:", e);
-      }
     }
 
     window.updateCounter = function() {
@@ -593,9 +563,6 @@
       const dateStr = new Date().toLocaleDateString('he-IL') + ' ' + new Date().toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'});
 
       try {
-        // לוודא שהקטגוריה עצמה קיימת בענן לפני שמירת הפתק תחתיה
-        await addCategoryToCloud(cat);
-
         if (editingNoteId) {
           const noteRef = doc(db, "notes", editingNoteId);
           await updateDoc(noteRef, { text: text, category: cat });
@@ -701,10 +668,6 @@
               urgent: note.urgent || 'רגיל',
               archived: note.archived || false
             });
-
-            if (note.category) {
-              await addCategoryToCloud(note.category);
-            }
           }
 
           showToast("הייבוא הושלם בהצלחה!");
@@ -717,12 +680,16 @@
       reader.readAsText(file);
     }
 
-    window.addNewCategoryPrompt = async function() {
+    window.addNewCategory = function() {
       const newCat = prompt("הכנס את שם הקטגוריה החדשה:");
       if (newCat && newCat.trim() !== "") {
         const name = newCat.trim();
-        await addCategoryToCloud(name);
-        showToast("הקטגוריה נוספה לענן בהצלחה!");
+        if (!categories.includes(name)) {
+          categories.push(name);
+          renderCategories();
+          document.getElementById('note-cat-select').value = name;
+          showToast("הקטגוריה התווספה!");
+        }
       }
     }
 
