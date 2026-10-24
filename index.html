@@ -617,7 +617,7 @@
       const newPinned = !note.pinned;
       try {
         await updateDoc(doc(db, "notes", id), { pinned: newPinned });
-        showToast(newPinned ? "הפתק הוצמד לראש" הסיכה שוחררה => "" : "הסיכה שוחררה");
+        showToast(newPinned ? "הפתק הוצמד לראש" : "הסיכה שוחררה");
       } catch(e) { showToast("שגיאה בעדכון"); }
     }
 
