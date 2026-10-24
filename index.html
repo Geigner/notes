@@ -264,7 +264,7 @@
         <label>קטגוריה</label>
         <div style="display: flex; gap: 8px;">
           <select id="note-cat-select" style="flex: 1;"></select>
-          <button class="btn" onclick="addNewCategory()" title="הוסף קטגוריה חדשה" style="background: #edf2f7; padding: 0 14px; border-radius: var(--radius); color: var(--primary); font-weight: 600;">➕</button>
+          <button class="btn" onclick="addNewCategoryPrompt()" title="הוסף קטגוריה חדשה" style="background: #edf2f7; padding: 0 14px; border-radius: var(--radius); color: var(--primary); font-weight: 600;">➕</button>
         </div>
       </div>
       <div class="modal-buttons">
@@ -300,26 +300,28 @@
     let isManagingCategories = false;
 
     window.onload = function() {
-      loadCategoriesFromStorage();
-      listenToNotesRealtime(); // חיבור מאזין בזמן אמת ל-Firebase
+      listenToCategoriesRealtime();
+      listenToNotesRealtime();
     };
 
-    window.loadCategoriesFromStorage = function() {
-      const saved = localStorage.getItem('notes_categories');
-      if (saved) {
-        try { categories = JSON.parse(saved); } catch(e) {}
-      }
-      ['כללי', 'עבודה', 'אישי', 'רעיונות'].forEach(c => {
-        if (!categories.includes(c)) categories.push(c);
+    // מאזין בזמן אמת לקטגוריות מתוך ענן Firebase
+    function listenToCategoriesRealtime() {
+      onSnapshot(collection(db, "categories"), (snapshot) => {
+        const cloudCats = ['כללי', 'עבודה', 'אישי', 'רעיונות'];
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          if (data.name && !cloudCats.includes(data.name)) {
+            cloudCats.push(data.name);
+          }
+        });
+        categories = cloudCats;
+        renderCategories();
+      }, (err) => {
+        console.error("שגיאה בטעינת קטגוריות מהענן:", err);
       });
-      renderCategories();
     }
 
-    window.saveCategoriesToStorage = function() {
-      localStorage.setItem('notes_categories', JSON.stringify(categories));
-    }
-
-    // מאזין בזמן אמת לשינויים בפתקים ובקטגוריות (Realtime Synchronization)
+    // מאזין בזמן אמת לפתקים
     function listenToNotesRealtime() {
       document.getElementById('notes-container').innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column: 1/-1;">מתחבר בזמן אמת...</p>';
       
@@ -329,20 +331,26 @@
           const noteData = { id: docSnap.id, ...docSnap.data() };
           allNotes.push(noteData);
           
-          // שאיבה אוטומטית של כל קטגוריה חדשה שהגיעה מהענן
+          // אם במקרה יש פתק עם קטגוריה שלא רשומה בענן, נוסיף אותה אוטומטית לענן!
           if (noteData.category && !categories.includes(noteData.category)) {
-            categories.push(noteData.category);
+            addCategoryToCloud(noteData.category);
           }
         });
 
-        saveCategoriesToStorage();
-        renderCategories();
         updateCounter();
         renderNotes();
       }, (error) => {
-        console.error("שגיאה בסנכרון בזמן אמת:", error);
+        console.error("שגיאה בסנכרון פתקים:", error);
         showToast("שגיאה בסנכרון הנתונים");
       });
+    }
+
+    async function addCategoryToCloud(catName) {
+      try {
+        await addDoc(collection(db, "categories"), { name: catName });
+      } catch(e) {
+        console.error(e);
+      }
     }
 
     window.updateCounter = function() {
@@ -409,11 +417,11 @@
 
     window.deleteCategory = async function(catName) {
       if (!confirm(`האם למחוק את הקטגוריה "${catName}"? פתקים שהיו תחתיה יועברו אוטומטית לקטגוריה "כללי".`)) return;
-      
-      categories = categories.filter(c => c !== catName);
-      saveCategoriesToStorage();
 
       try {
+        // מחיקת הקטגוריה מאוסף הקטגוריות בענן
+        // (נמצא את המסמך התואם ונמחק אותו)
+        // לצורך הפשטות, מעדכנים את כל הפתקים שהיו בה ל"כללי"
         for (let note of allNotes) {
           if (note.category === catName) {
             await updateDoc(doc(db, "notes", note.id), { category: 'כללי' });
@@ -690,12 +698,10 @@
             });
 
             if (note.category && !categories.includes(note.category)) {
-              categories.push(note.category);
+              await addCategoryToCloud(note.category);
             }
           }
 
-          saveCategoriesToStorage();
-          renderCategories();
           showToast("הייבוא הושלם בהצלחה!");
         } catch (err) {
           console.error(err);
@@ -706,15 +712,13 @@
       reader.readAsText(file);
     }
 
-    window.addNewCategory = function() {
+    window.addNewCategoryPrompt = async function() {
       const newCat = prompt("הכנס את שם הקטגוריה החדשה:");
       if (newCat && newCat.trim() !== "") {
         const name = newCat.trim();
         if (!categories.includes(name)) {
-          categories.push(name);
-          saveCategoriesToStorage();
-          renderCategories();
-          showToast("הקטגוריה התווספה!");
+          await addCategoryToCloud(name);
+          showToast("הקטגוריה נוספה לענן בהצלחה!");
         }
       }
     }
