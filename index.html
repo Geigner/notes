@@ -334,9 +334,10 @@
     let isManagingCategories = false;
     let unsubscribeNotes = null;
 
-    // מנגנון זיהוי דיבור (Speech Recognition)
+    // מנגנון זיהוי דיבור משופר (מצטבר נכון)
     let recognition = null;
     let isRecording = false;
+    let baseTextBeforeRecording = '';
 
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -346,12 +347,13 @@
       recognition.interimResults = true;
 
       recognition.onresult = (event) => {
-        let transcript = '';
+        let interimTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
+          interimTranscript += event.results[i][0].transcript;
         }
         const input = document.getElementById('note-text-input');
-        input.value = transcript;
+        // שומר על מה שהיה לפני שהתחלנו להקליט, ומוסיף את מה שהוקלט כרגע
+        input.value = baseTextBeforeRecording + (baseTextBeforeRecording && interimTranscript ? ' ' : '') + interimTranscript;
       };
 
       recognition.onerror = (e) => {
@@ -375,12 +377,18 @@
         recognition.stop();
         stopVoiceRecognition();
       } else {
-        recognition.start();
-        isRecording = true;
-        const btn = document.getElementById('voice-record-btn');
-        btn.classList.add('recording');
-        btn.innerText = '🔴';
-        showToast("מקשיב... דבר עכשיו");
+        const input = document.getElementById('note-text-input');
+        baseTextBeforeRecording = input.value.trim();
+        try {
+          recognition.start();
+          isRecording = true;
+          const btn = document.getElementById('voice-record-btn');
+          btn.classList.add('recording');
+          btn.innerText = '🔴';
+          showToast("מקשיב... דבר עכשיו");
+        } catch(err) {
+          console.error(err);
+        }
       }
     }
 
@@ -648,6 +656,7 @@
       editingNoteId = null;
       document.getElementById('modal-title').innerText = 'פתק חדש';
       document.getElementById('note-text-input').value = '';
+      baseTextBeforeRecording = '';
       document.getElementById('note-cat-select').value = categories[0] || 'כללי';
       document.getElementById('note-modal').style.display = 'flex';
       stopVoiceRecognition();
@@ -658,6 +667,7 @@
       editingNoteId = id;
       document.getElementById('modal-title').innerText = 'עריכת פתק';
       document.getElementById('note-text-input').value = text;
+      baseTextBeforeRecording = text; // אם נרצה להוסיף הקלטה על פתק קיים
       document.getElementById('note-cat-select').value = cat || "כללי";
       document.getElementById('note-modal').style.display = 'flex';
       stopVoiceRecognition();
