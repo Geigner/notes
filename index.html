@@ -97,6 +97,11 @@
       border-color: var(--urgent);
       box-shadow: 0 0 10px var(--urgent-glow), var(--shadow);
     }
+
+    .note-card.is-pinned {
+      border-color: var(--primary);
+      background: #fcfdfe;
+    }
     
     .note-header-top {
       display: flex;
@@ -300,19 +305,16 @@
     window.onload = function() {
       startRealtimeListener();
 
-      // האזנה להתעוררות האפליקציה או חזרה למסך בנייד
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") {
-          console.log("האפליקציה התעוררה - מרענן חיבור לענן...");
           startRealtimeListener();
         }
       });
     };
 
-    // הפעלה וחידוש של המאזין בזמן אמת
     function startRealtimeListener() {
       if (unsubscribeNotes) {
-        unsubscribeNotes(); // ניתוק ישן למניעת כפילויות
+        unsubscribeNotes();
       }
 
       document.getElementById('notes-container').innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column: 1/-1;">מתחבר לענן בזמן אמת...</p>';
@@ -442,6 +444,13 @@
         });
       }
 
+      // מיון: פתקים מוצמדים תמיד קודם!
+      filtered.sort((a, b) => {
+        const aPinned = a.pinned ? 1 : 0;
+        const bPinned = b.pinned ? 1 : 0;
+        return bPinned - aPinned;
+      });
+
       if (filtered.length === 0) {
         container.innerHTML = '<p style="text-align:center; color:var(--text-muted); margin-top:20px; grid-column: 1/-1;">אין פתקים להצגה</p>';
         return;
@@ -463,22 +472,24 @@
     function generateNotesHTML(notesArray) {
       let html = '';
       notesArray.forEach(note => {
-        const { id, text, date, category, urgent } = note;
+        const { id, text, date, category, urgent, pinned } = note;
         const catName = category || 'כללי';
         const isUrgentClass = urgent === 'דחוף' ? 'is-urgent' : '';
+        const isPinnedClass = pinned ? 'is-pinned' : '';
         const colors = getCategoryColor(catName);
         const cardVars = `style="--cat-bg-color: ${colors.bg}; --cat-border-color: ${colors.border}; --cat-text-color: ${colors.text};"`;
 
         html += `
-          <div class="note-card ${isUrgentClass}" id="note-card-${id}" ${cardVars}>
+          <div class="note-card ${isUrgentClass} ${isPinnedClass}" id="note-card-${id}" ${cardVars}>
             <div class="note-header-top">
-              <span class="cat-badge">${catName}</span>
+              <span class="cat-badge">${pinned ? '📌 ' : ''}${catName}</span>
               <div style="display: flex; align-items: center; gap: 4px;">
                 <span class="note-date">${date || ''}</span>
                 <div class="menu-wrapper">
                   <button class="menu-btn" onclick="toggleDropdown(event, '${id}')">⋮</button>
                   <div class="dropdown-menu" id="dropdown-${id}">
                     <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(text || '')}\`, '${catName}')">✏️ עריכה מלאה</button>
+                    <button class="dropdown-item" onclick="togglePin('${id}')">${pinned ? '📍 שחרר סיכה' : '📌 הצמד לראש'}</button>
                     <button class="dropdown-item" onclick="toggleUrgent('${id}')">${urgent === 'דחוף' ? '☆ הסר דחוף' : '⭐ סמן כדחוף'}</button>
                     <button class="dropdown-item" onclick="shareNote('${id}', false)">🔗 שיתוף (קריאה)</button>
                     <button class="dropdown-item" onclick="shareNote('${id}', true)">🔗 שיתוף (עריכה)</button>
@@ -585,6 +596,7 @@
             category: cat,
             date: dateStr,
             urgent: 'רגיל',
+            pinned: false,
             archived: false
           });
           showToast("הפתק נוסף בהצלחה");
@@ -596,6 +608,17 @@
       }
       btn.disabled = false;
       btn.innerText = 'שמירה';
+    }
+
+    window.togglePin = async function(id) {
+      closeAllDropdowns();
+      const note = allNotes.find(n => n.id === id);
+      if (!note) return;
+      const newPinned = !note.pinned;
+      try {
+        await updateDoc(doc(db, "notes", id), { pinned: newPinned });
+        showToast(newPinned ? "הפתק הוצמד לראש" הסיכה שוחררה => "" : "הסיכה שוחררה");
+      } catch(e) { showToast("שגיאה בעדכון"); }
     }
 
     window.toggleUrgent = async function(id) {
@@ -678,6 +701,7 @@
               category: note.category || 'כללי',
               date: note.date || new Date().toLocaleDateString('he-IL'),
               urgent: note.urgent || 'רגיל',
+              pinned: note.pinned || false,
               archived: note.archived || false
             });
           }
