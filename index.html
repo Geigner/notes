@@ -56,7 +56,7 @@
     .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(92, 118, 141, 0.08); }
     .search-icon { position: absolute; top: 50%; right: 16px; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; font-size: 0.9rem; }
 
-    /* בר קטגוריות רספונדלי ויורד שורה אוטומטית */
+    /* בר קטגוריות רספונסיבי */
     .categories-bar { 
       display: flex; 
       gap: 8px; 
@@ -278,7 +278,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAngVWlat_rJQO3lxU6QgiubCCg39EgTtU",
@@ -301,7 +301,7 @@
 
     window.onload = function() {
       loadCategoriesFromStorage();
-      loadNotes();
+      listenToNotesRealtime(); // חיבור מאזין בזמן אמת ל-Firebase
     };
 
     window.loadCategoriesFromStorage = function() {
@@ -309,7 +309,6 @@
       if (saved) {
         try { categories = JSON.parse(saved); } catch(e) {}
       }
-      // הבטחה שקטגוריות הבסיס תמיד קיימות
       ['כללי', 'עבודה', 'אישי', 'רעיונות'].forEach(c => {
         if (!categories.includes(c)) categories.push(c);
       });
@@ -320,17 +319,17 @@
       localStorage.setItem('notes_categories', JSON.stringify(categories));
     }
 
-    // טעינת פתקים וסנכרון אוטומטי של כל הקטגוריות הקיימות מהענן
-    window.loadNotes = async function() {
-      document.getElementById('notes-container').innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column: 1/-1;">טוען פתקים...</p>';
-      try {
-        const querySnapshot = await getDocs(collection(db, "notes"));
+    // מאזין בזמן אמת לשינויים בפתקים ובקטגוריות (Realtime Synchronization)
+    function listenToNotesRealtime() {
+      document.getElementById('notes-container').innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column: 1/-1;">מתחבר בזמן אמת...</p>';
+      
+      onSnapshot(collection(db, "notes"), (querySnapshot) => {
         allNotes = [];
         querySnapshot.forEach((docSnap) => {
           const noteData = { id: docSnap.id, ...docSnap.data() };
           allNotes.push(noteData);
           
-          // שאיבה אוטומטית של כל קטגוריה שקיימת בפתקים בענן לתוך רשימת הקטגוריות במכשיר
+          // שאיבה אוטומטית של כל קטגוריה חדשה שהגיעה מהענן
           if (noteData.category && !categories.includes(noteData.category)) {
             categories.push(noteData.category);
           }
@@ -340,10 +339,10 @@
         renderCategories();
         updateCounter();
         renderNotes();
-      } catch (err) {
-        console.error("שגיאה בטעינת פתקים:", err);
-        showToast("שגיאה בטעינת פתקים");
-      }
+      }, (error) => {
+        console.error("שגיאה בסנכרון בזמן אמת:", error);
+        showToast("שגיאה בסנכרון הנתונים");
+      });
     }
 
     window.updateCounter = function() {
@@ -422,7 +421,6 @@
         }
         if (currentCategory === catName) currentCategory = 'הכל';
         showToast("הקטגוריה נמחקה והפתקים הועברו ל'כללי'");
-        await loadNotes();
         renderCategories();
       } catch (e) {
         console.error(e);
@@ -521,8 +519,6 @@
 
       try {
         await updateDoc(doc(db, "notes", id), { text: newText });
-        const noteObj = allNotes.find(n => n.id === id);
-        if (noteObj) noteObj.text = newText;
         showToast("הפתק עודכן בהצלחה");
         btn.classList.remove('show');
       } catch (err) {
@@ -602,7 +598,6 @@
           showToast("הפתק נוסף בהצלחה");
         }
         closeModal();
-        await loadNotes();
       } catch (err) {
         console.error(err);
         showToast("שגיאה בשמירת הפתק");
@@ -618,7 +613,6 @@
       const newUrgent = note.urgent === 'דחוף' ? 'רגיל' : 'דחוף';
       try {
         await updateDoc(doc(db, "notes", id), { urgent: newUrgent });
-        await loadNotes();
       } catch(e) { showToast("שגיאה בעדכון"); }
     }
 
@@ -630,7 +624,6 @@
       try {
         await updateDoc(doc(db, "notes", id), { archived: newArchived });
         showToast(newArchived ? "הועבר לארכיון" : "שוחזר מהארכיון");
-        await loadNotes();
       } catch(e) { showToast("שגיאה בעדכון"); }
     }
 
@@ -640,7 +633,6 @@
       try {
         await deleteDoc(doc(db, "notes", id));
         showToast("הפתק נמחק");
-        await loadNotes();
       } catch(e) { showToast("שגיאה במחיקה"); }
     }
 
@@ -703,7 +695,6 @@
           }
 
           saveCategoriesToStorage();
-          await loadNotes();
           renderCategories();
           showToast("הייבוא הושלם בהצלחה!");
         } catch (err) {
