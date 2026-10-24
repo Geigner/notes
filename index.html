@@ -25,7 +25,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Assistant', sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; padding-bottom: 90px; }
 
-    .container { max-width: 1000px; margin: 0 auto; display: none; } /* מוסתר עד להזדהות */
+    .container { max-width: 1000px; margin: 0 auto; display: none; }
     
     #auth-screen {
       display: flex;
@@ -212,7 +212,7 @@
       box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
       display: none;
       z-index: 50;
-      min-width: 140px;
+      min-width: 150px;
       padding: 4px 0;
     }
     .dropdown-menu.show { display: block; }
@@ -297,7 +297,6 @@
 </head>
 <body onclick="closeAllDropdowns(event)">
 
-  <!-- מסך התחברות -->
   <div id="auth-screen">
     <div class="auth-card">
       <h2>🧠 הפנקס - אישי</h2>
@@ -310,7 +309,6 @@
     </div>
   </div>
 
-  <!-- האפליקציה הראשית -->
   <div class="container" id="main-container">
     <header>
       <h1 id="app-title">הפנקס</h1>
@@ -392,7 +390,6 @@
     let isManagingCategories = false;
     let unsubscribeNotes = null;
 
-    // האזנה להתחברות
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
@@ -420,7 +417,6 @@
       signOut(auth);
     }
 
-    // מנגנון זיהוי דיבור
     let recognition = null;
     let isRecording = false;
     let baseTextBeforeRecording = '';
@@ -625,10 +621,16 @@
         });
       }
 
+      // מיון חכם: קודם מוצמדים, אחר כך לפי תאריך/סדר חדש (תאריך יורד)
       filtered.sort((a, b) => {
         const aPinned = a.pinned ? 1 : 0;
         const bPinned = b.pinned ? 1 : 0;
-        return bPinned - aPinned;
+        if (aPinned !== bPinned) return bPinned - aPinned;
+        
+        // מיון לפי זמן יצירה או עדכון (אם קיים שדה timestamp או השוואת מחרוזת תאריך)
+        const timeA = a.date || '';
+        const timeB = b.date || '';
+        return timeB.localeCompare(timeA);
       });
 
       if (filtered.length === 0) {
@@ -669,8 +671,9 @@
                   <button class="menu-btn" onclick="toggleDropdown(event, '${id}')">⋮</button>
                   <div class="dropdown-menu" id="dropdown-${id}">
                     <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(text || '')}\`, '${catName}')">✏️ עריכה מלאה</button>
-                    <button class="dropdown-item" onclick="togglePin('${id}')">${pinned ? '📍 שחרר סיכה' : '📌 הצמד לראש'}</button>
+                    <button class="dropdown-item" onclick="togglePin('${id}')">${pinned ? '📌 שחרר סיכה' : '📌 הצמד לראש'}</button>
                     <button class="dropdown-item" onclick="toggleUrgent('${id}')">${urgent === 'דחוף' ? '☆ הסר דחוף' : '⭐ סמן כדחוף'}</button>
+                    <button class="dropdown-item" onclick="downloadSingleNote('${id}')">📥 הורד כקובץ TXT</button>
                     <button class="dropdown-item" onclick="shareNote('${id}', false)">🔗 שיתוף (קריאה)</button>
                     <button class="dropdown-item" onclick="shareNote('${id}', true)">🔗 שיתוף (עריכה)</button>
                     <button class="dropdown-item" onclick="toggleArchive('${id}')">${currentView === 'active' ? '📦 לארכיון' : '📤 שחזר'}</button>
@@ -685,6 +688,24 @@
         `;
       });
       return html;
+    }
+
+    window.downloadSingleNote = function(id) {
+      closeAllDropdowns();
+      const note = allNotes.find(n => n.id === id);
+      if (!note) return;
+      
+      const content = `קטגוריה: ${note.category || 'כללי'}\nתאריך: ${note.date || ''}\n\n${note.text || ''}`;
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.href = url;
+      downloadAnchor.download = `note_${id.slice(0, 6)}.txt`;
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      URL.revokeObjectURL(url);
+      showToast("הפתק הוטען והורד כקובץ טקסט!");
     }
 
     window.showInlineSave = function(id) {
