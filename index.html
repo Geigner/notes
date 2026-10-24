@@ -207,8 +207,37 @@
     .btn-fullscreen { font-size: 0.85rem; color: var(--text-muted); padding: 4px 10px; border-radius: 16px; background: #f1f5f9; font-weight: 500; }
     .btn-fullscreen:hover { color: var(--primary); }
 
-    textarea.modal-textarea { width: 100%; height: 180px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; font-size: 0.95rem; resize: none; outline: none; color: var(--text-main); transition: border-color 0.2s; }
+    .textarea-wrapper { position: relative; width: 100%; }
+    textarea.modal-textarea { width: 100%; height: 180px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; padding-bottom: 40px; font-size: 0.95rem; resize: none; outline: none; color: var(--text-main); transition: border-color 0.2s; }
     textarea.modal-textarea:focus { border-color: var(--primary); }
+
+    .voice-btn {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .voice-btn.recording {
+      background: #ffe4e6;
+      border-color: #e11d48;
+      color: #e11d48;
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
 
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group label { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); }
@@ -261,7 +290,10 @@
         <h3 id="modal-title">פתק חדש</h3>
         <button class="btn btn-fullscreen" onclick="toggleFullscreenModal()" id="fs-btn">🔲 מסך מלא</button>
       </div>
-      <textarea id="note-text-input" class="modal-textarea" placeholder="הקלד כאן..."></textarea>
+      <div class="textarea-wrapper">
+        <textarea id="note-text-input" class="modal-textarea" placeholder="הקלד או הכרז בקולך..."></textarea>
+        <button class="voice-btn" id="voice-record-btn" onclick="toggleVoiceRecognition()" title="הקלטת קול לטקסט">🎤</button>
+      </div>
       <div class="form-group" id="cat-select-group">
         <label>קטגוריה</label>
         <div style="display: flex; gap: 8px;">
@@ -301,6 +333,65 @@
     let editingNoteId = null;
     let isManagingCategories = false;
     let unsubscribeNotes = null;
+
+    // מנגנון זיהוי דיבור (Speech Recognition)
+    let recognition = null;
+    let isRecording = false;
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.lang = 'he-IL';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        const input = document.getElementById('note-text-input');
+        input.value = transcript;
+      };
+
+      recognition.onerror = (e) => {
+        console.error("שגיאת זיהוי קול:", e);
+        stopVoiceRecognition();
+        showToast("שגיאה בהקלטת הקול");
+      };
+
+      recognition.onend = () => {
+        stopVoiceRecognition();
+      };
+    }
+
+    window.toggleVoiceRecognition = function() {
+      if (!recognition) {
+        alert("הדפדפן שלך אינו תומך בהמרת קול לטקסט.");
+        return;
+      }
+
+      if (isRecording) {
+        recognition.stop();
+        stopVoiceRecognition();
+      } else {
+        recognition.start();
+        isRecording = true;
+        const btn = document.getElementById('voice-record-btn');
+        btn.classList.add('recording');
+        btn.innerText = '🔴';
+        showToast("מקשיב... דבר עכשיו");
+      }
+    }
+
+    function stopVoiceRecognition() {
+      isRecording = false;
+      const btn = document.getElementById('voice-record-btn');
+      if (btn) {
+        btn.classList.remove('recording');
+        btn.innerText = '🎤';
+      }
+    }
 
     window.onload = function() {
       startRealtimeListener();
@@ -444,7 +535,6 @@
         });
       }
 
-      // מיון: פתקים מוצמדים תמיד קודם!
       filtered.sort((a, b) => {
         const aPinned = a.pinned ? 1 : 0;
         const bPinned = b.pinned ? 1 : 0;
@@ -560,6 +650,7 @@
       document.getElementById('note-text-input').value = '';
       document.getElementById('note-cat-select').value = categories[0] || 'כללי';
       document.getElementById('note-modal').style.display = 'flex';
+      stopVoiceRecognition();
     }
 
     window.openEditModal = function(id, text, cat) {
@@ -569,13 +660,16 @@
       document.getElementById('note-text-input').value = text;
       document.getElementById('note-cat-select').value = cat || "כללי";
       document.getElementById('note-modal').style.display = 'flex';
+      stopVoiceRecognition();
     }
 
     window.closeModal = function() {
+      stopVoiceRecognition();
       document.getElementById('note-modal').style.display = 'none';
     }
 
     window.saveNote = async function() {
+      stopVoiceRecognition();
       const text = document.getElementById('note-text-input').value.trim();
       const cat = document.getElementById('note-cat-select').value;
       if (!text) return;
