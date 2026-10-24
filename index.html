@@ -295,16 +295,29 @@
     let categories = ['כללי', 'עבודה', 'אישי', 'רעיונות'];
     let editingNoteId = null;
     let isManagingCategories = false;
+    let unsubscribeNotes = null;
 
     window.onload = function() {
-      listenToNotesRealtime();
+      startRealtimeListener();
+
+      // האזנה להתעוררות האפליקציה או חזרה למסך בנייד
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          console.log("האפליקציה התעוררה - מרענן חיבור לענן...");
+          startRealtimeListener();
+        }
+      });
     };
 
-    // מאזין בזמן אמת לפתקים ושואב מהם את כל הקטגוריות אוטומטית (פתרון מוחלט למנוע תקלות סנכרון)
-    function listenToNotesRealtime() {
+    // הפעלה וחידוש של המאזין בזמן אמת
+    function startRealtimeListener() {
+      if (unsubscribeNotes) {
+        unsubscribeNotes(); // ניתוק ישן למניעת כפילויות
+      }
+
       document.getElementById('notes-container').innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column: 1/-1;">מתחבר לענן בזמן אמת...</p>';
       
-      onSnapshot(collection(db, "notes"), (querySnapshot) => {
+      unsubscribeNotes = onSnapshot(collection(db, "notes"), (querySnapshot) => {
         allNotes = [];
         const dynamicCategories = ['כללי', 'עבודה', 'אישי', 'רעיונות'];
 
@@ -312,7 +325,6 @@
           const noteData = { id: docSnap.id, ...docSnap.data() };
           allNotes.push(noteData);
           
-          // שאיבת הקטגוריה הישירה מתוך הפתק עצמו בענן
           if (noteData.category && !dynamicCategories.includes(noteData.category)) {
             dynamicCategories.push(noteData.category);
           }
