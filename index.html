@@ -97,7 +97,6 @@
       transform: rotate(30deg);
     }
 
-    /* אנימציית גלישה והופעה מדורגת לתפריטים */
     @keyframes slideInFromRight {
       0% {
         opacity: 0;
@@ -109,16 +108,16 @@
       }
     }
 
+    /* ללא מסגרת לבנה - תפריט ניהול מרחף ונקי */
     .header-actions-dropdown { 
       display: none; 
       position: absolute;
       top: 0;
       right: 45px; 
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px;
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+      background: transparent; /* ללא רקע לבן */
+      border: none; /* ללא מסגרת */
+      box-shadow: none; /* ללא צל חיצוני קשיח */
+      padding: 0;
       z-index: 100;
       gap: 8px; 
       flex-direction: row; 
@@ -138,10 +137,12 @@
       animation: slideInFromRight 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    /* הוספת השהייה מדורגת לפריטים בתוך תפריט הניהול */
     .header-actions-dropdown > * {
       opacity: 0;
       animation: slideInFromRight 0.25s ease forwards;
+      background: white; /* כל כפתור בפני עצמו מקבל רקע לבן נקי ומרחף */
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
     }
     .header-actions-dropdown > *:nth-child(1) { animation-delay: 0.03s; }
     .header-actions-dropdown > *:nth-child(2) { animation-delay: 0.06s; }
@@ -150,12 +151,12 @@
     .header-actions-dropdown > *:nth-child(5) { animation-delay: 0.15s; }
     .header-actions-dropdown > *:nth-child(6) { animation-delay: 0.18s; }
 
-    .notes-counter-badge { font-size: 0.8rem; color: #334155; background: #e2e8f0; padding: 5px 12px; border-radius: 16px; font-weight: 600; white-space: nowrap; }
+    .notes-counter-badge { font-size: 0.8rem; color: #334155; background: #e2e8f0; padding: 6px 12px; border-radius: 16px; font-weight: 600; white-space: nowrap; }
     
     .btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-    .btn-secondary { font-size: 0.85rem; color: #334155; font-weight: 600; padding: 6px 12px; border-radius: 20px; background: #e2e8f0; border: 1px solid transparent; }
-    .btn-secondary:hover { background: #cbd5e1; }
-    .btn-secondary.active-mode { background: var(--primary); color: white; }
+    .btn-secondary { font-size: 0.85rem; color: #334155; font-weight: 600; padding: 6px 14px; border-radius: 20px; background: white; border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
+    .btn-secondary.active-mode { background: var(--primary); color: white; border-color: var(--primary); }
 
     .sticky-nav-wrapper {
       position: sticky;
@@ -196,16 +197,16 @@
       background: #f8fafc;
     }
 
+    /* ללא מסגרת לבנה - סרגל קטגוריות מרחף ונקי */
     .categories-bar { 
       display: none;
       position: absolute;
       top: 0;
       right: 105%; 
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 8px 12px;
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+      background: transparent; /* ללא רקע לבן */
+      border: none;
+      box-shadow: none;
+      padding: 0;
       z-index: 95;
       gap: 8px; 
       flex-direction: row; 
@@ -221,10 +222,13 @@
       animation: slideInFromRight 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    /* השהייה מדורגת גם לכפתורי הקטגוריות בגלישה */
+    /* כל צ'יפ מקבל רקע לבן וצל משלו כדי להרגיש נפרד וחי */
     .categories-bar > * {
       opacity: 0;
       animation: slideInFromRight 0.25s ease forwards;
+      background: white;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
     }
     .categories-bar > *:nth-child(1) { animation-delay: 0.03s; }
     .categories-bar > *:nth-child(2) { animation-delay: 0.06s; }
@@ -234,7 +238,7 @@
     .categories-bar > *:nth-child(6) { animation-delay: 0.18s; }
     .categories-bar > *:nth-child(n+7) { animation-delay: 0.21s; }
 
-    .cat-chip { padding: 5px 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; color: #334155; transition: all 0.2s; user-select: none; display: flex; align-items: center; gap: 6px; }
+    .cat-chip { padding: 5px 14px; border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; color: #334155; transition: all 0.2s; user-select: none; display: flex; align-items: center; gap: 6px; }
     .cat-chip:hover { background: #f1f5f9; color: var(--text-main); }
     .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: 600; }
     .cat-chip.urgent-chip { border-color: #fde68a; background: #fffbeb; color: #92400e; }
@@ -516,7 +520,7 @@
         <input type="text" id="search-input" class="search-input" placeholder="חיפוש חופשי בפתקים..." oninput="renderNotes()" aria-label="חיפוש חופשי בפתקים">
       </div>
       
-      <!-- סרגל קטגוריות נפתח הצידה עם אנימציית גלישה -->
+      <!-- סרגל קטגוריות נפתח הצידה באנימציית גלישה ללא רקע קשיח -->
       <div class="categories-dropdown-wrapper">
         <button class="cat-toggle-btn" onclick="toggleCategoriesMenu(event)">
           <span>🏷️ קטגוריה: <strong id="selected-cat-label">הכל</strong></span>
