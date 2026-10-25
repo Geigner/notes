@@ -97,12 +97,23 @@
       transform: rotate(30deg);
     }
 
-    /* פתיחה הצידה (שמאלה) של תפריט הניהול העליון */
+    /* אנימציית גלישה והופעה מדורגת לתפריטים */
+    @keyframes slideInFromRight {
+      0% {
+        opacity: 0;
+        transform: translateX(15px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
     .header-actions-dropdown { 
       display: none; 
       position: absolute;
       top: 0;
-      right: 45px; /* נפתח משמאל לכפתור הגלגל שיניים */
+      right: 45px; 
       background: white;
       border: 1px solid var(--border);
       border-radius: 12px;
@@ -110,7 +121,7 @@
       box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
       z-index: 100;
       gap: 8px; 
-      flex-direction: row; /* מסתדר בשורה יפה לצד */
+      flex-direction: row; 
       align-items: center;
       white-space: nowrap;
     }
@@ -120,10 +131,24 @@
       display: flex;
       align-items: center;
     }
+    
     .header-actions-wrapper:hover .header-actions-dropdown,
     .header-actions-dropdown.active {
       display: flex;
+      animation: slideInFromRight 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
+
+    /* הוספת השהייה מדורגת לפריטים בתוך תפריט הניהול */
+    .header-actions-dropdown > * {
+      opacity: 0;
+      animation: slideInFromRight 0.25s ease forwards;
+    }
+    .header-actions-dropdown > *:nth-child(1) { animation-delay: 0.03s; }
+    .header-actions-dropdown > *:nth-child(2) { animation-delay: 0.06s; }
+    .header-actions-dropdown > *:nth-child(3) { animation-delay: 0.09s; }
+    .header-actions-dropdown > *:nth-child(4) { animation-delay: 0.12s; }
+    .header-actions-dropdown > *:nth-child(5) { animation-delay: 0.15s; }
+    .header-actions-dropdown > *:nth-child(6) { animation-delay: 0.18s; }
 
     .notes-counter-badge { font-size: 0.8rem; color: #334155; background: #e2e8f0; padding: 5px 12px; border-radius: 16px; font-weight: 600; white-space: nowrap; }
     
@@ -148,7 +173,6 @@
     .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(71, 93, 113, 0.15); }
     .search-icon { position: absolute; top: 50%; right: 16px; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; font-size: 0.9rem; }
 
-    /* סרגל קטגוריות נפתח הצידה (שמאלה) בגובה הכפתור */
     .categories-dropdown-wrapper {
       position: relative;
       display: inline-block;
@@ -176,7 +200,7 @@
       display: none;
       position: absolute;
       top: 0;
-      right: 105%; /* נפתח בדיוק הצידה שמאלה מהכפתור */
+      right: 105%; 
       background: white;
       border: 1px solid var(--border);
       border-radius: 12px;
@@ -184,7 +208,7 @@
       box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
       z-index: 95;
       gap: 8px; 
-      flex-direction: row; /* מסתדר בשורה אלגנטית לצד */
+      flex-direction: row; 
       align-items: center;
       width: max-content;
       max-width: 650px;
@@ -194,7 +218,21 @@
     .categories-dropdown-wrapper:hover .categories-bar,
     .categories-bar.active {
       display: flex;
+      animation: slideInFromRight 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
+
+    /* השהייה מדורגת גם לכפתורי הקטגוריות בגלישה */
+    .categories-bar > * {
+      opacity: 0;
+      animation: slideInFromRight 0.25s ease forwards;
+    }
+    .categories-bar > *:nth-child(1) { animation-delay: 0.03s; }
+    .categories-bar > *:nth-child(2) { animation-delay: 0.06s; }
+    .categories-bar > *:nth-child(3) { animation-delay: 0.09s; }
+    .categories-bar > *:nth-child(4) { animation-delay: 0.12s; }
+    .categories-bar > *:nth-child(5) { animation-delay: 0.15s; }
+    .categories-bar > *:nth-child(6) { animation-delay: 0.18s; }
+    .categories-bar > *:nth-child(n+7) { animation-delay: 0.21s; }
 
     .cat-chip { padding: 5px 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; color: #334155; transition: all 0.2s; user-select: none; display: flex; align-items: center; gap: 6px; }
     .cat-chip:hover { background: #f1f5f9; color: var(--text-main); }
@@ -478,7 +516,7 @@
         <input type="text" id="search-input" class="search-input" placeholder="חיפוש חופשי בפתקים..." oninput="renderNotes()" aria-label="חיפוש חופשי בפתקים">
       </div>
       
-      <!-- סרגל קטגוריות נפתח הצידה -->
+      <!-- סרגל קטגוריות נפתח הצידה עם אנימציית גלישה -->
       <div class="categories-dropdown-wrapper">
         <button class="cat-toggle-btn" onclick="toggleCategoriesMenu(event)">
           <span>🏷️ קטגוריה: <strong id="selected-cat-label">הכל</strong></span>
