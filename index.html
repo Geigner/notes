@@ -161,6 +161,17 @@
       border: 1px solid var(--cat-border-color);
     }
 
+    .edited-by-badge {
+      font-size: 0.7rem;
+      color: #0284c7;
+      background: #e0f2fe;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-weight: 500;
+      display: inline-block;
+      margin-right: 4px;
+    }
+
     .inline-textarea {
       width: 100%;
       flex: 1;
@@ -590,9 +601,11 @@
             await updateDoc(doc(db, "notes", note.id), { category: 'כללי' });
           }
         }
+        categories = categories.filter(c => c !== catName);
         if (currentCategory === catName) currentCategory = 'הכל';
         showToast("הקטגוריה נמחקה והפתקים הועברו ל'כללי'");
         renderCategories();
+        renderNotes();
       } catch (e) {
         console.error(e);
         showToast("שגיאה במחיקת הקטגוריה");
@@ -652,17 +665,23 @@
     function generateNotesHTML(notesArray) {
       let html = '';
       notesArray.forEach(note => {
-        const { id, text, date, category, urgent, pinned } = note;
+        const { id, text, date, category, urgent, pinned, lastEditedBy, lastEditedById } = note;
         const catName = category || 'כללי';
         const isUrgentClass = urgent === 'דחוף' ? 'is-urgent' : '';
         const isPinnedClass = pinned ? 'is-pinned' : '';
         const colors = getCategoryColor(catName);
         const cardVars = `style="--cat-bg-color: ${colors.bg}; --cat-border-color: ${colors.border}; --cat-text-color: ${colors.text};"`;
 
+        const isPartnerEdit = lastEditedById && currentUser && lastEditedById !== currentUser.uid;
+        const editedByTag = isPartnerEdit ? `<span class="edited-by-badge" title="עודכן לאחרונה על ידי ${lastEditedBy}">✏️ ${lastEditedBy}</span>` : '';
+
         html += `
           <div class="note-card ${isUrgentClass} ${isPinnedClass}" id="note-card-${id}" ${cardVars}>
             <div class="note-header-top">
-              <span class="cat-badge">${pinned ? '📌 ' : ''}${catName}</span>
+              <div>
+                <span class="cat-badge">${pinned ? '📌 ' : ''}${catName}</span>
+                ${editedByTag}
+              </div>
               <div style="display: flex; align-items: center; gap: 4px;">
                 <span class="note-date">${date || ''}</span>
                 <div class="menu-wrapper">
@@ -733,8 +752,15 @@
       btn.disabled = true;
       btn.innerText = 'שומר...';
 
+      const userName = currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : 'שותף';
+      const userId = currentUser ? currentUser.uid : '';
+
       try {
-        await updateDoc(doc(db, "notes", id), { text: newText });
+        await updateDoc(doc(db, "notes", id), { 
+          text: newText,
+          lastEditedBy: userName,
+          lastEditedById: userId
+        });
         showToast("הפתק עודכן בהצלחה");
         btn.classList.remove('show');
       } catch (err) {
@@ -803,11 +829,18 @@
       btn.innerText = 'שומר...';
 
       const dateStr = new Date().toLocaleDateString('he-IL') + ' ' + new Date().toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'});
+      const userName = currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : 'שותף';
+      const userId = currentUser ? currentUser.uid : '';
 
       try {
         if (editingNoteId) {
           const noteRef = doc(db, "notes", editingNoteId);
-          await updateDoc(noteRef, { text: text, category: cat });
+          await updateDoc(noteRef, { 
+            text: text, 
+            category: cat,
+            lastEditedBy: userName,
+            lastEditedById: userId
+          });
           showToast("הפתק עודכן בהצלחה");
         } else {
           await addDoc(collection(db, "notes"), {
@@ -816,7 +849,9 @@
             date: dateStr,
             urgent: 'רגיל',
             pinned: false,
-            archived: false
+            archived: false,
+            lastEditedBy: userName,
+            lastEditedById: userId
           });
           showToast("הפתק נוסף בהצלחה");
         }
