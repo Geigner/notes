@@ -66,7 +66,7 @@
     }
     .btn-google:hover { background: #1557b0; }
 
-    /* הדר הרמוני לפי יחס הזהב - שורה אחת מאוזנת */
+    /* הדר מאוזן לפי זרימת קריאה בעברית (מימין לשמאל) */
     header { 
       display: flex; 
       justify-content: space-between; 
@@ -108,12 +108,12 @@
       100% { opacity: 1; transform: translateX(0); }
     }
 
-    /* תפריט ניהול עליון נפתח הצידה */
+    /* תפריט ניהול שמאלי נפתח ימינה */
     .header-actions-dropdown { 
       display: none; 
       position: absolute;
       top: 0;
-      right: 45px; 
+      left: 45px; 
       background: transparent;
       border: none;
       box-shadow: none;
@@ -134,12 +134,12 @@
     .header-actions-wrapper:hover .header-actions-dropdown,
     .header-actions-dropdown.active {
       display: flex;
-      animation: slideInFromRight 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: slideInFromLeft 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     .header-actions-dropdown > * {
       opacity: 0;
-      animation: slideInFromRight 0.25s ease forwards;
+      animation: slideInFromLeft 0.25s ease forwards;
       background: white;
       box-shadow: var(--shadow);
       border: 1px solid var(--border);
@@ -158,7 +158,7 @@
     .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
     .btn-secondary.active-mode { background: var(--primary); color: white; border-color: var(--primary); }
 
-    /* בר חיפוש נפתח מרחף בצד שמאל */
+    /* בר חיפוש נפתח מרחף בצד ימין */
     .search-dropdown-wrapper {
       position: relative;
       display: inline-block;
@@ -184,9 +184,9 @@
       display: none;
       position: absolute;
       top: 0;
-      left: 110%;
+      right: 110%;
       width: 240px;
-      padding: 8px 14px 8px 36px;
+      padding: 8px 36px 8px 14px;
       font-size: 0.9rem;
       border: 1px solid var(--border);
       border-radius: 24px;
@@ -200,10 +200,10 @@
     .search-dropdown-wrapper:hover .search-popup-input,
     .search-popup-input.active {
       display: block;
-      animation: slideInFromLeft 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: slideInFromRight 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    /* סרגל קטגוריות מרחף נפתח הצידה ימינה משמאל */
+    /* סרגל קטגוריות מרחף נפתח הצידה שמאלה מימין */
     .categories-dropdown-wrapper {
       position: relative;
       display: inline-block;
@@ -229,7 +229,7 @@
       display: none;
       position: absolute;
       top: 0;
-      left: 105%; 
+      right: 105%; 
       background: transparent;
       border: none;
       box-shadow: none;
@@ -246,12 +246,12 @@
     .categories-dropdown-wrapper:hover .categories-bar,
     .categories-bar.active {
       display: flex;
-      animation: slideInFromLeft 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: slideInFromRight 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
     .categories-bar > * {
       opacity: 0;
-      animation: slideInFromLeft 0.25s ease forwards;
+      animation: slideInFromRight 0.25s ease forwards;
       background: white;
       box-shadow: var(--shadow);
       border: 1px solid var(--border);
@@ -522,11 +522,28 @@
   </div>
 
   <div class="container" id="main-container">
-    <!-- סרגל עליון אחוד (Header) לפי יחס הזהב ויזואלי -->
+    <!-- סרגל עליון אחוד (Header) - מותאם לימין לשמאל -->
     <header>
-      <!-- צד ימין: כותרת + תפריט הגדרות מרחף -->
+      <!-- צד ימין: כפתור קטגוריות + כפתור חיפוש מרחף (הכלים המרכזיים בשימוש שוטף) -->
       <div class="header-right">
-        <h1 id="app-title">הפנקס</h1>
+        <!-- סרגל קטגוריות נפתח הצידה שמאלה -->
+        <div class="categories-dropdown-wrapper">
+          <button class="cat-toggle-btn" onclick="toggleCategoriesMenu(event)">
+            <span>🏷️ <strong id="selected-cat-label">הכל</strong></span>
+            <span style="font-size: 0.75rem;">▶</span>
+          </button>
+          <div class="categories-bar" id="categories-container" role="region" aria-label="סינון לפי קטגוריות"></div>
+        </div>
+
+        <!-- בר חיפוש נפתח מרחף -->
+        <div class="search-dropdown-wrapper">
+          <button class="search-trigger-btn" onclick="toggleSearchMenu(event)" title="חיפוש מהיר" aria-label="פתח חיפוש">🔍</button>
+          <input type="text" id="search-input" class="search-popup-input" placeholder="חיפוש חופשי בפתקים..." oninput="renderNotes()" aria-label="חיפוש חופשי בפתקים">
+        </div>
+      </div>
+
+      <!-- צד שמאל: כותרת הפנקס + תפריט הגדרות וניהול -->
+      <div class="header-left">
         <div class="header-actions-wrapper">
           <button class="gear-menu-trigger" onclick="toggleHeaderMenu(event)" title="אפשרויות ניהול" aria-label="תפריט ניהול">⚙️</button>
           <div class="header-actions-dropdown" id="header-dropdown">
@@ -539,24 +556,7 @@
             <button class="btn btn-secondary" onclick="logoutFromGoogle()" title="התנתקות" aria-label="התנתק מהחשבון">🚪 התנתק</button>
           </div>
         </div>
-      </div>
-
-      <!-- צד שמאל: כפתור קטגוריות מרחף + כפתור חיפוש מרחף -->
-      <div class="header-left">
-        <!-- סרגל קטגוריות נפתח הצידה -->
-        <div class="categories-dropdown-wrapper">
-          <button class="cat-toggle-btn" onclick="toggleCategoriesMenu(event)">
-            <span>🏷️ <strong id="selected-cat-label">הכל</strong></span>
-            <span style="font-size: 0.75rem;">◀</span>
-          </button>
-          <div class="categories-bar" id="categories-container" role="region" aria-label="סינון לפי קטגוריות"></div>
-        </div>
-
-        <!-- בר חיפוש נפתח מרחף -->
-        <div class="search-dropdown-wrapper">
-          <button class="search-trigger-btn" onclick="toggleSearchMenu(event)" title="חיפוש מהיר" aria-label="פתח חיפוש">🔍</button>
-          <input type="text" id="search-input" class="search-popup-input" placeholder="חיפוש חופשי בפתקים..." oninput="renderNotes()" aria-label="חיפוש חופשי בפתקים">
-        </div>
+        <h1 id="app-title">הפנקס</h1>
       </div>
     </header>
 
