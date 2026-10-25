@@ -392,13 +392,11 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
-    const DEFAULT_CATEGORIES = ['כללי', 'עבודה', 'אישי', 'רעיונות'];
-
     let currentUser = null;
     let currentView = 'active'; 
     let currentCategory = 'הכל';
     let allNotes = [];
-    let categories = [...DEFAULT_CATEGORIES];
+    let categories = ['כללי'];
     let editingNoteId = null;
     let isManagingCategories = false;
     let unsubscribeNotes = null;
@@ -511,18 +509,18 @@
       
       unsubscribeNotes = onSnapshot(collection(db, "notes"), (querySnapshot) => {
         allNotes = [];
-        const dynamicCategoriesSet = new Set(DEFAULT_CATEGORIES);
+        const activeCategoriesSet = new Set(['כללי']);
 
         querySnapshot.forEach((docSnap) => {
           const noteData = { id: docSnap.id, ...docSnap.data() };
           allNotes.push(noteData);
           
-          if (noteData.category) {
-            dynamicCategoriesSet.add(noteData.category);
+          if (noteData.category && noteData.category.trim() !== '') {
+            activeCategoriesSet.add(noteData.category.trim());
           }
         });
 
-        categories = Array.from(dynamicCategoriesSet);
+        categories = Array.from(activeCategoriesSet);
         updateCounter();
         renderCategories();
         renderNotes();
@@ -595,12 +593,11 @@
     }
 
     window.deleteCategory = async function(catName) {
-      if (!confirm(`האם למחוק את הקטגוריה "${catName}"? כל הפתקים המשויכים אליה יעברו אוטומטית לקטגוריה "כללי" ב-Firebase.`)) return;
+      if (!confirm(`האם למחוק את הקטגוריה "${catName}"? כל הפתקים המשויכים אליה יעברו אוטומטית לקטגוריה "כללי".`)) return;
 
       try {
         const notesToUpdate = allNotes.filter(n => n.category === catName);
         
-        // עדכון כל הפתקים ב-Firebase
         const updatePromises = notesToUpdate.map(note => 
           updateDoc(doc(db, "notes", note.id), { category: 'כללי' })
         );
@@ -610,7 +607,7 @@
         categories = categories.filter(c => c !== catName);
         if (currentCategory === catName) currentCategory = 'הכל';
         
-        showToast("הקטגוריה הוסרה בהצלחה והפתקים עודכנו!");
+        showToast("הקטגוריה הוסרה בהצלחה והפתקים הועברו ל'כללי'");
       } catch (e) {
         console.error(e);
         showToast("שגיאה במחיקת הקטגוריה בשרת");
