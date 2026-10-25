@@ -392,11 +392,13 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
+    const DEFAULT_CATEGORIES = ['כללי', 'עבודה', 'אישי', 'רעיונות'];
+
     let currentUser = null;
     let currentView = 'active'; 
     let currentCategory = 'הכל';
     let allNotes = [];
-    let categories = ['כללי', 'עבודה', 'אישי', 'רעיונות'];
+    let categories = [...DEFAULT_CATEGORIES];
     let editingNoteId = null;
     let isManagingCategories = false;
     let unsubscribeNotes = null;
@@ -509,18 +511,18 @@
       
       unsubscribeNotes = onSnapshot(collection(db, "notes"), (querySnapshot) => {
         allNotes = [];
-        const dynamicCategories = ['כללי', 'עבודה', 'אישי', 'רעיונות'];
+        const dynamicCategoriesSet = new Set(DEFAULT_CATEGORIES);
 
         querySnapshot.forEach((docSnap) => {
           const noteData = { id: docSnap.id, ...docSnap.data() };
           allNotes.push(noteData);
           
-          if (noteData.category && !dynamicCategories.includes(noteData.category)) {
-            dynamicCategories.push(noteData.category);
+          if (noteData.category) {
+            dynamicCategoriesSet.add(noteData.category);
           }
         });
 
-        categories = dynamicCategories;
+        categories = Array.from(dynamicCategoriesSet);
         updateCounter();
         renderCategories();
         renderNotes();
@@ -593,22 +595,25 @@
     }
 
     window.deleteCategory = async function(catName) {
-      if (!confirm(`האם למחוק את הקטגוריה "${catName}"? פתקים שהיו תחתיה יועברו אוטומטית לקטגוריה "כללי".`)) return;
+      if (!confirm(`האם למחוק את הקטגוריה "${catName}"? כל הפתקים המשויכים אליה יעברו אוטומטית לקטגוריה "כללי" ב-Firebase.`)) return;
 
       try {
-        for (let note of allNotes) {
-          if (note.category === catName) {
-            await updateDoc(doc(db, "notes", note.id), { category: 'כללי' });
-          }
-        }
+        const notesToUpdate = allNotes.filter(n => n.category === catName);
+        
+        // עדכון כל הפתקים ב-Firebase
+        const updatePromises = notesToUpdate.map(note => 
+          updateDoc(doc(db, "notes", note.id), { category: 'כללי' })
+        );
+        
+        await Promise.all(updatePromises);
+        
         categories = categories.filter(c => c !== catName);
         if (currentCategory === catName) currentCategory = 'הכל';
-        showToast("הקטגוריה נמחקה והפתקים הועברו ל'כללי'");
-        renderCategories();
-        renderNotes();
+        
+        showToast("הקטגוריה הוסרה בהצלחה והפתקים עודכנו!");
       } catch (e) {
         console.error(e);
-        showToast("שגיאה במחיקת הקטגוריה");
+        showToast("שגיאה במחיקת הקטגוריה בשרת");
       }
     }
 
@@ -736,7 +741,7 @@
       downloadAnchor.click();
       downloadAnchor.remove();
       URL.revokeObjectURL(url);
-      showToast("הפתק הוטען והורד כקובץ טקסט!");
+      showToast("הפתק הורד כקובץ טקסט!");
     }
 
     window.showInlineSave = function(id) {
