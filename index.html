@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>הפנקס</title>
+  <title>הפנקס - פתק משותף</title>
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
   <style>
@@ -303,6 +303,27 @@
     .modal.fullscreen-mode { max-width: 100vw !important; height: 100vh !important; max-height: 100vh !important; border-radius: 0 !important; animation: none; }
     .modal.fullscreen-mode textarea.modal-textarea { flex: 1 !important; height: auto !important; }
 
+    /* עיצוב ייעודי למצב פתק בודד/ממוקד */
+    #single-note-container {
+      display: none;
+      max-width: 650px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--shadow-hover);
+      border: 1px solid var(--border);
+      flex-direction: column;
+      gap: 16px;
+    }
+    .single-note-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
     #toast { position: fixed; bottom: 85px; right: 50%; transform: translateX(50%); background: rgba(30,41,59,0.9); color: white; padding: 6px 16px; border-radius: 16px; font-size: 0.85rem; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
   </style>
 </head>
@@ -320,6 +341,25 @@
     </div>
   </div>
 
+  <!-- תצוגת פתק בודד ממוקד עבור קישור שיתוף -->
+  <div id="single-note-container">
+    <div class="single-note-header">
+      <div>
+        <span id="single-note-cat" class="cat-badge">כללי</span>
+        <span id="single-note-edited" class="edited-by-badge" style="display:none;"></span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span id="single-note-date" class="note-date"></span>
+        <button class="btn btn-secondary" onclick="window.location.href = window.location.pathname" title="עבור לפנקס המלא">🏠 לוח ראשי</button>
+      </div>
+    </div>
+    <div style="flex: 1; display:flex; flex-direction:column; gap:10px;">
+      <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 250px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius);"></textarea>
+      <button id="single-note-save-btn" class="btn btn-submit" style="padding: 10px; width: 100%; border-radius: var(--radius);" onclick="saveSingleSharedNote()">שמור שינויים בפתק</button>
+    </div>
+  </div>
+
+  <!-- תצוגת הפנקס המלאה -->
   <div class="container" id="main-container">
     <header>
       <h1 id="app-title">הפנקס</h1>
@@ -400,20 +440,34 @@
     let editingNoteId = null;
     let isManagingCategories = false;
     let unsubscribeNotes = null;
-    let isInitialSharedHandled = false;
+    let activeSharedNoteId = null;
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
         document.getElementById('auth-screen').style.display = 'none';
-        document.getElementById('main-container').style.display = 'block';
-        document.getElementById('fab-btn').style.display = 'flex';
+        
+        // בדיקה האם המשתמש נכנס דרך קישור פתק בודד
+        const urlParams = new URLSearchParams(window.location.search);
+        const sharedNoteId = urlParams.get('noteId');
+        
+        if (sharedNoteId) {
+          document.getElementById('main-container').style.display = 'none';
+          document.getElementById('fab-btn').style.display = 'none';
+          document.getElementById('single-note-container').style.display = 'flex';
+        } else {
+          document.getElementById('main-container').style.display = 'block';
+          document.getElementById('fab-btn').style.display = 'flex';
+          document.getElementById('single-note-container').style.display = 'none';
+        }
+        
         startRealtimeListener();
       } else {
         currentUser = null;
         if (unsubscribeNotes) unsubscribeNotes();
         document.getElementById('auth-screen').style.display = 'flex';
         document.getElementById('main-container').style.display = 'none';
+        document.getElementById('single-note-container').style.display = 'none';
         document.getElementById('fab-btn').style.display = 'none';
       }
     });
@@ -498,10 +552,6 @@
       if (!currentUser) return;
       if (unsubscribeNotes) unsubscribeNotes();
 
-      if (allNotes.length === 0) {
-        document.getElementById('notes-container').innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column: 1/-1;">מתחבר לענן בזמן אמת...</p>';
-      }
-      
       unsubscribeNotes = onSnapshot(collection(db, "notes"), (querySnapshot) => {
         allNotes = [];
         const activeCategoriesSet = new Set(['כללי']);
@@ -519,38 +569,81 @@
         updateCounter();
         renderCategories();
         renderNotes();
-        checkSharedUrlParams();
+        renderSingleSharedNote();
       }, (error) => {
         console.error("שגיאה בסנכרון פתקים:", error);
         showToast("מתחבר מחדש לענן...");
-        // מנגנון Reconnect אוטומטי במקרה של השהיית חיבור
         setTimeout(() => {
           if (currentUser) startRealtimeListener();
         }, 3000);
       });
     }
 
-    function checkSharedUrlParams() {
-      if (isInitialSharedHandled) return;
+    function renderSingleSharedNote() {
       const urlParams = new URLSearchParams(window.location.search);
       const noteId = urlParams.get('noteId');
-      const mode = urlParams.get('mode');
+      const mode = urlParams.get('mode') || 'view';
 
-      if (noteId && allNotes.length > 0) {
-        isInitialSharedHandled = true;
-        const targetNote = allNotes.find(n => n.id === noteId);
-        if (targetNote) {
-          if (mode === 'edit') {
-            openEditModal(targetNote.id, targetNote.text || '', targetNote.category || 'כללי');
-          } else {
-            const cardElem = document.getElementById(`note-card-${noteId}`);
-            if (cardElem) {
-              cardElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              cardElem.style.border = '2px solid var(--primary)';
-            }
-          }
-        }
+      if (!noteId) return;
+
+      activeSharedNoteId = noteId;
+      const note = allNotes.find(n => n.id === noteId);
+
+      if (!note) {
+        document.getElementById('single-note-textarea').value = 'הפתק לא נמצא או שנמחק.';
+        document.getElementById('single-note-save-btn').style.display = 'none';
+        return;
       }
+
+      document.getElementById('single-note-cat').innerText = note.category || 'כללי';
+      document.getElementById('single-note-date').innerText = note.date || '';
+      const textarea = document.getElementById('single-note-textarea');
+      textarea.value = note.text || '';
+
+      const isPartnerEdit = note.lastEditedById && currentUser && note.lastEditedById !== currentUser.uid;
+      const editedElem = document.getElementById('single-note-edited');
+      if (isPartnerEdit) {
+        editedElem.innerText = `✏️ נערך ע"י ${note.lastEditedBy}`;
+        editedElem.style.display = 'inline-block';
+      } else {
+        editedElem.style.display = 'none';
+      }
+
+      const saveBtn = document.getElementById('single-note-save-btn');
+      if (mode === 'edit') {
+        textarea.removeAttribute('readonly');
+        saveBtn.style.display = 'block';
+      } else {
+        textarea.setAttribute('readonly', 'true');
+        saveBtn.style.display = 'none';
+      }
+    }
+
+    window.saveSingleSharedNote = async function() {
+      if (!activeSharedNoteId) return;
+      const textarea = document.getElementById('single-note-textarea');
+      const btn = document.getElementById('single-note-save-btn');
+      const newText = textarea.value.trim();
+
+      btn.disabled = true;
+      btn.innerText = 'שומר שינויים...';
+
+      const userName = currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : 'שותף';
+      const userId = currentUser ? currentUser.uid : '';
+
+      try {
+        await updateDoc(doc(db, "notes", activeSharedNoteId), { 
+          text: newText,
+          lastEditedBy: userName,
+          lastEditedById: userId
+        });
+        showToast("הפתק המשותף עודכן בהצלחה!");
+      } catch (err) {
+        console.error(err);
+        showToast("שגיאה בשמירת הפתק");
+      }
+      btn.disabled = false;
+      btn.innerText = 'שמור שינויים בפתק';
     }
 
     window.updateCounter = function() {
