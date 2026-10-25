@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>הפנקס - פתק משותף</title>
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
@@ -11,12 +11,12 @@
       --bg-color: #f7f8fa;
       --card-bg: #ffffff;
       --text-main: #2c3e50;
-      --text-muted: #7f8c8d;
-      --primary: #5c768d;
-      --primary-hover: #475d71;
-      --urgent: #e67e22; 
-      --urgent-glow: rgba(230, 126, 34, 0.12);
-      --border: #e2e8f0;
+      --text-muted: #475569; /* Darkened for accessibility contrast */
+      --primary: #475d71;   /* Darkened for contrast */
+      --primary-hover: #334155;
+      --urgent: #d97706; 
+      --urgent-glow: rgba(217, 119, 6, 0.12);
+      --border: #cbd5e1;
       --shadow: 0 2px 4px rgba(0,0,0,0.01), 0 1px 2px rgba(0,0,0,0.03);
       --shadow-hover: 0 8px 16px rgba(0,0,0,0.04);
       --radius: 10px;
@@ -48,7 +48,7 @@
     }
 
     .btn-google {
-      background: #4285f4;
+      background: #1a73e8;
       color: white;
       border: none;
       padding: 12px 20px;
@@ -64,17 +64,17 @@
       margin-top: 16px;
       transition: background 0.2s;
     }
-    .btn-google:hover { background: #3367d6; }
+    .btn-google:hover { background: #1557b0; }
 
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
-    h1 { font-size: 1.4rem; font-weight: 600; color: #334155; letter-spacing: -0.3px; }
+    h1 { font-size: 1.4rem; font-weight: 600; color: #1e293b; letter-spacing: -0.3px; }
     
     .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .notes-counter-badge { font-size: 0.8rem; color: var(--text-muted); background: #edf2f7; padding: 5px 12px; border-radius: 16px; font-weight: 500; white-space: nowrap; }
+    .notes-counter-badge { font-size: 0.8rem; color: #334155; background: #e2e8f0; padding: 5px 12px; border-radius: 16px; font-weight: 600; white-space: nowrap; }
     
     .btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-    .btn-secondary { font-size: 0.85rem; color: var(--primary); font-weight: 500; padding: 6px 12px; border-radius: 20px; background: #edf2f7; border: 1px solid transparent; }
-    .btn-secondary:hover { background: #e2e8f0; }
+    .btn-secondary { font-size: 0.85rem; color: #334155; font-weight: 600; padding: 6px 12px; border-radius: 20px; background: #e2e8f0; border: 1px solid transparent; }
+    .btn-secondary:hover { background: #cbd5e1; }
     .btn-secondary.active-mode { background: var(--primary); color: white; }
 
     .sticky-nav-wrapper {
@@ -90,7 +90,7 @@
 
     .search-wrapper { margin-bottom: 12px; position: relative; }
     .search-input { width: 100%; padding: 10px 40px 10px 16px; font-size: 0.95rem; border: 1px solid var(--border); border-radius: 24px; background: var(--card-bg); outline: none; box-shadow: var(--shadow); transition: all 0.2s; color: var(--text-main); }
-    .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(92, 118, 141, 0.08); }
+    .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(71, 93, 113, 0.15); }
     .search-icon { position: absolute; top: 50%; right: 16px; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; font-size: 0.9rem; }
 
     .categories-bar { 
@@ -100,13 +100,13 @@
       padding-bottom: 4px; 
       align-items: center; 
     }
-    .cat-chip { padding: 5px 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; color: var(--text-muted); transition: all 0.2s; user-select: none; display: flex; align-items: center; gap: 6px; }
+    .cat-chip { padding: 5px 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; color: #334155; transition: all 0.2s; user-select: none; display: flex; align-items: center; gap: 6px; }
     .cat-chip:hover { background: #f1f5f9; color: var(--text-main); }
-    .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: 500; }
-    .cat-chip.urgent-chip { border-color: #fde68a; background: #fffbeb; color: #b45309; }
+    .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: 600; }
+    .cat-chip.urgent-chip { border-color: #fde68a; background: #fffbeb; color: #92400e; }
     .cat-chip.urgent-chip.active { background: var(--urgent); color: white; border-color: var(--urgent); }
     .cat-delete-btn { font-size: 0.75rem; color: inherit; opacity: 0.8; background: rgba(0,0,0,0.06); border-radius: 50%; width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; border: none; cursor: pointer; }
-    .cat-delete-btn:hover { background: rgba(225,29,72,0.2); color: #e11d48; }
+    .cat-delete-btn:hover { background: rgba(225,29,72,0.2); color: #be123c; }
 
     .notes-list { 
       display: grid; 
@@ -129,7 +129,7 @@
     
     .note-card:hover {
       box-shadow: var(--shadow-hover);
-      border-color: #cbd5e1;
+      border-color: #94a3b8;
     }
     
     .note-card.is-urgent { 
@@ -149,10 +149,10 @@
       margin-bottom: 8px;
     }
 
-    .note-date { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; }
+    .note-date { font-size: 0.75rem; color: #475569; font-weight: 500; }
     
     .cat-badge {
-      font-weight: 500;
+      font-weight: 600;
       font-size: 0.75rem;
       padding: 2px 8px;
       border-radius: 10px;
@@ -163,11 +163,11 @@
 
     .edited-by-badge {
       font-size: 0.7rem;
-      color: #0284c7;
+      color: #0369a1;
       background: #e0f2fe;
       padding: 2px 6px;
       border-radius: 8px;
-      font-weight: 500;
+      font-weight: 600;
       display: inline-block;
       margin-right: 4px;
     }
@@ -210,7 +210,7 @@
     .save-inline-btn.show { display: block; }
 
     .menu-wrapper { position: relative; display: inline-block; }
-    .menu-btn { background: none; border: none; font-size: 1.1rem; color: var(--text-muted); cursor: pointer; padding: 2px 6px; border-radius: 4px; }
+    .menu-btn { background: none; border: none; font-size: 1.1rem; color: #475569; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
     .menu-btn:hover { background: #f1f5f9; color: var(--text-main); }
     
     .dropdown-menu {
@@ -241,10 +241,10 @@
       gap: 8px;
     }
     .dropdown-item:hover { background: #f8fafc; color: var(--primary); }
-    .dropdown-item.danger { color: #e11d48; }
+    .dropdown-item.danger { color: #be123c; }
     .dropdown-item.danger:hover { background: #fff1f2; }
 
-    .fab { position: fixed; bottom: 24px; left: 24px; width: 52px; height: 52px; background: var(--primary); color: white; border-radius: 50%; box-shadow: 0 4px 12px rgba(92,118,141,0.3); font-size: 1.6rem; z-index: 100; transition: transform 0.2s; display: none; }
+    .fab { position: fixed; bottom: 24px; left: 24px; width: 52px; height: 52px; background: var(--primary); color: white; border-radius: 50%; box-shadow: 0 4px 12px rgba(71,93,113,0.3); font-size: 1.6rem; z-index: 100; transition: transform 0.2s; display: none; }
     .fab:hover { background: var(--primary-hover); transform: scale(1.04); }
 
     .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); display: none; justify-content: center; align-items: flex-end; z-index: 200; backdrop-filter: blur(2px); }
@@ -253,8 +253,8 @@
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
     .modal-header-actions { display: flex; justify-content: space-between; align-items: center; }
-    .modal-header-actions h3 { font-size: 1.1rem; font-weight: 600; color: #334155; }
-    .btn-fullscreen { font-size: 0.85rem; color: var(--text-muted); padding: 4px 10px; border-radius: 16px; background: #f1f5f9; font-weight: 500; }
+    .modal-header-actions h3 { font-size: 1.1rem; font-weight: 600; color: #1e293b; }
+    .btn-fullscreen { font-size: 0.85rem; color: #334155; padding: 4px 10px; border-radius: 16px; background: #f1f5f9; font-weight: 600; }
     .btn-fullscreen:hover { color: var(--primary); }
 
     .textarea-wrapper { position: relative; width: 100%; }
@@ -279,8 +279,8 @@
     }
     .voice-btn.recording {
       background: #ffe4e6;
-      border-color: #e11d48;
-      color: #e11d48;
+      border-color: #be123c;
+      color: #be123c;
       animation: pulse 1.2s infinite;
     }
     @keyframes pulse {
@@ -290,20 +290,19 @@
     }
 
     .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group label { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); }
+    .form-group label { font-size: 0.85rem; font-weight: 600; color: #475569; }
     select { padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.95rem; outline: none; background: white; color: var(--text-main); }
 
     .modal-buttons { display: flex; gap: 10px; margin-top: 6px; }
-    .btn-block { flex: 1; padding: 10px; border-radius: var(--radius); font-size: 0.95rem; font-weight: 500; text-align: center; }
+    .btn-block { flex: 1; padding: 10px; border-radius: var(--radius); font-size: 0.95rem; font-weight: 600; text-align: center; }
     .btn-submit { background: var(--primary); color: white; }
     .btn-submit:hover { background: var(--primary-hover); }
     .btn-cancel { background: #f1f5f9; color: var(--text-main); }
-    .btn-cancel:hover { background: #e2e6ea; }
+    .btn-cancel:hover { background: #e2e8f0; }
 
     .modal.fullscreen-mode { max-width: 100vw !important; height: 100vh !important; max-height: 100vh !important; border-radius: 0 !important; animation: none; }
     .modal.fullscreen-mode textarea.modal-textarea { flex: 1 !important; height: auto !important; }
 
-    /* עיצוב ייעודי למצב פתק בודד/ממוקד */
     #single-note-container {
       display: none;
       max-width: 650px;
@@ -324,7 +323,7 @@
       padding-bottom: 12px;
     }
 
-    #toast { position: fixed; bottom: 85px; right: 50%; transform: translateX(50%); background: rgba(30,41,59,0.9); color: white; padding: 6px 16px; border-radius: 16px; font-size: 0.85rem; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    #toast { position: fixed; bottom: 85px; right: 50%; transform: translateX(50%); background: rgba(30,41,59,0.95); color: white; padding: 6px 16px; border-radius: 16px; font-size: 0.85rem; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
   </style>
 </head>
 <body onclick="closeAllDropdowns(event)">
@@ -335,13 +334,12 @@
       <p style="color: var(--text-muted); margin-top: 8px; font-size: 0.9rem;">
         הפנקס מוגן. התחבר עם חשבון גוגל שלך כדי לצפות בפתקים.
       </p>
-      <button class="btn-google" onclick="loginWithGoogle()">
+      <button class="btn-google" onclick="loginWithGoogle()" aria-label="התחברות עם חשבון גוגל">
         <span>🔑 התחברות עם Google</span>
       </button>
     </div>
   </div>
 
-  <!-- תצוגת פתק בודד ממוקד עבור קישור שיתוף -->
   <div id="single-note-container">
     <div class="single-note-header">
       <div>
@@ -350,68 +348,70 @@
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
         <span id="single-note-date" class="note-date"></span>
-        <button class="btn btn-secondary" onclick="window.location.href = window.location.pathname" title="עבור לפנקס המלא">🏠 לוח ראשי</button>
+        <button class="btn btn-secondary" onclick="window.location.href = window.location.pathname" title="עבור לפנקס המלא" aria-label="חזור ללוח הראשי">🏠 לוח ראשי</button>
       </div>
     </div>
     <div style="flex: 1; display:flex; flex-direction:column; gap:10px;">
-      <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 250px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius);"></textarea>
-      <button id="single-note-save-btn" class="btn btn-submit" style="padding: 10px; width: 100%; border-radius: var(--radius);" onclick="saveSingleSharedNote()">שמור שינויים בפתק</button>
+      <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 250px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius);" aria-label="תוכן הפתק המשותף"></textarea>
+      <button id="single-note-save-btn" class="btn btn-submit" style="padding: 10px; width: 100%; border-radius: var(--radius);" onclick="saveSingleSharedNote()" aria-label="שמור שינויים בפתק המשותף">שמור שינויים בפתק</button>
     </div>
   </div>
 
-  <!-- תצוגת הפנקס המלאה -->
   <div class="container" id="main-container">
     <header>
       <h1 id="app-title">הפנקס</h1>
       <div class="header-actions">
         <span class="notes-counter-badge" id="notes-counter">מחשב פתקים...</span>
-        <button class="btn btn-secondary" onclick="exportBackup()" title="ייצוא קובץ גיבוי מקומי">💾 גיבוי</button>
-        <button class="btn btn-secondary" onclick="triggerImport()" title="ייבוא פתקים מקובץ JSON">📥 ייבוא</button>
-        <input type="file" id="import-file-input" style="display: none" accept=".json" onchange="importBackup(event)">
-        <button class="btn btn-secondary" id="manage-cat-btn" onclick="toggleCategoryManagement()" title="ניהול ומחיקת קטגוריות">⚙️ ניהול קטגוריות</button>
-        <button class="btn btn-secondary" id="archive-view-btn" onclick="toggleArchiveView()">ארכיון</button>
-        <button class="btn btn-secondary" onclick="logoutFromGoogle()" title="התנתקות">🚪 התנתק</button>
+        <button class="btn btn-secondary" onclick="exportBackup()" title="ייצוא קובץ גיבוי מקומי" aria-label="ייצוא קובץ גיבוי">💾 גיבוי</button>
+        <button class="btn btn-secondary" onclick="triggerImport()" title="ייבוא פתקים מקובץ JSON" aria-label="ייבוא פתקים מקובץ גיבוי">📥 ייבוא</button>
+        <input type="file" id="import-file-input" style="display: none" accept=".json" onchange="importBackup(event)" aria-label="בחירת קובץ גיבוי לייבוא">
+        <button class="btn btn-secondary" id="manage-cat-btn" onclick="toggleCategoryManagement()" title="ניהול ומחיקת קטגוריות" aria-label="ניהול קטגוריות">⚙️ ניהול קטגוריות</button>
+        <button class="btn btn-secondary" id="archive-view-btn" onclick="toggleArchiveView()" aria-label="מעבר לתצוגת ארכיון">ארכיון</button>
+        <button class="btn btn-secondary" onclick="logoutFromGoogle()" title="התנתקות" aria-label="התנתק מהחשבון">🚪 התנתק</button>
       </div>
     </header>
 
     <div class="sticky-nav-wrapper">
       <div class="search-wrapper">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="search-input" class="search-input" placeholder="חיפוש חופשי בפתקים..." oninput="renderNotes()">
+        <span class="search-icon" aria-hidden="true">🔍</span>
+        <input type="text" id="search-input" class="search-input" placeholder="חיפוש חופשי בפתקים..." oninput="renderNotes()" aria-label="חיפוש חופשי בפתקים">
       </div>
-      <div class="categories-bar" id="categories-container"></div>
+      <div class="categories-bar" id="categories-container" role="region" aria-label="סינון לפי קטגוריות"></div>
     </div>
 
-    <div class="notes-list" id="notes-container"></div>
+    <!-- Wrapping core note cards area in main tag for accessibility -->
+    <main id="notes-main-area">
+      <div class="notes-list" id="notes-container"></div>
+    </main>
   </div>
 
-  <button class="btn fab" id="fab-btn" onclick="openAddModal()">+</button>
+  <button class="btn fab" id="fab-btn" onclick="openAddModal()" aria-label="צור פתק חדש">+</button>
 
   <div class="overlay" id="note-modal" onclick="if(event.target===this) closeModal()">
-    <div class="modal" id="modal-box">
+    <div class="modal" id="modal-box" role="dialog" aria-labelledby="modal-title">
       <div class="modal-header-actions">
         <h3 id="modal-title">פתק חדש</h3>
-        <button class="btn btn-fullscreen" onclick="toggleFullscreenModal()" id="fs-btn">🔲 מסך מלא</button>
+        <button class="btn btn-fullscreen" onclick="toggleFullscreenModal()" id="fs-btn" aria-label="מסך מלא">🔲 מסך מלא</button>
       </div>
       <div class="textarea-wrapper">
-        <textarea id="note-text-input" class="modal-textarea" placeholder="הקלד או הכרז בקולך..."></textarea>
-        <button class="voice-btn" id="voice-record-btn" onclick="toggleVoiceRecognition()" title="הקלטת קול לטקסט">🎤</button>
+        <textarea id="note-text-input" class="modal-textarea" placeholder="הקלד או הכרז בקולך..." aria-label="תוכן הפתק"></textarea>
+        <button class="voice-btn" id="voice-record-btn" onclick="toggleVoiceRecognition()" title="הקלטת קול לטקסט" aria-label="הקלטת קול לטקסט">🎤</button>
       </div>
       <div class="form-group" id="cat-select-group">
-        <label>קטגוריה</label>
+        <label for="note-cat-select">קטגוריה</label>
         <div style="display: flex; gap: 8px;">
-          <select id="note-cat-select" style="flex: 1;"></select>
-          <button class="btn" onclick="addNewCategory()" title="הוסף קטגוריה חדשה" style="background: #edf2f7; padding: 0 14px; border-radius: var(--radius); color: var(--primary); font-weight: 600;">➕</button>
+          <select id="note-cat-select" style="flex: 1;" aria-label="בחירת קטגוריה"></select>
+          <button class="btn" onclick="addNewCategory()" title="הוסף קטגוריה חדשה" aria-label="הוסף קטגוריה חדשה" style="background: #edf2f7; padding: 0 14px; border-radius: var(--radius); color: var(--primary); font-weight: 600;">➕</button>
         </div>
       </div>
       <div class="modal-buttons">
-        <button class="btn btn-block btn-cancel" onclick="closeModal()">ביטול</button>
-        <button class="btn btn-block btn-submit" id="save-modal-btn" onclick="saveNote()">שמירה</button>
+        <button class="btn btn-block btn-cancel" onclick="closeModal()" aria-label="ביטול">ביטול</button>
+        <button class="btn btn-block btn-submit" id="save-modal-btn" onclick="saveNote()" aria-label="שמירת פתק">שמירה</button>
       </div>
     </div>
   </div>
 
-  <div id="toast"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -447,7 +447,6 @@
         currentUser = user;
         document.getElementById('auth-screen').style.display = 'none';
         
-        // בדיקה האם המשתמש נכנס דרך קישור פתק בודד
         const urlParams = new URLSearchParams(window.location.search);
         const sharedNoteId = urlParams.get('noteId');
         
@@ -675,12 +674,16 @@
       const allChip = document.createElement('div');
       allChip.className = `cat-chip ${currentCategory === 'הכל' ? 'active' : ''}`;
       allChip.innerText = 'הכל';
+      allChip.setAttribute('role', 'button');
+      allChip.setAttribute('aria-label', 'הצג את כל הפתקים');
       allChip.onclick = () => { currentCategory = 'הכל'; renderCategories(); renderNotes(); };
       container.appendChild(allChip);
 
       const urgentChip = document.createElement('div');
       urgentChip.className = `cat-chip urgent-chip ${currentCategory === '⭐ דחוף' ? 'active' : ''}`;
       urgentChip.innerText = '⭐ דחוף';
+      urgentChip.setAttribute('role', 'button');
+      urgentChip.setAttribute('aria-label', 'סינון פתקים דחופים');
       urgentChip.onclick = () => { currentCategory = '⭐ דחוף'; renderCategories(); renderNotes(); };
       container.appendChild(urgentChip);
 
@@ -688,10 +691,12 @@
         const colors = getCategoryColor(c);
         const chip = document.createElement('div');
         chip.className = `cat-chip ${currentCategory === c ? 'active' : ''}`;
+        chip.setAttribute('role', 'button');
+        chip.setAttribute('aria-label', `סינון לפי קטגוריה ${c}`);
         
         let chipContent = `<span>${c}</span>`;
         if (isManagingCategories && c !== 'כללי') {
-          chipContent += `<button class="cat-delete-btn" onclick="event.stopPropagation(); deleteCategory('${c}')" title="מחק קטגוריה">✕</button>`;
+          chipContent += `<button class="cat-delete-btn" onclick="event.stopPropagation(); deleteCategory('${c}')" title="מחק קטגוריה" aria-label="מחק קטגוריה ${c}">✕</button>`;
         }
 
         chip.innerHTML = chipContent;
@@ -803,7 +808,7 @@
               <div style="display: flex; align-items: center; gap: 4px;">
                 <span class="note-date">${date || ''}</span>
                 <div class="menu-wrapper">
-                  <button class="menu-btn" onclick="toggleDropdown(event, '${id}')">⋮</button>
+                  <button class="menu-btn" onclick="toggleDropdown(event, '${id}')" aria-label="תפריט אפשרויות פתק">⋮</button>
                   <div class="dropdown-menu" id="dropdown-${id}">
                     <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(text || '')}\`, '${catName}')">✏️ עריכה מלאה</button>
                     <button class="dropdown-item" onclick="copyNoteText('${id}')">📋 העתק טקסט</button>
@@ -818,8 +823,8 @@
                 </div>
               </div>
             </div>
-            <textarea class="inline-textarea" id="inline-text-${id}" oninput="showInlineSave('${id}')">${escapeHtml(text || '')}</textarea>
-            <button class="save-inline-btn" id="save-btn-${id}" onclick="saveInlineNote('${id}')">שמור שינויים</button>
+            <textarea class="inline-textarea" id="inline-text-${id}" oninput="showInlineSave('${id}')" aria-label="תוכן הפתק">${escapeHtml(text || '')}</textarea>
+            <button class="save-inline-btn" id="save-btn-${id}" onclick="saveInlineNote('${id}')" aria-label="שמור שינויים בפתק">שמור שינויים</button>
           </div>
         `;
       });
@@ -904,11 +909,11 @@
     }
 
     window.getCategoryColor = function(catName) {
-      if (catName === 'הכל' || catName === '⭐ דחוף') return { bg: '#f8fafc', border: '#e2e8f0', text: '#475569' };
+      if (catName === 'הכל' || catName === '⭐ דחוף') return { bg: '#f8fafc', border: '#cbd5e1', text: '#334155' };
       let hash = 0;
       for (let i = 0; i < catName.length; i++) { hash = catName.charCodeAt(i) + ((hash << 5) - hash); }
       const hue = Math.abs(hash % 360);
-      return { bg: `hsl(${hue}, 60%, 97%)`, border: `hsl(${hue}, 40%, 82%)`, text: `hsl(${hue}, 50%, 35%)` };
+      return { bg: `hsl(${hue}, 60%, 97%)`, border: `hsl(${hue}, 40%, 75%)`, text: `hsl(${hue}, 60%, 25%)` };
     }
 
     window.openAddModal = function() {
