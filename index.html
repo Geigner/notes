@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>הפנקס</title>
+  <title>הפנקס - פתק משותף</title>
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
   <style>
@@ -66,6 +66,7 @@
     }
     .btn-google:hover { background: #1557b0; }
 
+    /* הדר מאוזן והרמוני לימין-לשמאל אמיתי */
     header { 
       display: flex; 
       justify-content: space-between; 
@@ -77,7 +78,7 @@
     .header-right, .header-left {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
     h1 { font-size: 1.4rem; font-weight: 600; color: #1e293b; letter-spacing: -0.3px; }
@@ -157,7 +158,7 @@
     .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
     .btn-secondary.active-mode { background: var(--primary); color: white; border-color: var(--primary); }
 
-    /* בר חיפוש נפתח מרחף */
+    /* בר חיפוש נפתח מרחף שמאלה */
     .search-dropdown-wrapper {
       position: relative;
       display: inline-block;
@@ -202,7 +203,7 @@
       animation: slideInFromLeft 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    /* סרגל קטגוריות מרחף נפתח הצידה שמאלה מימין */
+    /* סרגל קטגוריות מרחף נפתח הצידה שמאלה */
     .categories-dropdown-wrapper {
       position: relative;
       display: inline-block;
@@ -521,10 +522,12 @@
   </div>
 
   <div class="container" id="main-container">
-    <!-- סרגל עליון אחוד (Header) - קטגוריות מימין לגמרי, חיפוש לידן באופן מופרד ונקי -->
+    <!-- סרגל עליון אחוד (Header) - סדר נכון לימין-לשמאל: כותרת וקטגוריות מימין, חיפוש לידן, ניהול משמאל -->
     <header>
-      <!-- צד ימין: קטגוריות ראשונות, ואז חיפוש -->
+      <!-- צד ימין: כותרת הפנקס + קטגוריות + חיפוש -->
       <div class="header-right">
+        <h1 id="app-title">הפנקס</h1>
+        
         <!-- סרגל קטגוריות מרחף -->
         <div class="categories-dropdown-wrapper">
           <button class="cat-toggle-btn" onclick="toggleCategoriesMenu(event)">
@@ -534,14 +537,14 @@
           <div class="categories-bar" id="categories-container" role="region" aria-label="סינון לפי קטגוריות"></div>
         </div>
 
-        <!-- בר חיפוש נפתח מרחף (מופרד מהקטגוריות) -->
+        <!-- בר חיפוש נפתח מרחף -->
         <div class="search-dropdown-wrapper">
           <button class="search-trigger-btn" onclick="toggleSearchMenu(event)" title="חיפוש מהיר" aria-label="פתח חיפוש">🔍</button>
           <input type="text" id="search-input" class="search-popup-input" placeholder="חיפוש חופשי בפתקים..." oninput="renderNotes()" aria-label="חיפוש חופשי בפתקים">
         </div>
       </div>
 
-      <!-- צד שמאל: תפריט הגדרות וניהול + כותרת הפנקס -->
+      <!-- צד שמאל: תפריט הגדרות וניהול בלבד -->
       <div class="header-left">
         <div class="header-actions-wrapper">
           <button class="gear-menu-trigger" onclick="toggleHeaderMenu(event)" title="אפשרויות ניהול" aria-label="תפריט ניהול">⚙️</button>
@@ -555,7 +558,6 @@
             <button class="btn btn-secondary" onclick="logoutFromGoogle()" title="התנתקות" aria-label="התנתק מהחשבון">🚪 התנתק</button>
           </div>
         </div>
-        <h1 id="app-title">הפנקס</h1>
       </div>
     </header>
 
@@ -1347,7 +1349,7 @@
       setTimeout(() => { toast.style.display = 'none'; }, 2500);
     }
 
-    window.escapeHtml = function(text) {
+    window.escapeHtml = function(text)  {
       return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
