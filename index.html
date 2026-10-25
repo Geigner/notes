@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>הפנקס </title>
+  <title>הפנקס - פתק משותף</title>
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
   <style>
@@ -11,8 +11,8 @@
       --bg-color: #f7f8fa;
       --card-bg: #ffffff;
       --text-main: #2c3e50;
-      --text-muted: #475569; /* Darkened for accessibility contrast */
-      --primary: #475d71;   /* Darkened for contrast */
+      --text-muted: #475569;
+      --primary: #475d71;
       --primary-hover: #334155;
       --urgent: #d97706; 
       --urgent-glow: rgba(217, 119, 6, 0.12);
@@ -66,10 +66,62 @@
     }
     .btn-google:hover { background: #1557b0; }
 
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+    /* הפיכת ההדר למינימליסטי - מתרחב ברחיפה או בלחיצה */
+    header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 16px; 
+      position: relative;
+    }
+    
+    .header-main-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
     h1 { font-size: 1.4rem; font-weight: 600; color: #1e293b; letter-spacing: -0.3px; }
     
-    .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .gear-menu-trigger {
+      background: #e2e8f0;
+      border: none;
+      font-size: 1.1rem;
+      padding: 6px 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      color: #334155;
+    }
+    .gear-menu-trigger:hover {
+      background: #cbd5e1;
+      transform: rotate(30deg);
+    }
+
+    .header-actions-dropdown { 
+      display: none; 
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+      z-index: 100;
+      gap: 8px; 
+      flex-wrap: wrap; 
+      max-width: 450px;
+    }
+
+    .header-actions-wrapper {
+      position: relative;
+    }
+    .header-actions-wrapper:hover .header-actions-dropdown,
+    .header-actions-dropdown.active {
+      display: flex;
+    }
+
     .notes-counter-badge { font-size: 0.8rem; color: #334155; background: #e2e8f0; padding: 5px 12px; border-radius: 16px; font-weight: 600; white-space: nowrap; }
     
     .btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
@@ -88,18 +140,57 @@
       box-shadow: 0 4px 10px -4px rgba(247, 248, 250, 0.95);
     }
 
-    .search-wrapper { margin-bottom: 12px; position: relative; }
+    .search-wrapper { margin-bottom: 8px; position: relative; }
     .search-input { width: 100%; padding: 10px 40px 10px 16px; font-size: 0.95rem; border: 1px solid var(--border); border-radius: 24px; background: var(--card-bg); outline: none; box-shadow: var(--shadow); transition: all 0.2s; color: var(--text-main); }
     .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(71, 93, 113, 0.15); }
     .search-icon { position: absolute; top: 50%; right: 16px; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; font-size: 0.9rem; }
 
+    /* סרגל קטגוריות מתקפל ומזערי */
+    .categories-dropdown-wrapper {
+      position: relative;
+    }
+    
+    .cat-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+    }
+    .cat-toggle-btn:hover {
+      background: #f8fafc;
+    }
+
     .categories-bar { 
-      display: flex; 
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+      z-index: 95;
       gap: 8px; 
       flex-wrap: wrap; 
-      padding-bottom: 4px; 
-      align-items: center; 
+      max-width: 90vw;
+      width: max-content;
+      margin-top: 4px;
     }
+
+    .categories-dropdown-wrapper:hover .categories-bar,
+    .categories-bar.active {
+      display: flex;
+    }
+
     .cat-chip { padding: 5px 14px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; color: #334155; transition: all 0.2s; user-select: none; display: flex; align-items: center; gap: 6px; }
     .cat-chip:hover { background: #f1f5f9; color: var(--text-main); }
     .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: 600; }
@@ -359,15 +450,20 @@
 
   <div class="container" id="main-container">
     <header>
-      <h1 id="app-title">הפנקס</h1>
-      <div class="header-actions">
-        <span class="notes-counter-badge" id="notes-counter">מחשב פתקים...</span>
-        <button class="btn btn-secondary" onclick="exportBackup()" title="ייצוא קובץ גיבוי מקומי" aria-label="ייצוא קובץ גיבוי">💾 גיבוי</button>
-        <button class="btn btn-secondary" onclick="triggerImport()" title="ייבוא פתקים מקובץ JSON" aria-label="ייבוא פתקים מקובץ גיבוי">📥 ייבוא</button>
-        <input type="file" id="import-file-input" style="display: none" accept=".json" onchange="importBackup(event)" aria-label="בחירת קובץ גיבוי לייבוא">
-        <button class="btn btn-secondary" id="manage-cat-btn" onclick="toggleCategoryManagement()" title="ניהול ומחיקת קטגוריות" aria-label="ניהול קטגוריות">⚙️ ניהול קטגוריות</button>
-        <button class="btn btn-secondary" id="archive-view-btn" onclick="toggleArchiveView()" aria-label="מעבר לתצוגת ארכיון">ארכיון</button>
-        <button class="btn btn-secondary" onclick="logoutFromGoogle()" title="התנתקות" aria-label="התנתק מהחשבון">🚪 התנתק</button>
+      <div class="header-main-title">
+        <h1 id="app-title">הפנקס</h1>
+        <div class="header-actions-wrapper">
+          <button class="gear-menu-trigger" onclick="toggleHeaderMenu(event)" title="אפשרויות ניהול" aria-label="תפריט ניהול">⚙️</button>
+          <div class="header-actions-dropdown" id="header-dropdown">
+            <span class="notes-counter-badge" id="notes-counter">מחשב...</span>
+            <button class="btn btn-secondary" onclick="exportBackup()" title="ייצוא קובץ גיבוי מקומי" aria-label="ייצוא קובץ גיבוי">💾 גיבוי</button>
+            <button class="btn btn-secondary" onclick="triggerImport()" title="ייבוא פתקים מקובץ JSON" aria-label="ייבוא פתקים">📥 ייבוא</button>
+            <input type="file" id="import-file-input" style="display: none" accept=".json" onchange="importBackup(event)" aria-label="בחירת קובץ גיבוי">
+            <button class="btn btn-secondary" id="manage-cat-btn" onclick="toggleCategoryManagement()" title="ניהול ומחיקת קטגוריות" aria-label="ניהול קטגוריות">⚙️ ניהול קטגוריות</button>
+            <button class="btn btn-secondary" id="archive-view-btn" onclick="toggleArchiveView()" aria-label="תצוגת ארכיון">ארכיון</button>
+            <button class="btn btn-secondary" onclick="logoutFromGoogle()" title="התנתקות" aria-label="התנתק מהחשבון">🚪 התנתק</button>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -376,10 +472,17 @@
         <span class="search-icon" aria-hidden="true">🔍</span>
         <input type="text" id="search-input" class="search-input" placeholder="חיפוש חופשי בפתקים..." oninput="renderNotes()" aria-label="חיפוש חופשי בפתקים">
       </div>
-      <div class="categories-bar" id="categories-container" role="region" aria-label="סינון לפי קטגוריות"></div>
+      
+      <!-- סרגל קטגוריות מינימליסטי מתרחב -->
+      <div class="categories-dropdown-wrapper">
+        <button class="cat-toggle-btn" onclick="toggleCategoriesMenu(event)">
+          <span>🏷️ קטגוריה: <strong id="selected-cat-label">הכל</strong></span>
+          <span style="font-size: 0.75rem;">▼</span>
+        </button>
+        <div class="categories-bar" id="categories-container" role="region" aria-label="סינון לפי קטגוריות"></div>
+      </div>
     </div>
 
-    <!-- Wrapping core note cards area in main tag for accessibility -->
     <main id="notes-main-area">
       <div class="notes-list" id="notes-container"></div>
     </main>
@@ -645,6 +748,18 @@
       btn.innerText = 'שמור שינויים בפתק';
     }
 
+    window.toggleHeaderMenu = function(event) {
+      event.stopPropagation();
+      const dropdown = document.getElementById('header-dropdown');
+      dropdown.classList.toggle('active');
+    }
+
+    window.toggleCategoriesMenu = function(event) {
+      event.stopPropagation();
+      const bar = document.getElementById('categories-container');
+      bar.classList.toggle('active');
+    }
+
     window.updateCounter = function() {
       const activeCount = allNotes.filter(n => !n.archived).length;
       const archivedCount = allNotes.filter(n => n.archived).length;
@@ -671,12 +786,14 @@
       const container = document.getElementById('categories-container');
       container.innerHTML = '';
       
+      document.getElementById('selected-cat-label').innerText = currentCategory;
+
       const allChip = document.createElement('div');
       allChip.className = `cat-chip ${currentCategory === 'הכל' ? 'active' : ''}`;
       allChip.innerText = 'הכל';
       allChip.setAttribute('role', 'button');
       allChip.setAttribute('aria-label', 'הצג את כל הפתקים');
-      allChip.onclick = () => { currentCategory = 'הכל'; renderCategories(); renderNotes(); };
+      allChip.onclick = () => { currentCategory = 'הכל'; container.classList.remove('active'); renderCategories(); renderNotes(); };
       container.appendChild(allChip);
 
       const urgentChip = document.createElement('div');
@@ -684,7 +801,7 @@
       urgentChip.innerText = '⭐ דחוף';
       urgentChip.setAttribute('role', 'button');
       urgentChip.setAttribute('aria-label', 'סינון פתקים דחופים');
-      urgentChip.onclick = () => { currentCategory = '⭐ דחוף'; renderCategories(); renderNotes(); };
+      urgentChip.onclick = () => { currentCategory = '⭐ דחוף'; container.classList.remove('active'); renderCategories(); renderNotes(); };
       container.appendChild(urgentChip);
 
       categories.forEach(c => {
@@ -705,7 +822,7 @@
           chip.style.color = colors.text;
           chip.style.borderColor = colors.border;
         }
-        chip.onclick = () => { currentCategory = c; renderCategories(); renderNotes(); };
+        chip.onclick = () => { currentCategory = c; container.classList.remove('active'); renderCategories(); renderNotes(); };
         container.appendChild(chip);
       });
 
@@ -906,6 +1023,10 @@
 
     window.closeAllDropdowns = function() {
       document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.remove('show'));
+      const headerDrop = document.getElementById('header-dropdown');
+      if (headerDrop) headerDrop.classList.remove('active');
+      const catBar = document.getElementById('categories-container');
+      if (catBar) catBar.classList.remove('active');
     }
 
     window.getCategoryColor = function(catName) {
