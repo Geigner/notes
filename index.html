@@ -400,6 +400,7 @@
     let editingNoteId = null;
     let isManagingCategories = false;
     let unsubscribeNotes = null;
+    let isInitialSharedHandled = false;
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -493,19 +494,13 @@
       }
     }
 
-    window.onload = function() {
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible" && currentUser) {
-          startRealtimeListener();
-        }
-      });
-    };
-
     function startRealtimeListener() {
       if (!currentUser) return;
       if (unsubscribeNotes) unsubscribeNotes();
 
-      document.getElementById('notes-container').innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column: 1/-1;">מתחבר לענן בזמן אמת...</p>';
+      if (allNotes.length === 0) {
+        document.getElementById('notes-container').innerHTML = '<p style="text-align:center; color:var(--text-muted); grid-column: 1/-1;">מתחבר לענן בזמן אמת...</p>';
+      }
       
       unsubscribeNotes = onSnapshot(collection(db, "notes"), (querySnapshot) => {
         allNotes = [];
@@ -524,10 +519,38 @@
         updateCounter();
         renderCategories();
         renderNotes();
+        checkSharedUrlParams();
       }, (error) => {
         console.error("שגיאה בסנכרון פתקים:", error);
-        showToast("שגיאה בחיבור לענן - בדוק הרשאות או חיבור");
+        showToast("מתחבר מחדש לענן...");
+        // מנגנון Reconnect אוטומטי במקרה של השהיית חיבור
+        setTimeout(() => {
+          if (currentUser) startRealtimeListener();
+        }, 3000);
       });
+    }
+
+    function checkSharedUrlParams() {
+      if (isInitialSharedHandled) return;
+      const urlParams = new URLSearchParams(window.location.search);
+      const noteId = urlParams.get('noteId');
+      const mode = urlParams.get('mode');
+
+      if (noteId && allNotes.length > 0) {
+        isInitialSharedHandled = true;
+        const targetNote = allNotes.find(n => n.id === noteId);
+        if (targetNote) {
+          if (mode === 'edit') {
+            openEditModal(targetNote.id, targetNote.text || '', targetNote.category || 'כללי');
+          } else {
+            const cardElem = document.getElementById(`note-card-${noteId}`);
+            if (cardElem) {
+              cardElem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              cardElem.style.border = '2px solid var(--primary)';
+            }
+          }
+        }
+      }
     }
 
     window.updateCounter = function() {
