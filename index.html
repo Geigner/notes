@@ -183,6 +183,7 @@
     .cat-dropdown-item { padding: 6px 12px; font-size: 0.8rem; color: var(--text-main); background: none; border: none; width: 100%; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
     .cat-dropdown-item:hover { background: #f8fafc; color: var(--primary); }
 
+    .shared-badge { font-size: 0.7rem; color: #15803d; background: #dcfce7; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; border: 1px solid #bbf7d0; }
     .edited-by-badge { font-size: 0.7rem; color: #0369a1; background: #e0f2fe; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; }
 
     .inline-textarea { width: 100%; flex: 1; border: 1px solid transparent; background: transparent; font-size: 0.95rem; line-height: 1.5; resize: none; outline: none; color: var(--text-main); font-family: 'Assistant', sans-serif; padding: 2px; border-radius: 4px; transition: border-color 0.2s, background 0.2s; }
@@ -193,7 +194,7 @@
 
     .menu-wrapper { position: relative; display: inline-block; }
     .menu-btn { background: none; border: none; font-size: 1.1rem; color: #475569; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
-    .dropdown-menu { position: absolute; top: 100%; left: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: none; z-index: 50; min-width: 160px; padding: 4px 0; }
+    .dropdown-menu { position: absolute; top: 100%; left: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: none; z-index: 50; min-width: 170px; padding: 4px 0; }
     .dropdown-menu.show { display: block; }
     .dropdown-item { padding: 8px 14px; font-size: 0.85rem; color: var(--text-main); background: none; border: none; width: 100%; text-align: right; cursor: pointer; display: flex; align-items: center; gap: 8px; }
     .dropdown-item:hover { background: #f8fafc; color: var(--primary); }
@@ -357,12 +358,10 @@
     let unsubscribeNotes = null;
     let activeSharedNoteId = null;
 
-    // בדיקה בעת הטעינה אם מדובר בקישור שיתוף ישיר
     const urlParams = new URLSearchParams(window.location.search);
     const sharedNoteId = urlParams.get('noteId');
 
     if (sharedNoteId) {
-      // מצב אורח: צפייה/עריכת פתק בודד ללא דרישת התחברות לגוגל
       document.getElementById('auth-screen').style.display = 'none';
       document.getElementById('main-container').style.display = 'none';
       document.getElementById('fab-btn').style.display = 'none';
@@ -371,7 +370,6 @@
       activeSharedNoteId = sharedNoteId;
       listenToSingleSharedNote(sharedNoteId);
     } else {
-      // מצב רגיל: דורש התחברות אצלך
       onAuthStateChanged(auth, (user) => {
         if (user) {
           currentUser = user;
@@ -473,7 +471,6 @@
       closeAllDropdowns();
       
       try {
-        // פיזור הרשאה בשרת לפתק הזה לקריאה/עריכה ע"י אורחים
         await updateDoc(doc(db, "notes", id), { isShared: true });
 
         let shareUrl = window.location.origin + window.location.pathname + "?noteId=" + id;
@@ -496,6 +493,17 @@
       } catch (err) {
         console.error("שגיאה בהגדרת שיתוף:", err);
         showToast("שגיאה בהגדרת הרשאת השיתוף");
+      }
+    }
+
+    window.stopSharingNote = async function(id) {
+      closeAllDropdowns();
+      try {
+        await updateDoc(doc(db, "notes", id), { isShared: false });
+        showToast("השיתוף הופסק - הפתק שוב פרטי לחלוטין!");
+      } catch (err) {
+        console.error(err);
+        showToast("שגיאה בביטול השיתוף");
       }
     }
 
@@ -592,7 +600,13 @@
     window.updateCounter = function() {
       const activeCount = allNotes.filter(n => !n.archived).length;
       const archivedCount = allNotes.filter(n => n.archived).length;
-      document.getElementById('notes-counter').innerText = `${activeCount} פעילים | ${archivedCount} בארכיון`;
+      const sharedCount = allNotes.filter(n => n.isShared === true).length;
+      
+      let counterText = `${activeCount} פעילים | ${archivedCount} בארכיון`;
+      if (sharedCount > 0) {
+        counterText += ` | 🔗 ${sharedCount} משותפים`;
+      }
+      document.getElementById('notes-counter').innerText = counterText;
     }
 
     window.toggleCategoryManagement = function() {
@@ -678,10 +692,12 @@
     function generateNotesHTML(notesArray) {
       let html = '';
       notesArray.forEach(note => {
-        const { id, text, date, category, urgent, pinned, lastEditedBy, lastEditedById } = note;
+        const { id, text, date, category, urgent, pinned, isShared, lastEditedBy, lastEditedById } = note;
         const catName = category || 'כללי';
         const colors = getCategoryColor(catName);
         const cardVars = `style="--cat-bg-color: ${colors.bg}; --cat-border-color: ${colors.border}; --cat-text-color: ${colors.text};"`;
+        
+        const sharedTag = isShared ? `<span class="shared-badge" title="פתק פתוח לעריכה חיצונית">🔗 משותף</span>` : '';
         const editedByTag = lastEditedById && currentUser && lastEditedById !== currentUser.uid ? `<span class="edited-by-badge">✏️ ${lastEditedBy}</span>` : '';
 
         let catMenuItemsHTML = categories.map(c => `
@@ -691,6 +707,10 @@
         `).join('') + `<div style="border-top:1px solid var(--border); margin:4px 0;"></div>
                        <button class="cat-dropdown-item" onclick="promptAndAddCategoryForNote(event, '${id}')"><span>➕ קטגוריה חדשה...</span></button>`;
 
+        const shareBtnHTML = isShared 
+          ? `<button class="dropdown-item" onclick="stopSharingNote('${id}')">🔒 הפסק שיתוף</button>`
+          : `<button class="dropdown-item" onclick="shareNote('${id}', true)">🔗 שיתוף (עריכה ללא גוגל)</button>`;
+
         html += `
           <div class="note-card ${urgent === 'דחוף' ? 'is-urgent' : ''} ${pinned ? 'is-pinned' : ''}" id="note-card-${id}" ${cardVars}>
             <div class="note-header-top">
@@ -699,6 +719,7 @@
                   <span class="cat-badge" onclick="toggleCatDropdown(event, '${id}')">${pinned ? '📌 ' : ''}${catName} ▾</span>
                   <div class="cat-dropdown-menu" id="cat-dropdown-${id}">${catMenuItemsHTML}</div>
                 </div>
+                ${sharedTag}
                 ${editedByTag}
               </div>
               <div style="display: flex; align-items: center; gap: 4px;">
@@ -712,7 +733,7 @@
                     <button class="dropdown-item" onclick="toggleUrgent('${id}')">${urgent === 'דחוף' ? '☆ הסר דחוף' : '⭐ סמן כדחוף'}</button>
                     <button class="dropdown-item" onclick="downloadSingleNote('${id}')">📥 הורד כקובץ TXT</button>
                     <button class="dropdown-item" onclick="shareNote('${id}', false)">🔗 שיתוף (קריאה)</button>
-                    <button class="dropdown-item" onclick="shareNote('${id}', true)">🔗 שיתוף (עריכה ללא גוגל)</button>
+                    ${shareBtnHTML}
                     <button class="dropdown-item" onclick="toggleArchive('${id}')">${currentView === 'active' ? '📦 לארכיון' : '📤 שחזר'}</button>
                     <button class="dropdown-item danger" onclick="deleteNote('${id}')">🗑️ מחיקה</button>
                   </div>
