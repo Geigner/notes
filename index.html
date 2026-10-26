@@ -672,29 +672,6 @@
       } catch (e) { console.error(e); }
     }
 
-    // הפונקציה הממירה תאריכים בפורמט DD.MM.YYYY או YYYY-MM-DD לאובייקט זמן אמיתי
-    function parseHebrewDate(dateStr) {
-      if (!dateStr) return 0;
-      try {
-        const parts = dateStr.trim().split(/[\s,]+/);
-        const dateParts = parts[parts.length - 1].split('.');
-        if (dateParts.length === 3) {
-          const day = parseInt(dateParts[0], 10);
-          const month = parseInt(dateParts[1], 10) - 1;
-          const year = parseInt(dateParts[2], 10);
-          
-          let hours = 0, minutes = 0;
-          if (parts.length > 1 && parts[0].includes(':')) {
-            const timeParts = parts[0].split(':');
-            hours = parseInt(timeParts[0], 10);
-            minutes = parseInt(timeParts[1], 10);
-          }
-          return new Date(year, month, day, hours, minutes).getTime();
-        }
-      } catch(e) {}
-      return Date.parse(dateStr) || 0;
-    }
-
     window.renderNotes = function() {
       const container = document.getElementById('notes-container');
       const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
@@ -706,12 +683,12 @@
 
       if (searchQuery !== "") filtered = filtered.filter(note => (note.text || "").toLowerCase().includes(searchQuery));
 
-      // מיון מדויק: פתקים מועדפים/מוצמדים בראש, ולאחריהם הפתקים מהחדש ביותר לישן ביותר
+      // מיון מדויק ומושלם: פתקים מוצמדים בראש, ולאחריהם מהחדש לישן לפי חותמת הזמן האמיתית
       filtered.sort((a, b) => {
         if ((a.pinned ? 1 : 0) !== (b.pinned ? 1 : 0)) return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
         
-        const timeA = parseHebrewDate(a.date);
-        const timeB = parseHebrewDate(b.date);
+        const timeA = a.createdAt || 0;
+        const timeB = b.createdAt || 0;
         return timeB - timeA;
       });
 
@@ -898,6 +875,7 @@
       if (!text) return;
       const now = new Date();
       const dateStr = now.toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'}) + ' ,' + now.toLocaleDateString('he-IL');
+      const timestamp = Date.now();
 
       try {
         if (editingNoteId) {
@@ -905,7 +883,7 @@
           showToast("הפתק עודכן בהצלחה");
         } else {
           await addDoc(collection(db, "notes"), {
-            text: text, category: cat, date: dateStr, urgent: 'רגיל', pinned: false, archived: false, isShared: false
+            text: text, category: cat, date: dateStr, createdAt: timestamp, urgent: 'רגיל', pinned: false, archived: false, isShared: false
           });
           showToast("הפתק נוסף בהצלחה");
         }
@@ -957,7 +935,7 @@
           const importedNotes = JSON.parse(e.target.result);
           if (confirm(`האם לייבא ${importedNotes.length} פתקים חדשים?`)) {
             for (let note of importedNotes) {
-              await addDoc(collection(db, "notes"), { text: note.text || '', category: note.category || 'כללי', date: note.date || new Date().toLocaleDateString('he-IL'), urgent: note.urgent || 'רגיל', pinned: note.pinned || false, archived: note.archived || false });
+              await addDoc(collection(db, "notes"), { text: note.text || '', category: note.category || 'כללי', date: note.date || new Date().toLocaleDateString('he-IL'), createdAt: Date.now(), urgent: note.urgent || 'רגיל', pinned: note.pinned || false, archived: note.archived || false });
             }
             showToast("הייבוא הושלם בהצלחה!");
           }
