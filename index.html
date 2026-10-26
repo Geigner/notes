@@ -709,7 +709,7 @@
         const cardVars = `style="--cat-bg-color: ${colors.bg}; --cat-border-color: ${colors.border}; --cat-text-color: ${colors.text};"`;
         
         const sharedTag = isShared ? `<span class="shared-badge" title="פתק פתוח לעריכה חיצונית">🔗 משותף</span>` : '';
-        const editedByTag = lastEditedById && currentUser && lastEditedById !== currentUser.uid ? `<span class="edited-by-badge">✏️ ${lastEditedBy}</span>` : '';
+        const editedByTag = lastEditedBy ? `<span class="edited-by-badge">✏️ ${lastEditedBy}</span>` : '';
 
         let catMenuItemsHTML = categories.map(c => `
           <button class="cat-dropdown-item ${c === catName ? 'active-cat' : ''}" onclick="changeNoteCategory(event, '${id}', '${c}')">
@@ -820,7 +820,12 @@
       const btn = document.getElementById(`save-btn-${id}`);
       btn.disabled = true;
       try {
-        await updateDoc(doc(db, "notes", id), { text: textarea.value.trim() });
+        // כאשר הבעלים שומר שינוי, מאפסים את חותמת העריכה של האורח
+        await updateDoc(doc(db, "notes", id), { 
+          text: textarea.value.trim(),
+          lastEditedBy: null,
+          lastEditedById: null
+        });
         showToast("הפתק עודכן בהצלחה");
         btn.classList.remove('show');
       } catch (err) { console.error(err); }
@@ -879,7 +884,13 @@
 
       try {
         if (editingNoteId) {
-          await updateDoc(doc(db, "notes", editingNoteId), { text: text, category: cat });
+          // עריכת פתק קיים על ידי הבעלים - מאפסים את תגית האורח
+          await updateDoc(doc(db, "notes", editingNoteId), { 
+            text: text, 
+            category: cat,
+            lastEditedBy: null,
+            lastEditedById: null
+          });
           showToast("הפתק עודכן בהצלחה");
         } else {
           await addDoc(collection(db, "notes"), {
