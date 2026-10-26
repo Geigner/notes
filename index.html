@@ -266,17 +266,19 @@
     <header>
       <div class="header-right">
         <h1 id="app-title">הפנקס</h1>
+        
+        <!-- כאן בוצעה ההחלפה: כפתור החיפוש עבר מימין לקטגוריות -->
+        <div class="search-dropdown-wrapper">
+          <button class="search-trigger-btn" onclick="toggleSearchMenu(event)" title="חיפוש מהיר">🔍</button>
+          <input type="text" id="search-input" class="search-popup-input" placeholder="חיפוש חופשי בפתקים..." oninput="renderNotes()">
+        </div>
+
         <div class="categories-dropdown-wrapper">
           <button class="cat-toggle-btn" onclick="toggleCategoriesMenu(event)">
             <span>🏷️ <strong id="selected-cat-label">הכל</strong></span>
             <span style="font-size: 0.75rem;">▶</span>
           </button>
           <div class="categories-bar" id="categories-container"></div>
-        </div>
-
-        <div class="search-dropdown-wrapper">
-          <button class="search-trigger-btn" onclick="toggleSearchMenu(event)" title="חיפוש מהיר">🔍</button>
-          <input type="text" id="search-input" class="search-popup-input" placeholder="חיפוש חופשי בפתקים..." oninput="renderNotes()">
         </div>
       </div>
 
