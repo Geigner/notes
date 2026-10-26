@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>הפנקס - פתק משותף</title>
+  <title>הפנקס</title>
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
   <style>
@@ -66,7 +66,6 @@
     }
     .btn-google:hover { background: #1557b0; }
 
-    /* הדר מאוזן והרמוני לימין-לשמאל אמיתי */
     header { 
       display: flex; 
       justify-content: space-between; 
@@ -108,7 +107,6 @@
       100% { opacity: 1; transform: translateX(0); }
     }
 
-    /* תפריט ניהול שמאלי נפתח ימינה */
     .header-actions-dropdown { 
       display: none; 
       position: absolute;
@@ -158,7 +156,6 @@
     .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
     .btn-secondary.active-mode { background: var(--primary); color: white; border-color: var(--primary); }
 
-    /* בר חיפוש נפתח מרחף שמאלה */
     .search-dropdown-wrapper {
       position: relative;
       display: inline-block;
@@ -203,7 +200,6 @@
       animation: slideInFromLeft 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    /* סרגל קטגוריות מרחף נפתח הצידה שמאלה */
     .categories-dropdown-wrapper {
       position: relative;
       display: inline-block;
@@ -315,6 +311,12 @@
 
     .note-date { font-size: 0.75rem; color: #475569; font-weight: 500; }
     
+    /* תגית קטגוריה בלחיצה מהירה */
+    .cat-badge-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
     .cat-badge {
       font-weight: 600;
       font-size: 0.75rem;
@@ -323,6 +325,51 @@
       background-color: var(--cat-bg-color);
       color: var(--cat-text-color);
       border: 1px solid var(--cat-border-color);
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .cat-badge:hover {
+      opacity: 0.85;
+      transform: scale(1.03);
+    }
+
+    .cat-dropdown-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+      display: none;
+      z-index: 60;
+      min-width: 130px;
+      padding: 4px 0;
+      margin-top: 4px;
+    }
+    .cat-dropdown-menu.show { display: block; }
+
+    .cat-dropdown-item {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      color: var(--text-main);
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: right;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .cat-dropdown-item:hover {
+      background: #f8fafc;
+      color: var(--primary);
+    }
+    .cat-dropdown-item.active-cat {
+      font-weight: 700;
+      color: var(--primary);
     }
 
     .edited-by-badge {
@@ -522,7 +569,6 @@
   </div>
 
   <div class="container" id="main-container">
-    <!-- סרגל עליון אחוד (Header) - סדר נכון לימין-לשמאל: כותרת וקטגוריות מימין, חיפוש לידן, ניהול משמאל -->
     <header>
       <!-- צד ימין: כותרת הפנקס + קטגוריות + חיפוש -->
       <div class="header-right">
@@ -1002,11 +1048,30 @@
         const isPartnerEdit = lastEditedById && currentUser && lastEditedById !== currentUser.uid;
         const editedByTag = isPartnerEdit ? `<span class="edited-by-badge" title="עודכן לאחרונה על ידי ${lastEditedBy}">✏️ ${lastEditedBy}</span>` : '';
 
+        // יצירת פריטי התפריט הנגלל של הקטגוריות
+        let catMenuItemsHTML = categories.map(c => {
+          const isActive = c === catName ? 'active-cat' : '';
+          return `<button class="cat-dropdown-item ${isActive}" onclick="changeNoteCategory(event, '${id}', '${c}')">
+                    <span>${c}</span>
+                    ${c === catName ? '✓' : ''}
+                  </button>`;
+        }).join('');
+
+        catMenuItemsHTML += `<div style="border-top:1px solid var(--border); margin:4px 0;"></div>
+                             <button class="cat-dropdown-item" onclick="promptAndAddCategoryForNote(event, '${id}')">
+                               <span>➕ קטגוריה חדשה...</span>
+                             </button>`;
+
         html += `
           <div class="note-card ${isUrgentClass} ${isPinnedClass}" id="note-card-${id}" ${cardVars}>
             <div class="note-header-top">
               <div>
-                <span class="cat-badge">${pinned ? '📌 ' : ''}${catName}</span>
+                <div class="cat-badge-wrapper">
+                  <span class="cat-badge" onclick="toggleCatDropdown(event, '${id}')" title="לחץ להחלפת קטגוריה">${pinned ? '📌 ' : ''}${catName} ▾</span>
+                  <div class="cat-dropdown-menu" id="cat-dropdown-${id}">
+                    ${catMenuItemsHTML}
+                  </div>
+                </div>
                 ${editedByTag}
               </div>
               <div style="display: flex; align-items: center; gap: 4px;">
@@ -1033,6 +1098,51 @@
         `;
       });
       return html;
+    }
+
+    window.toggleCatDropdown = function(event, id) {
+      event.stopPropagation();
+      const dropdown = document.getElementById(`cat-dropdown-${id}`);
+      const isOpen = dropdown.classList.contains('show');
+      closeAllDropdowns();
+      if (!isOpen) {
+        dropdown.classList.add('show');
+      }
+    }
+
+    window.changeNoteCategory = async function(event, id, newCat) {
+      event.stopPropagation();
+      closeAllDropdowns();
+      
+      const userName = currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : 'שותף';
+      const userId = currentUser ? currentUser.uid : '';
+
+      try {
+        await updateDoc(doc(db, "notes", id), { 
+          category: newCat,
+          lastEditedBy: userName,
+          lastEditedById: userId
+        });
+        showToast(`הקטגוריה שונתה ל-"${newCat}"`);
+      } catch (err) {
+        console.error(err);
+        showToast("שגיאה בשינוי הקטגוריה");
+      }
+    }
+
+    window.promptAndAddCategoryForNote = async function(event, id) {
+      event.stopPropagation();
+      closeAllDropdowns();
+      
+      const newCat = prompt("הכנס את שם הקטגוריה החדשה:");
+      if (newCat && newCat.trim() !== "") {
+        const catName = newCat.trim();
+        if (!categories.includes(catName)) {
+          categories.push(catName);
+          renderCategories();
+        }
+        await changeNoteCategory(event, id, catName);
+      }
     }
 
     window.copyNoteText = function(id) {
@@ -1110,6 +1220,7 @@
 
     window.closeAllDropdowns = function() {
       document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.remove('show'));
+      document.querySelectorAll('.cat-dropdown-menu').forEach(menu => menu.classList.remove('show'));
       const headerDrop = document.getElementById('header-dropdown');
       if (headerDrop) headerDrop.classList.remove('active');
       const catBar = document.getElementById('categories-container');
