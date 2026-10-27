@@ -141,7 +141,6 @@
     .btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
     .btn-secondary { font-size: 0.85rem; color: #334155; font-weight: 600; padding: 8px 14px; border-radius: 8px; background: white; border: 1px solid var(--border); box-shadow: var(--shadow); width: 100%; text-align: right; justify-content: flex-start; }
     .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
-    .btn-secondary.active-mode { background: var(--primary); color: white; border-color: var(--primary); }
 
     .search-dropdown-wrapper { position: relative; display: inline-block; }
     .search-trigger-btn { background: white; border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; font-size: 1rem; cursor: pointer; box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
@@ -203,7 +202,7 @@
     .cat-chip.urgent-chip.active { background: var(--urgent); color: white; border-color: var(--urgent); }
 
     .notes-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
-    .note-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; height: 220px; position: relative; transition: all 0.2s ease; }
+    .note-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 220px; position: relative; transition: all 0.2s ease; }
     .note-card:hover { box-shadow: var(--shadow-hover); border-color: #94a3b8; }
     .note-card.is-urgent { border-color: var(--urgent); box-shadow: 0 0 10px var(--urgent-glow), var(--shadow); }
     .note-card.is-pinned { border-color: var(--primary); background: #fcfdfe; }
@@ -221,8 +220,18 @@
     .shared-badge { font-size: 0.7rem; color: #15803d; background: #dcfce7; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; border: 1px solid #bbf7d0; }
     .edited-by-badge { font-size: 0.7rem; color: #0369a1; background: #e0f2fe; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; }
 
-    .inline-textarea { width: 100%; flex: 1; border: 1px solid transparent; background: transparent; font-size: 0.95rem; line-height: 1.5; resize: none; outline: none; color: var(--text-main); font-family: 'Assistant', sans-serif; padding: 2px; border-radius: 4px; transition: border-color 0.2s, background 0.2s; }
+    .inline-textarea { width: 100%; flex: 1; border: 1px solid transparent; background: transparent; font-size: 0.95rem; line-height: 1.5; resize: none; outline: none; color: var(--text-main); font-family: 'Assistant', sans-serif; padding: 2px; border-radius: 4px; transition: border-color 0.2s, background 0.2s; min-height: 80px; }
     .inline-textarea:focus { border-color: var(--border); background: #fafafa; }
+
+    .note-image-preview {
+      width: 100%;
+      max-height: 120px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-top: 8px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+    }
 
     .save-inline-btn { display: none; align-self: flex-end; margin-top: 4px; padding: 3px 10px; font-size: 0.75rem; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; }
     .save-inline-btn.show { display: block; }
@@ -239,7 +248,7 @@
     .fab:hover { background: var(--primary-hover); transform: scale(1.04); }
 
     .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); display: none; justify-content: center; align-items: flex-end; z-index: 200; backdrop-filter: blur(2px); }
-    .modal { background: white; width: 100%; max-width: 550px; border-radius: 16px 16px 0 0; padding: 20px; display: flex; flex-direction: column; gap: 14px; animation: slideUp 0.25s ease-out; max-height: 85vh; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); }
+    .modal { background: white; width: 100%; max-width: 550px; border-radius: 16px 16px 0 0; padding: 20px; display: flex; flex-direction: column; gap: 14px; animation: slideUp 0.25s ease-out; max-height: 90vh; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
     .modal-header-actions { display: flex; justify-content: space-between; align-items: center; }
@@ -247,10 +256,23 @@
     .btn-fullscreen { font-size: 0.85rem; color: #334155; padding: 4px 10px; border-radius: 16px; background: #f1f5f9; font-weight: 600; }
 
     .textarea-wrapper { position: relative; width: 100%; }
-    textarea.modal-textarea { width: 100%; height: 180px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; padding-bottom: 40px; font-size: 0.95rem; resize: none; outline: none; color: var(--text-main); }
+    textarea.modal-textarea { width: 100%; height: 140px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; padding-bottom: 40px; font-size: 0.95rem; resize: none; outline: none; color: var(--text-main); }
 
     .voice-btn { position: absolute; bottom: 10px; left: 10px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 50%; width: 34px; height: 34px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-
+    
+    .modal-image-preview-container {
+      position: relative;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: #f8fafc;
+      padding: 8px 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    .modal-image-preview-container.show { display: flex; }
+    .modal-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); }
+    
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group label { font-size: 0.85rem; font-weight: 600; color: #475569; }
     select { padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.95rem; outline: none; background: white; color: var(--text-main); }
@@ -292,7 +314,8 @@
       </div>
     </div>
     <div style="flex: 1; display:flex; flex-direction:column; gap:10px;">
-      <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 250px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius);"></textarea>
+      <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 200px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius);"></textarea>
+      <div id="single-note-img-area"></div>
       <button id="single-note-save-btn" class="btn btn-submit" style="padding: 10px; width: 100%; border-radius: var(--radius);" onclick="saveSingleSharedNote()">שמור שינויים בפתק</button>
     </div>
   </div>
@@ -349,6 +372,21 @@
         <textarea id="note-text-input" class="modal-textarea" placeholder="הקלד או הכרז בקולך..."></textarea>
         <button class="voice-btn" id="voice-record-btn" onclick="toggleVoiceRecognition()">🎤</button>
       </div>
+
+      <!-- אזור הוספת תמונה מינימליסטי ואלגנטי -->
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <label class="btn" style="font-size: 0.85rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 6px;">
+          <span>🖼️ הוסף תמונה</span>
+          <input type="file" id="modal-image-input" accept="image/*" style="display: none;" onchange="handleImageSelection(event)">
+        </label>
+        <button id="remove-img-btn" class="btn" style="display: none; font-size: 0.80rem; color: #be123c; background: #fff1f2; border: 1px solid #fecdd3; padding: 4px 10px; border-radius: var(--radius);" onclick="clearModalImage()">הסר תמונה</button>
+      </div>
+
+      <div class="modal-image-preview-container" id="modal-img-preview-box">
+        <img id="modal-thumb-img" class="modal-thumb" src="" alt="תצוגה מקדימה">
+        <span style="font-size: 0.8rem; color: #475569; font-weight: 500;">התמונה נבחרה בהצלחה</span>
+      </div>
+
       <div class="form-group" id="cat-select-group">
         <label for="note-cat-select">קטגוריה</label>
         <div style="display: flex; gap: 8px;">
@@ -393,6 +431,7 @@
     let isManagingCategories = false;
     let unsubscribeNotes = null;
     let activeSharedNoteId = null;
+    let currentImageBase64 = null;
 
     const urlParams = new URLSearchParams(window.location.search);
     const sharedNoteId = urlParams.get('noteId');
@@ -454,6 +493,13 @@
           textarea.value = note.text || '';
         }
 
+        const imgArea = document.getElementById('single-note-img-area');
+        if (note.imageUrl) {
+          imgArea.innerHTML = `<img src="${note.imageUrl}" style="max-width:100%; max-height:250px; border-radius:8px; border:1px solid var(--border); cursor:pointer;" onclick="window.open('${note.imageUrl}', '_blank')">`;
+        } else {
+          imgArea.innerHTML = '';
+        }
+
         const editedElem = document.getElementById('single-note-edited');
         if (note.lastEditedBy) {
           editedElem.innerText = `✏️ נערך ע"י ${note.lastEditedBy}`;
@@ -505,10 +551,8 @@
 
     window.shareNote = async function(id, allowEdit) {
       closeAllDropdowns();
-      
       try {
         await updateDoc(doc(db, "notes", id), { isShared: true });
-
         let shareUrl = window.location.origin + window.location.pathname + "?noteId=" + id;
         if (allowEdit) {
           shareUrl += "&mode=edit";
@@ -518,17 +562,15 @@
         
         navigator.clipboard.writeText(shareUrl).then(() => {
           showToast(allowEdit ? "קישור לעריכה הועתק! פותח וואטסאפ..." : "קישור לצפייה הועתק! פותח וואטסאפ...");
-          
           const text = encodeURIComponent(`הנה הקישור לפתק:\n${shareUrl}`);
           window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
-        }).catch(err => {
-          console.error(err);
+        }).catch(() => {
           const text = encodeURIComponent(`הנה הקישור לפתק:\n${shareUrl}`);
           window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
         });
       } catch (err) {
-        console.error("שגיאה בהגדרת שיתוף:", err);
-        showToast("שגיאה בהגדרת הרשאת השיתוף");
+        console.error(err);
+        showToast("שגיאה בהגדרת שיתוף");
       }
     }
 
@@ -537,10 +579,7 @@
       try {
         await updateDoc(doc(db, "notes", id), { isShared: false });
         showToast("השיתוף הופסק - הפתק שוב פרטי לחלוטין!");
-      } catch (err) {
-        console.error(err);
-        showToast("שגיאה בביטול השיתוף");
-      }
+      } catch (err) { console.error(err); }
     }
 
     function startRealtimeListener() {
@@ -554,7 +593,6 @@
         querySnapshot.forEach((docSnap) => {
           const noteData = { id: docSnap.id, ...docSnap.data() };
           allNotes.push(noteData);
-          
           if (noteData.category && noteData.category.trim() !== '') {
             activeCategoriesSet.add(noteData.category.trim());
           }
@@ -564,9 +602,7 @@
         updateCounter();
         renderCategories();
         renderNotes();
-      }, (error) => {
-        console.error("שגיאה בסנכרון פתקים:", error);
-      });
+      }, (error) => { console.error(error); });
     }
 
     let recognition = null;
@@ -649,9 +685,7 @@
       const sharedCount = allNotes.filter(n => n.isShared === true).length;
       
       let counterText = `${activeCount} פעילים | ${archivedCount} בארכיון`;
-      if (sharedCount > 0) {
-        counterText += ` | 🔗 ${sharedCount} משותפים`;
-      }
+      if (sharedCount > 0) counterText += ` | 🔗 ${sharedCount} משותפים`;
       document.getElementById('notes-counter').innerText = counterText;
     }
 
@@ -724,10 +758,7 @@
 
       filtered.sort((a, b) => {
         if ((a.pinned ? 1 : 0) !== (b.pinned ? 1 : 0)) return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
-        
-        const timeA = a.createdAt || 0;
-        const timeB = b.createdAt || 0;
-        return timeB - timeA;
+        return (b.createdAt || 0) - (a.createdAt || 0);
       });
 
       if (filtered.length === 0) {
@@ -741,13 +772,14 @@
     function generateNotesHTML(notesArray) {
       let html = '';
       notesArray.forEach(note => {
-        const { id, text, date, category, urgent, pinned, isShared, lastEditedBy, lastEditedById } = note;
+        const { id, text, date, category, urgent, pinned, isShared, lastEditedBy, imageUrl } = note;
         const catName = category || 'כללי';
         const colors = getCategoryColor(catName);
         const cardVars = `style="--cat-bg-color: ${colors.bg}; --cat-border-color: ${colors.border}; --cat-text-color: ${colors.text};"`;
         
         const sharedTag = isShared ? `<span class="shared-badge" title="פתק פתוח לעריכה חיצונית">🔗 משותף</span>` : '';
         const editedByTag = lastEditedBy ? `<span class="edited-by-badge">✏️ ${lastEditedBy}</span>` : '';
+        const imageElement = imageUrl ? `<img src="${imageUrl}" class="note-image-preview" onclick="window.open('${imageUrl}', '_blank')" title="לחץ להגדלה">` : '';
 
         let catMenuItemsHTML = categories.map(c => `
           <button class="cat-dropdown-item ${c === catName ? 'active-cat' : ''}" onclick="changeNoteCategory(event, '${id}', '${c}')">
@@ -776,7 +808,7 @@
                 <div class="menu-wrapper">
                   <button class="menu-btn" onclick="toggleDropdown(event, '${id}')">⋮</button>
                   <div class="dropdown-menu" id="dropdown-${id}">
-                    <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(text || '')}\`, '${catName}')">✏️ עריכה מלאה</button>
+                    <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(text || '')}\`, '${catName}', \`${imageUrl || ''}\`)">✏️ עריכה מלאה</button>
                     <button class="dropdown-item" onclick="copyNoteText('${id}')">📋 העתק טקסט</button>
                     <button class="dropdown-item" onclick="togglePin('${id}')">${pinned ? '📌 שחרר סיכה' : '📌 הצמד לראש'}</button>
                     <button class="dropdown-item" onclick="toggleUrgent('${id}')">${urgent === 'דחוף' ? '☆ הסר דחוף' : '⭐ סמן כדחוף'}</button>
@@ -790,6 +822,7 @@
               </div>
             </div>
             <textarea class="inline-textarea" id="inline-text-${id}" oninput="showInlineSave('${id}')">${escapeHtml(text || '')}</textarea>
+            ${imageElement}
             <button class="save-inline-btn" id="save-btn-${id}" onclick="saveInlineNote('${id}')">שמור שינויים</button>
           </div>
         `;
@@ -894,27 +927,87 @@
 
     window.openAddModal = function() {
       editingNoteId = null;
+      currentImageBase64 = null;
       document.getElementById('modal-title').innerText = 'פתק חדש';
       document.getElementById('note-text-input').value = '';
       document.getElementById('note-cat-select').value = categories[0] || 'כללי';
+      document.getElementById('modal-img-preview-box').classList.remove('show');
+      document.getElementById('remove-img-btn').style.display = 'none';
       document.getElementById('note-modal').style.display = 'flex';
     }
 
-    window.openEditModal = function(id, text, cat) {
+    window.openEditModal = function(id, text, cat, imageUrl) {
       closeAllDropdowns();
       editingNoteId = id;
+      currentImageBase64 = imageUrl || null;
       document.getElementById('modal-title').innerText = 'עריכת פתק';
       document.getElementById('note-text-input').value = text;
       document.getElementById('note-cat-select').value = cat || "כללי";
+      
+      const previewBox = document.getElementById('modal-img-preview-box');
+      const removeBtn = document.getElementById('remove-img-btn');
+      if (imageUrl) {
+        document.getElementById('modal-thumb-img').src = imageUrl;
+        previewBox.classList.add('show');
+        removeBtn.style.display = 'block';
+      } else {
+        previewBox.classList.remove('show');
+        removeBtn.style.display = 'none';
+      }
       document.getElementById('note-modal').style.display = 'flex';
     }
 
     window.closeModal = function() { document.getElementById('note-modal').style.display = 'none'; }
 
+    window.handleImageSelection = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        // כיווץ קל של התמונה באמצעות Canvas למניעת עומס על בסיס הנתונים
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+          } else {
+            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          currentImageBase64 = canvas.toDataURL('image/jpeg', 0.75);
+          
+          document.getElementById('modal-thumb-img').src = currentImageBase64;
+          document.getElementById('modal-img-preview-box').classList.add('show');
+          document.getElementById('remove-img-btn').style.display = 'block';
+          showToast("התמונה נוספה בהצלחה!");
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    window.clearModalImage = function() {
+      currentImageBase64 = null;
+      document.getElementById('modal-img-preview-box').classList.remove('show');
+      document.getElementById('remove-img-btn').style.display = 'none';
+      document.getElementById('modal-image-input').value = '';
+    }
+
     window.saveNote = async function() {
       const text = document.getElementById('note-text-input').value.trim();
       const cat = document.getElementById('note-cat-select').value;
-      if (!text) return;
+      if (!text && !currentImageBase64) return;
+
       const now = new Date();
       const dateStr = now.toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'}) + ' ,' + now.toLocaleDateString('he-IL');
       const timestamp = Date.now();
@@ -924,13 +1017,22 @@
           await updateDoc(doc(db, "notes", editingNoteId), { 
             text: text, 
             category: cat,
+            imageUrl: currentImageBase64 || null,
             lastEditedBy: null,
             lastEditedById: null
           });
           showToast("הפתק עודכן בהצלחה");
         } else {
           await addDoc(collection(db, "notes"), {
-            text: text, category: cat, date: dateStr, createdAt: timestamp, urgent: 'רגיל', pinned: false, archived: false, isShared: false
+            text: text, 
+            category: cat, 
+            imageUrl: currentImageBase64 || null,
+            date: dateStr, 
+            createdAt: timestamp, 
+            urgent: 'רגיל', 
+            pinned: false, 
+            archived: false, 
+            isShared: false
           });
           showToast("הפתק נוסף בהצלחה");
         }
@@ -982,7 +1084,16 @@
           const importedNotes = JSON.parse(e.target.result);
           if (confirm(`האם לייבא ${importedNotes.length} פתקים חדשים?`)) {
             for (let note of importedNotes) {
-              await addDoc(collection(db, "notes"), { text: note.text || '', category: note.category || 'כללי', date: note.date || new Date().toLocaleDateString('he-IL'), createdAt: Date.now(), urgent: note.urgent || 'רגיל', pinned: note.pinned || false, archived: note.archived || false });
+              await addDoc(collection(db, "notes"), { 
+                text: note.text || '', 
+                category: note.category || 'כללי', 
+                imageUrl: note.imageUrl || null,
+                date: note.date || new Date().toLocaleDateString('he-IL'), 
+                createdAt: Date.now(), 
+                urgent: note.urgent || 'רגיל', 
+                pinned: note.pinned || false, 
+                archived: note.archived || false 
+              });
             }
             showToast("הייבוא הושלם בהצלחה!");
           }
@@ -1021,8 +1132,8 @@
       setTimeout(() => { toast.style.display = 'none'; }, 2500);
     }
 
-    window.escapeHtml = function(text) { return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
-    window.escapeRowText = function(text) { return text.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/"/g, '&quot;'); }
+    window.escapeHtml = function(text) { return (text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+    window.escapeRowText = function(text) { return (text || "").replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/"/g, '&quot;'); }
   </script>
 </body>
 </html>
