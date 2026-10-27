@@ -90,6 +90,18 @@
 
     h1 { font-size: 1.3rem; font-weight: 600; color: #1e293b; letter-spacing: -0.3px; }
     
+    .header-clock {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: #e2e8f0;
+      padding: 4px 10px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
     .gear-menu-trigger {
       background: #e2e8f0;
       border: none;
@@ -324,7 +336,6 @@
     .form-group label { font-size: 0.85rem; font-weight: 600; color: #475569; }
     select, input[type="text"], input[type="password"] { padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.95rem; outline: none; background: white; color: var(--text-main); }
 
-    /* עיצוב אזור מתקדם מתקפל (Accordion) */
     .advanced-section-toggle { background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; font-size: 0.85rem; font-weight: 600; color: #334155; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; transition: background 0.2s; }
     .advanced-section-toggle:hover { background: #f1f5f9; }
     .advanced-content-panel { display: none; flex-direction: column; gap: 12px; padding: 12px; background: #fafafa; border: 1px solid var(--border); border-radius: var(--radius); margin-top: -6px; }
@@ -389,6 +400,7 @@
     <header>
       <div class="header-right">
         <h1>הפנקס</h1>
+        <div class="header-clock" id="live-clock" title="שעה ותאריך נוכחיים">טוען שעון...</div>
 
         <div class="search-dropdown-wrapper" onclick="event.stopPropagation()">
           <button class="search-trigger-btn" onclick="toggleSearchMenu(event)" title="חיפוש מהיר" aria-label="פתח חלון חיפוש">🔍</button>
@@ -544,6 +556,18 @@
     let activeSharedNoteId = null;
     let currentImageBase64 = null;
     let unlockedNotes = {};
+
+    // הפעלת שעון חי בסרגל העליון
+    function updateLiveClock() {
+      const clockEl = document.getElementById('live-clock');
+      if (!clockEl) return;
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const dateStr = now.toLocaleDateString('he-IL');
+      clockEl.innerText = `⏰ ${timeStr} | ${dateStr}`;
+    }
+    setInterval(updateLiveClock, 1000);
+    updateLiveClock();
 
     const urlParams = new URLSearchParams(window.location.search);
     const sharedNoteId = urlParams.get('noteId');
@@ -1371,7 +1395,6 @@
         removeBtn.style.display = 'none';
       }
 
-      // אם יש נתונים מתקדמים שקיימים כבר בפתק, נפתח אוטומטית את הפאנל המתקדם
       const advancedPanel = document.getElementById('advanced-panel');
       const advancedArrow = document.getElementById('advanced-arrow');
       if (imageUrl || linkUrl || isLocked) {
