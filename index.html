@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>הפנקס</title>
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- ספריית הצפנה מאובטחת CryptoJS -->
+  <script src="https://cdnjs.cloudflare.com/ajax5/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
   <style>
     :root {
@@ -219,6 +221,7 @@
 
     .shared-badge { font-size: 0.7rem; color: #15803d; background: #dcfce7; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; border: 1px solid #bbf7d0; }
     .edited-by-badge { font-size: 0.7rem; color: #0369a1; background: #e0f2fe; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; }
+    .locked-badge { font-size: 0.7rem; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; border: 1px solid #fde68a; }
 
     .inline-textarea { width: 100%; flex: 1; border: 1px solid transparent; background: transparent; font-size: 0.95rem; line-height: 1.5; resize: none; outline: none; color: var(--text-main); font-family: 'Assistant', sans-serif; padding: 2px; border-radius: 4px; transition: border-color 0.2s, background 0.2s; min-height: 80px; }
     .inline-textarea:focus { border-color: var(--border); background: #fafafa; }
@@ -282,7 +285,7 @@
       padding: 30px !important;
     }
     .modal.fullscreen-mode textarea.modal-textarea {
-      height: calc(100vh - 280px) !important;
+      height: calc(100vh - 330px) !important;
     }
 
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -317,7 +320,7 @@
     
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group label { font-size: 0.85rem; font-weight: 600; color: #475569; }
-    select, input[type="text"] { padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.95rem; outline: none; background: white; color: var(--text-main); }
+    select, input[type="text"], input[type="password"] { padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.95rem; outline: none; background: white; color: var(--text-main); }
 
     .modal-buttons { display: flex; gap: 10px; margin-top: 6px; }
     .btn-block { flex: 1; padding: 10px; border-radius: var(--radius); font-size: 0.95rem; font-weight: 600; text-align: center; }
@@ -326,6 +329,9 @@
 
     #single-note-container { display: none; max-width: 650px; margin: 40px auto; background: white; border-radius: 16px; padding: 24px; box-shadow: var(--shadow-hover); border: 1px solid var(--border); flex-direction: column; gap: 16px; }
     .single-note-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+
+    .locked-card-prompt { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 10px; text-align: center; flex: 1; }
+    .locked-card-prompt input { width: 100%; max-width: 200px; text-align: center; }
 
     #toast { position: fixed; bottom: 85px; right: 50%; transform: translateX(50%); background: rgba(30,41,59,0.95); color: white; padding: 6px 16px; border-radius: 16px; font-size: 0.85rem; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
   </style>
@@ -356,9 +362,11 @@
       </div>
     </div>
     <div style="flex: 1; display:flex; flex-direction:column; gap:10px;">
-      <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 200px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius);"></textarea>
-      <div id="single-note-link-area"></div>
-      <div id="single-note-img-area"></div>
+      <div id="single-note-secure-wrapper" style="flex:1; display:flex; flex-direction:column;">
+        <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 200px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius);"></textarea>
+        <div id="single-note-link-area"></div>
+        <div id="single-note-img-area"></div>
+      </div>
       <button id="single-note-save-btn" class="btn btn-submit" style="padding: 10px; width: 100%; border-radius: var(--radius);" onclick="saveSingleSharedNote()">שמור שינויים בפתק</button>
     </div>
   </div>
@@ -448,6 +456,14 @@
         <input type="text" id="modal-link-url" placeholder="כתובת URL (https://...)" style="flex: 2;" dir="ltr">
       </div>
 
+      <!-- שורת נעילה בסיסמה בחלון עריכה -->
+      <div style="display: flex; gap: 8px; align-items: center; background: #f8fafc; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border);">
+        <label style="font-size: 0.85rem; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+          <input type="checkbox" id="modal-secure-toggle" onchange="togglePasswordInput(this)"> 🔒 נעול בסיסמה
+        </label>
+        <input type="password" id="modal-secure-password" placeholder="הכנס סיסמה לפתק..." style="flex: 1; display: none;" dir="ltr">
+      </div>
+
       <div class="form-group" id="cat-select-group">
         <label for="note-cat-select">קטגוריה</label>
         <div style="display: flex; gap: 8px;">
@@ -493,6 +509,7 @@
     let unsubscribeNotes = null;
     let activeSharedNoteId = null;
     let currentImageBase64 = null;
+    let unlockedNotes = {}; // זיכרון מקומי לפתקים שנפתחו עם סיסמה בסשן הנוכחי
 
     const urlParams = new URLSearchParams(window.location.search);
     const sharedNoteId = urlParams.get('noteId');
@@ -504,25 +521,18 @@
         const modalOverlay = document.getElementById('note-modal');
         const modalBox = document.getElementById('modal-box');
 
-        // 1. אם יש תמונה מוגדלת - סגור אותה
         if (lightbox && lightbox.classList.contains('show')) {
           closeLightbox();
           return;
         }
-
-        // 2. אם החלון במצב מסך מלא - צא ממצב מסך מלא
         if (modalBox && modalBox.classList.contains('fullscreen-mode')) {
           toggleFullscreenModal();
           return;
         }
-
-        // 3. אם חלון העריכה/הוספה פתוח - סגור אותו
         if (modalOverlay && modalOverlay.style.display === 'flex') {
           closeModal();
           return;
         }
-
-        // 4. סגור את כל התפריטים הנגללים
         closeAllDropdowns();
       }
     });
@@ -583,6 +593,12 @@
       textarea.focus();
     }
 
+    window.togglePasswordInput = function(checkbox) {
+      const passInput = document.getElementById('modal-secure-password');
+      passInput.style.display = checkbox.checked ? 'block' : 'none';
+      if (checkbox.checked) passInput.focus();
+    }
+
     function listenToSingleSharedNote(noteId) {
       const mode = urlParams.get('mode') || 'view';
       onSnapshot(doc(db, "notes", noteId), (docSnap) => {
@@ -595,25 +611,48 @@
         const note = docSnap.data();
         document.getElementById('single-note-cat').innerText = note.category || 'כללי';
         document.getElementById('single-note-date').innerText = note.date || '';
-        const textarea = document.getElementById('single-note-textarea');
         
-        if (document.activeElement !== textarea) {
-          textarea.value = note.text || '';
+        const wrapper = document.getElementById('single-note-secure-wrapper');
+        const saveBtn = document.getElementById('single-note-save-btn');
+
+        if (note.isLocked) {
+          if (!unlockedNotes[noteId]) {
+            wrapper.innerHTML = `
+              <div class="locked-card-prompt">
+                <span style="font-size: 2rem;">🔒</span>
+                <p style="font-weight: 600; color: var(--text-main);">הפתק מוצפן בסיסמה</p>
+                <input type="password" id="unlock-pass-${noteId}" placeholder="הקלד סיסמה..." dir="ltr">
+                <button class="btn btn-submit" style="padding: 6px 16px; border-radius: 8px;" onclick="unlockSingleNote('${noteId}', '${note.text}')">פתח פתק</button>
+              </div>
+            `;
+            saveBtn.style.display = 'none';
+            return;
+          }
         }
+
+        let actualText = note.text;
+        if (note.isLocked && unlockedNotes[noteId]) {
+          try {
+            const bytes = CryptoJS.AES.decrypt(note.text, unlockedNotes[noteId]);
+            actualText = bytes.toString(CryptoJS.enc.Utf8) || 'שגיאה בפענוח הטקסט';
+          } catch(e) { actualText = 'שגיאה בפענוח הטקסט'; }
+        }
+
+        wrapper.innerHTML = `
+          <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 200px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius);">${escapeHtml(actualText)}</textarea>
+          <div id="single-note-link-area"></div>
+          <div id="single-note-img-area"></div>
+        `;
 
         const linkArea = document.getElementById('single-note-link-area');
         if (note.linkUrl) {
           const displayTitle = note.linkTitle ? note.linkTitle : note.linkUrl;
           linkArea.innerHTML = `<a href="${note.linkUrl}" target="_blank" class="note-link-btn">🔗 ${escapeHtml(displayTitle)}</a>`;
-        } else {
-          linkArea.innerHTML = '';
         }
 
         const imgArea = document.getElementById('single-note-img-area');
         if (note.imageUrl) {
           imgArea.innerHTML = `<img src="${note.imageUrl}" style="max-width:100%; max-height:250px; border-radius:8px; border:1px solid var(--border); cursor:pointer;" onclick="openLightbox('${note.imageUrl}')">`;
-        } else {
-          imgArea.innerHTML = '';
         }
 
         const editedElem = document.getElementById('single-note-edited');
@@ -624,25 +663,41 @@
           editedElem.style.display = 'none';
         }
 
-        const saveBtn = document.getElementById('single-note-save-btn');
         if (mode === 'edit') {
-          textarea.removeAttribute('readonly');
           saveBtn.style.display = 'block';
         } else {
-          textarea.setAttribute('readonly', 'true');
           saveBtn.style.display = 'none';
         }
-      }, (error) => {
-        console.error("שגיאה בטעינת הפתק:", error);
-        showToast("שגיאה בטעינת הפתק המשותף");
-      });
+      }, (error) => { console.error(error); });
+    }
+
+    window.unlockSingleNote = function(noteId, encryptedText) {
+      const pass = document.getElementById(`unlock-pass-${noteId}`).value;
+      try {
+        const bytes = CryptoJS.AES.decrypt(encryptedText, pass);
+        const original = bytes.toString(CryptoJS.enc.Utf8);
+        if (!original) throw new Error();
+        unlockedNotes[noteId] = pass;
+        listenToSingleSharedNote(noteId);
+        showToast("הפתק פוענח בהצלחה!");
+      } catch (err) {
+        showToast("סיסמה שגויה!");
+      }
     }
 
     window.saveSingleSharedNote = async function() {
       if (!activeSharedNoteId) return;
       const textarea = document.getElementById('single-note-textarea');
       const btn = document.getElementById('single-note-save-btn');
-      const newText = textarea.value.trim();
+      let newText = textarea.value.trim();
+
+      const docSnap = await getDoc(doc(db, "notes", activeSharedNoteId));
+      if (!docSnap.exists()) return;
+      const noteData = docSnap.data();
+
+      if (noteData.isLocked && unlockedNotes[activeSharedNoteId]) {
+        newText = CryptoJS.AES.encrypt(newText, unlockedNotes[activeSharedNoteId]).toString();
+      }
 
       btn.disabled = true;
       btn.innerText = 'שומר שינויים...';
@@ -658,7 +713,6 @@
         });
         showToast("הפתק המשותף עודכן בהצלחה!");
       } catch (err) {
-        console.error(err);
         showToast("שגיאה בשמירת הפתק");
       }
       btn.disabled = false;
@@ -670,31 +724,25 @@
       try {
         await updateDoc(doc(db, "notes", id), { isShared: true });
         let shareUrl = window.location.origin + window.location.pathname + "?noteId=" + id;
-        if (allowEdit) {
-          shareUrl += "&mode=edit";
-        } else {
-          shareUrl += "&mode=view";
-        }
+        if (allowEdit) shareUrl += "&mode=edit";
+        else shareUrl += "&mode=view";
         
         navigator.clipboard.writeText(shareUrl).then(() => {
-          showToast(allowEdit ? "קישור לעריכה הועתק! פותח וואטסאפ..." : "קישור לצפייה הועתק! פותח וואטסאפ...");
+          showToast("קישור שיתוף הועתק! פותח וואטסאפ...");
           const text = encodeURIComponent(`הנה הקישור לפתק:\n${shareUrl}`);
           window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
         }).catch(() => {
           const text = encodeURIComponent(`הנה הקישור לפתק:\n${shareUrl}`);
           window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
         });
-      } catch (err) {
-        console.error(err);
-        showToast("שגיאה בהגדרת שיתוף");
-      }
+      } catch (err) { console.error(err); }
     }
 
     window.stopSharingNote = async function(id) {
       closeAllDropdowns();
       try {
         await updateDoc(doc(db, "notes", id), { isShared: false });
-        showToast("השיתוף הופסק - הפתק שוב פרטי לחלוטין!");
+        showToast("השיתוף הופסק!");
       } catch (err) { console.error(err); }
     }
 
@@ -885,12 +933,31 @@
       container.innerHTML = generateNotesHTML(filtered);
     }
 
-    function renderNoteContent(id, text) {
-      const lines = (text || "").split('\n');
+    function renderNoteContent(id, text, isLocked) {
+      if (isLocked && !unlockedNotes[id]) {
+        return `
+          <div class="locked-card-prompt">
+            <span style="font-size: 1.5rem;">🔒</span>
+            <span style="font-size: 0.85rem; font-weight: 600; color: #b45309;">פתק נעול בסיסמה</span>
+            <input type="password" id="card-unlock-${id}" placeholder="הכנס סיסמה..." dir="ltr" style="padding:4px 8px; font-size:0.85rem;">
+            <button class="btn btn-submit" style="padding: 4px 12px; font-size: 0.8rem; border-radius: 6px;" onclick="unlockCardNote(event, '${id}')">פענח</button>
+          </div>
+        `;
+      }
+
+      let actualText = text;
+      if (isLocked && unlockedNotes[id]) {
+        try {
+          const bytes = CryptoJS.AES.decrypt(text, unlockedNotes[id]);
+          actualText = bytes.toString(CryptoJS.enc.Utf8) || 'שגיאה בפענוח';
+        } catch(e) { actualText = 'שגיאה בפענוח'; }
+      }
+
+      const lines = (actualText || "").split('\n');
       const hasChecklist = lines.some(line => line.trim().startsWith('[ ]') || line.trim().startsWith('[x]') || line.trim().startsWith('[X]'));
 
       if (!hasChecklist) {
-        return `<textarea class="inline-textarea" id="inline-text-${id}" oninput="showInlineSave('${id}')">${escapeHtml(text || '')}</textarea>`;
+        return `<textarea class="inline-textarea" id="inline-text-${id}" oninput="showInlineSave('${id}')">${escapeHtml(actualText || '')}</textarea>`;
       }
 
       let checklistHTML = '<div class="checklist-container">';
@@ -913,20 +980,46 @@
       return checklistHTML;
     }
 
+    window.unlockCardNote = function(event, id) {
+      event.stopPropagation();
+      const pass = document.getElementById(`card-unlock-${id}`).value;
+      const note = allNotes.find(n => n.id === id);
+      if (!note) return;
+
+      try {
+        const bytes = CryptoJS.AES.decrypt(note.text, pass);
+        const original = bytes.toString(CryptoJS.enc.Utf8);
+        if (!original) throw new Error();
+        unlockedNotes[id] = pass;
+        renderNotes();
+        showToast("הפתק פוענח בהצלחה!");
+      } catch (err) {
+        showToast("סיסמה שגויה!");
+      }
+    }
+
     window.toggleChecklistItem = async function(id, lineIndex) {
       const note = allNotes.find(n => n.id === id);
       if (!note || !note.text) return;
 
-      let lines = note.text.split('\n');
+      let textToModify = note.text;
+      if (note.isLocked) {
+        try {
+          textToModify = CryptoJS.AES.decrypt(note.text, unlockedNotes[id]).toString(CryptoJS.enc.Utf8);
+        } catch(e) { return; }
+      }
+
+      let lines = textToModify.split('\n');
       if (lines[lineIndex]) {
         let trimmed = lines[lineIndex].trim();
-        if (trimmed.startsWith('[ ]')) {
-          lines[lineIndex] = lines[lineIndex].replace('[ ]', '[x]');
-        } else if (trimmed.startsWith('[x]') || trimmed.startsWith('[X]')) {
-          lines[lineIndex] = lines[lineIndex].replace(/\[[xX]\]/, '[ ]');
-        }
+        if (trimmed.startsWith('[ ]')) lines[lineIndex] = lines[lineIndex].replace('[ ]', '[x]');
+        else if (trimmed.startsWith('[x]') || trimmed.startsWith('[X]')) lines[lineIndex] = lines[lineIndex].replace(/\[[xX]\]/, '[ ]');
         
-        const newText = lines.join('\n');
+        let newText = lines.join('\n');
+        if (note.isLocked) {
+          newText = CryptoJS.AES.encrypt(newText, unlockedNotes[id]).toString();
+        }
+
         try {
           await updateDoc(doc(db, "notes", id), { text: newText });
         } catch(err) { console.error(err); }
@@ -936,17 +1029,18 @@
     function generateNotesHTML(notesArray) {
       let html = '';
       notesArray.forEach(note => {
-        const { id, text, date, category, urgent, pinned, isShared, lastEditedBy, imageUrl, linkUrl, linkTitle } = note;
+        const { id, text, date, category, urgent, pinned, isShared, lastEditedBy, imageUrl, linkUrl, linkTitle, isLocked } = note;
         const catName = category || 'כללי';
         const colors = getCategoryColor(catName);
         const cardVars = `style="--cat-bg-color: ${colors.bg}; --cat-border-color: ${colors.border}; --cat-text-color: ${colors.text};"`;
         
-        const sharedTag = isShared ? `<span class="shared-badge" title="פתק פתוח לעריכה חיצונית">🔗 משותף</span>` : '';
+        const sharedTag = isShared ? `<span class="shared-badge">🔗 משותף</span>` : '';
+        const lockedTag = isLocked ? `<span class="locked-badge">🔒 נעול</span>` : '';
         const editedByTag = lastEditedBy ? `<span class="edited-by-badge">✏️ ${lastEditedBy}</span>` : '';
-        const imageElement = imageUrl ? `<img src="${imageUrl}" class="note-image-preview" onclick="openLightbox('${imageUrl}')" title="לחץ להגדלה">` : '';
+        const imageElement = (imageUrl && (!isLocked || unlockedNotes[id])) ? `<img src="${imageUrl}" class="note-image-preview" onclick="openLightbox('${imageUrl}')" title="לחץ להגדלה">` : '';
         
         let linkElement = '';
-        if (linkUrl) {
+        if (linkUrl && (!isLocked || unlockedNotes[id])) {
           const displayTitle = linkTitle ? linkTitle : linkUrl;
           linkElement = `<a href="${linkUrl}" target="_blank" class="note-link-btn" onclick="event.stopPropagation()">🔗 ${escapeHtml(displayTitle)}</a>`;
         }
@@ -962,7 +1056,8 @@
           ? `<button class="dropdown-item" onclick="stopSharingNote('${id}')">🔒 הפסק שיתוף</button>`
           : `<button class="dropdown-item" onclick="shareNote('${id}', true)">🔗 שיתוף (עריכה ללא גוגל)</button>`;
 
-        const contentHTML = renderNoteContent(id, text);
+        const contentHTML = renderNoteContent(id, text, isLocked);
+        const showSaveInline = !isLocked || unlockedNotes[id];
 
         html += `
           <div class="note-card ${urgent === 'דחוף' ? 'is-urgent' : ''} ${pinned ? 'is-pinned' : ''}" id="note-card-${id}" ${cardVars}>
@@ -973,6 +1068,7 @@
                   <div class="cat-dropdown-menu" id="cat-dropdown-${id}">${catMenuItemsHTML}</div>
                 </div>
                 ${sharedTag}
+                ${lockedTag}
                 ${editedByTag}
               </div>
               <div style="display: flex; align-items: center; gap: 4px;">
@@ -980,7 +1076,7 @@
                 <div class="menu-wrapper">
                   <button class="menu-btn" onclick="toggleDropdown(event, '${id}')">⋮</button>
                   <div class="dropdown-menu" id="dropdown-${id}">
-                    <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(text || '')}\`, '${catName}', \`${imageUrl || ''}\`, \`${escapeRowText(linkUrl || '')}\`, \`${escapeRowText(linkTitle || '')}\`)">✏️ עריכה מלאה</button>
+                    <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(text || '')}\`, '${catName}', \`${imageUrl || ''}\`, \`${escapeRowText(linkUrl || '')}\`, \`${escapeRowText(linkTitle || '')}\`, ${!!isLocked})">✏️ עריכה מלאה</button>
                     <button class="dropdown-item" onclick="copyNoteText('${id}')">📋 העתק טקסט</button>
                     <button class="dropdown-item" onclick="togglePin('${id}')">${pinned ? '📌 שחרר סיכה' : '📌 הצמד לראש'}</button>
                     <button class="dropdown-item" onclick="toggleUrgent('${id}')">${urgent === 'דחוף' ? '☆ הסר דחוף' : '⭐ סמן כדחוף'}</button>
@@ -996,7 +1092,7 @@
             ${contentHTML}
             ${linkElement}
             ${imageElement}
-            <button class="save-inline-btn" id="save-btn-${id}" onclick="saveInlineNote('${id}')">שמור שינויים</button>
+            ${showSaveInline ? `<button class="save-inline-btn" id="save-btn-${id}" onclick="saveInlineNote('${id}')">שמור שינויים</button>` : ''}
           </div>
         `;
       });
@@ -1034,16 +1130,31 @@
     window.copyNoteText = function(id) {
       closeAllDropdowns();
       const note = allNotes.find(n => n.id === id);
-      if (note && note.text) {
-        navigator.clipboard.writeText(note.text).then(() => showToast("הטקסט הועתק ללוח!"));
+      if (!note) return;
+      if (note.isLocked && !unlockedNotes[id]) {
+        alert("יש לפענח את הפתק עם סיסמה לפני העתקה.");
+        return;
       }
+      let textToCopy = note.text;
+      if (note.isLocked) {
+        try { textToCopy = CryptoJS.AES.decrypt(note.text, unlockedNotes[id]).toString(CryptoJS.enc.Utf8); } catch(e){}
+      }
+      navigator.clipboard.writeText(textToCopy).then(() => showToast("הטקסט הועתק ללוח!"));
     }
 
     window.downloadSingleNote = function(id) {
       closeAllDropdowns();
       const note = allNotes.find(n => n.id === id);
       if (!note) return;
-      const blob = new Blob([`קטגוריה: ${note.category || 'כללי'}\nתאריך: ${note.date || ''}\n\n${note.text || ''}`], { type: 'text/plain;charset=utf-8' });
+      if (note.isLocked && !unlockedNotes[id]) {
+        alert("יש לפענח את הפתק עם סיסמה לפני הורדה.");
+        return;
+      }
+      let textToDownload = note.text;
+      if (note.isLocked) {
+        try { textToDownload = CryptoJS.AES.decrypt(note.text, unlockedNotes[id]).toString(CryptoJS.enc.Utf8); } catch(e){}
+      }
+      const blob = new Blob([`קטגוריה: ${note.category || 'כללי'}\nתאריך: ${note.date || ''}\n\n${textToDownload}`], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -1062,10 +1173,17 @@
     window.saveInlineNote = async function(id) {
       const textarea = document.getElementById(`inline-text-${id}`);
       const btn = document.getElementById(`save-btn-${id}`);
+      const note = allNotes.find(n => n.id === id);
       btn.disabled = true;
+
+      let newText = textarea.value.trim();
+      if (note && note.isLocked && unlockedNotes[id]) {
+        newText = CryptoJS.AES.encrypt(newText, unlockedNotes[id]).toString();
+      }
+
       try {
         await updateDoc(doc(db, "notes", id), { 
-          text: textarea.value.trim(),
+          text: newText,
           lastEditedBy: null,
           lastEditedById: null
         });
@@ -1105,22 +1223,55 @@
       document.getElementById('note-text-input').value = '';
       document.getElementById('modal-link-title').value = '';
       document.getElementById('modal-link-url').value = '';
+      document.getElementById('modal-secure-toggle').checked = false;
+      document.getElementById('modal-secure-password').value = '';
+      document.getElementById('modal-secure-password').style.display = 'none';
       document.getElementById('note-cat-select').value = categories[0] || 'כללי';
       document.getElementById('modal-img-preview-box').classList.remove('show');
       document.getElementById('remove-img-btn').style.display = 'none';
       document.getElementById('note-modal').style.display = 'flex';
     }
 
-    window.openEditModal = function(id, text, cat, imageUrl, linkUrl, linkTitle) {
+    window.openEditModal = function(id, text, cat, imageUrl, linkUrl, linkTitle, isLocked) {
       closeAllDropdowns();
       editingNoteId = id;
       currentImageBase64 = imageUrl || null;
       document.getElementById('modal-title').innerText = 'עריכת פתק';
-      document.getElementById('note-text-input').value = text;
+
+      let actualText = text;
+      if (isLocked) {
+        if (unlockedNotes[id]) {
+          try { actualText = CryptoJS.AES.decrypt(text, unlockedNotes[id]).toString(CryptoJS.enc.Utf8); } catch(e){}
+        } else {
+          const pass = prompt("הכנס סיסמה לפתיחת וצפיית הפתק לעריכה:");
+          try {
+            actualText = CryptoJS.AES.decrypt(text, pass).toString(CryptoJS.enc.Utf8);
+            if (!actualText) throw new Error();
+            unlockedNotes[id] = pass;
+          } catch(e) {
+            alert("סיסמה שגויה!");
+            return;
+          }
+        }
+      }
+
+      document.getElementById('note-text-input').value = actualText;
       document.getElementById('modal-link-url').value = linkUrl || '';
       document.getElementById('modal-link-title').value = linkTitle || '';
       document.getElementById('note-cat-select').value = cat || "כללי";
       
+      const secureToggle = document.getElementById('modal-secure-toggle');
+      const securePass = document.getElementById('modal-secure-password');
+      if (isLocked) {
+        secureToggle.checked = true;
+        securePass.style.display = 'block';
+        securePass.value = unlockedNotes[id] || '';
+      } else {
+        secureToggle.checked = false;
+        securePass.style.display = 'none';
+        securePass.value = '';
+      }
+
       const previewBox = document.getElementById('modal-img-preview-box');
       const removeBtn = document.getElementById('remove-img-btn');
       if (imageUrl) {
@@ -1184,11 +1335,24 @@
     }
 
     window.saveNote = async function() {
-      const text = document.getElementById('note-text-input').value.trim();
+      let text = document.getElementById('note-text-input').value.trim();
       const linkUrl = document.getElementById('modal-link-url').value.trim();
       const linkTitle = document.getElementById('modal-link-title').value.trim();
       const cat = document.getElementById('note-cat-select').value;
+      const isLocked = document.getElementById('modal-secure-toggle').checked;
+      const pass = document.getElementById('modal-secure-password').value.trim();
+
+      if (isLocked && !pass) {
+        alert("אנא הזן סיסמה לנעילת הפתק.");
+        return;
+      }
+
       if (!text && !currentImageBase64 && !linkUrl) return;
+
+      if (isLocked) {
+        text = CryptoJS.AES.encrypt(text, pass).toString();
+        if (editingNoteId) unlockedNotes[editingNoteId] = pass;
+      }
 
       const now = new Date();
       const dateStr = now.toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'}) + ' ,' + now.toLocaleDateString('he-IL');
@@ -1202,12 +1366,13 @@
             imageUrl: currentImageBase64 || null,
             linkUrl: linkUrl || null,
             linkTitle: linkTitle || null,
+            isLocked: isLocked,
             lastEditedBy: null,
             lastEditedById: null
           });
           showToast("הפתק עודכן בהצלחה");
         } else {
-          await addDoc(collection(db, "notes"), {
+          const docRef = await addDoc(collection(db, "notes"), {
             text: text, 
             category: cat, 
             imageUrl: currentImageBase64 || null,
@@ -1218,8 +1383,10 @@
             urgent: 'רגיל', 
             pinned: false, 
             archived: false, 
-            isShared: false
+            isShared: false,
+            isLocked: isLocked
           });
+          if (isLocked) unlockedNotes[docRef.id] = pass;
           showToast("הפתק נוסף בהצלחה");
         }
         closeModal();
@@ -1280,7 +1447,8 @@
                 createdAt: Date.now(), 
                 urgent: note.urgent || 'רגיל', 
                 pinned: note.pinned || false, 
-                archived: note.archived || false 
+                archived: note.archived || false,
+                isLocked: note.isLocked || false 
               });
             }
             showToast("הייבוא הושלם בהצלחה!");
