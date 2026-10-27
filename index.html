@@ -223,7 +223,6 @@
     .inline-textarea { width: 100%; flex: 1; border: 1px solid transparent; background: transparent; font-size: 0.95rem; line-height: 1.5; resize: none; outline: none; color: var(--text-main); font-family: 'Assistant', sans-serif; padding: 2px; border-radius: 4px; transition: border-color 0.2s, background 0.2s; min-height: 80px; }
     .inline-textarea:focus { border-color: var(--border); background: #fafafa; }
 
-    /* עיצוב רשימות צ'ק-ליסט אינטראקטיביות */
     .checklist-container { display: flex; flex-direction: column; gap: 6px; margin: 4px 0; flex: 1; }
     .checklist-row { display: flex; align-items: flex-start; gap: 8px; font-size: 0.95rem; line-height: 1.4; color: var(--text-main); cursor: pointer; user-select: none; }
     .checklist-cb { cursor: pointer; font-size: 1.05rem; line-height: 1; margin-top: 2px; transition: transform 0.1s; color: var(--primary); }
@@ -239,6 +238,24 @@
       cursor: pointer;
       border: 1px solid var(--border);
     }
+
+    .note-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      padding: 6px 12px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      text-decoration: none;
+      transition: background 0.2s;
+      width: fit-content;
+    }
+    .note-link-btn:hover { background: #e2e8f0; }
 
     .save-inline-btn { display: none; align-self: flex-end; margin-top: 4px; padding: 3px 10px; font-size: 0.75rem; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; }
     .save-inline-btn.show { display: block; }
@@ -269,7 +286,7 @@
     .btn-fullscreen { font-size: 0.85rem; color: #334155; padding: 4px 10px; border-radius: 16px; background: #f1f5f9; font-weight: 600; }
 
     .textarea-wrapper { position: relative; width: 100%; }
-    textarea.modal-textarea { width: 100%; height: 140px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; padding-bottom: 40px; font-size: 0.95rem; resize: none; outline: none; color: var(--text-main); }
+    textarea.modal-textarea { width: 100%; height: 120px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; padding-bottom: 40px; font-size: 0.95rem; resize: none; outline: none; color: var(--text-main); }
 
     .voice-btn { position: absolute; bottom: 10px; left: 10px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 50%; width: 34px; height: 34px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     
@@ -288,7 +305,7 @@
     
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group label { font-size: 0.85rem; font-weight: 600; color: #475569; }
-    select { padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.95rem; outline: none; background: white; color: var(--text-main); }
+    select, input[type="text"] { padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.95rem; outline: none; background: white; color: var(--text-main); }
 
     .modal-buttons { display: flex; gap: 10px; margin-top: 6px; }
     .btn-block { flex: 1; padding: 10px; border-radius: var(--radius); font-size: 0.95rem; font-weight: 600; text-align: center; }
@@ -328,6 +345,7 @@
     </div>
     <div style="flex: 1; display:flex; flex-direction:column; gap:10px;">
       <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 200px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius);"></textarea>
+      <div id="single-note-link-area"></div>
       <div id="single-note-img-area"></div>
       <button id="single-note-save-btn" class="btn btn-submit" style="padding: 10px; width: 100%; border-radius: var(--radius);" onclick="saveSingleSharedNote()">שמור שינויים בפתק</button>
     </div>
@@ -393,7 +411,7 @@
         <button class="voice-btn" id="voice-record-btn" onclick="toggleVoiceRecognition()">🎤</button>
       </div>
 
-      <!-- כפתורי הוספת מדיה וצ'ק-ליסט -->
+      <!-- כפתורי הוספת מדיה, צ'ק-ליסט וקישור -->
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
         <div style="display: flex; gap: 8px;">
           <label class="btn" style="font-size: 0.85rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 6px;">
@@ -401,7 +419,7 @@
             <input type="file" id="modal-image-input" accept="image/*" style="display: none;" onchange="handleImageSelection(event)">
           </label>
           <button class="btn" style="font-size: 0.85rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 6px;" onclick="addChecklistItemToModal()">
-            <span>☑️ הוסף משימה</span>
+            <span>☑️ משימה</span>
           </button>
         </div>
         <button id="remove-img-btn" class="btn" style="display: none; font-size: 0.80rem; color: #be123c; background: #fff1f2; border: 1px solid #fecdd3; padding: 4px 10px; border-radius: var(--radius);" onclick="clearModalImage()">הסר תמונה</button>
@@ -410,6 +428,12 @@
       <div class="modal-image-preview-container" id="modal-img-preview-box">
         <img id="modal-thumb-img" class="modal-thumb" src="" alt="תצוגה מקדימה">
         <span style="font-size: 0.8rem; color: #475569; font-weight: 500;">התמונה נבחרה בהצלחה</span>
+      </div>
+
+      <!-- שדות קישור חכם -->
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="modal-link-title" placeholder="כותרת הקישור (אופציונלי)" style="flex: 1;">
+        <input type="text" id="modal-link-url" placeholder="כתובת URL (https://...)" style="flex: 2;" dir="ltr">
       </div>
 
       <div class="form-group" id="cat-select-group">
@@ -533,6 +557,14 @@
         
         if (document.activeElement !== textarea) {
           textarea.value = note.text || '';
+        }
+
+        const linkArea = document.getElementById('single-note-link-area');
+        if (note.linkUrl) {
+          const displayTitle = note.linkTitle ? note.linkTitle : note.linkUrl;
+          linkArea.innerHTML = `<a href="${note.linkUrl}" target="_blank" class="note-link-btn">🔗 ${escapeHtml(displayTitle)}</a>`;
+        } else {
+          linkArea.innerHTML = '';
         }
 
         const imgArea = document.getElementById('single-note-img-area');
@@ -862,7 +894,7 @@
     function generateNotesHTML(notesArray) {
       let html = '';
       notesArray.forEach(note => {
-        const { id, text, date, category, urgent, pinned, isShared, lastEditedBy, imageUrl } = note;
+        const { id, text, date, category, urgent, pinned, isShared, lastEditedBy, imageUrl, linkUrl, linkTitle } = note;
         const catName = category || 'כללי';
         const colors = getCategoryColor(catName);
         const cardVars = `style="--cat-bg-color: ${colors.bg}; --cat-border-color: ${colors.border}; --cat-text-color: ${colors.text};"`;
@@ -870,6 +902,12 @@
         const sharedTag = isShared ? `<span class="shared-badge" title="פתק פתוח לעריכה חיצונית">🔗 משותף</span>` : '';
         const editedByTag = lastEditedBy ? `<span class="edited-by-badge">✏️ ${lastEditedBy}</span>` : '';
         const imageElement = imageUrl ? `<img src="${imageUrl}" class="note-image-preview" onclick="openLightbox('${imageUrl}')" title="לחץ להגדלה">` : '';
+        
+        let linkElement = '';
+        if (linkUrl) {
+          const displayTitle = linkTitle ? linkTitle : linkUrl;
+          linkElement = `<a href="${linkUrl}" target="_blank" class="note-link-btn" onclick="event.stopPropagation()">🔗 ${escapeHtml(displayTitle)}</a>`;
+        }
 
         let catMenuItemsHTML = categories.map(c => `
           <button class="cat-dropdown-item ${c === catName ? 'active-cat' : ''}" onclick="changeNoteCategory(event, '${id}', '${c}')">
@@ -900,7 +938,7 @@
                 <div class="menu-wrapper">
                   <button class="menu-btn" onclick="toggleDropdown(event, '${id}')">⋮</button>
                   <div class="dropdown-menu" id="dropdown-${id}">
-                    <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(text || '')}\`, '${catName}', \`${imageUrl || ''}\`)">✏️ עריכה מלאה</button>
+                    <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(text || '')}\`, '${catName}', \`${imageUrl || ''}\`, \`${escapeRowText(linkUrl || '')}\`, \`${escapeRowText(linkTitle || '')}\`)">✏️ עריכה מלאה</button>
                     <button class="dropdown-item" onclick="copyNoteText('${id}')">📋 העתק טקסט</button>
                     <button class="dropdown-item" onclick="togglePin('${id}')">${pinned ? '📌 שחרר סיכה' : '📌 הצמד לראש'}</button>
                     <button class="dropdown-item" onclick="toggleUrgent('${id}')">${urgent === 'דחוף' ? '☆ הסר דחוף' : '⭐ סמן כדחוף'}</button>
@@ -914,6 +952,7 @@
               </div>
             </div>
             ${contentHTML}
+            ${linkElement}
             ${imageElement}
             <button class="save-inline-btn" id="save-btn-${id}" onclick="saveInlineNote('${id}')">שמור שינויים</button>
           </div>
@@ -1022,18 +1061,22 @@
       currentImageBase64 = null;
       document.getElementById('modal-title').innerText = 'פתק חדש';
       document.getElementById('note-text-input').value = '';
+      document.getElementById('modal-link-title').value = '';
+      document.getElementById('modal-link-url').value = '';
       document.getElementById('note-cat-select').value = categories[0] || 'כללי';
       document.getElementById('modal-img-preview-box').classList.remove('show');
       document.getElementById('remove-img-btn').style.display = 'none';
       document.getElementById('note-modal').style.display = 'flex';
     }
 
-    window.openEditModal = function(id, text, cat, imageUrl) {
+    window.openEditModal = function(id, text, cat, imageUrl, linkUrl, linkTitle) {
       closeAllDropdowns();
       editingNoteId = id;
       currentImageBase64 = imageUrl || null;
       document.getElementById('modal-title').innerText = 'עריכת פתק';
       document.getElementById('note-text-input').value = text;
+      document.getElementById('modal-link-url').value = linkUrl || '';
+      document.getElementById('modal-link-title').value = linkTitle || '';
       document.getElementById('note-cat-select').value = cat || "כללי";
       
       const previewBox = document.getElementById('modal-img-preview-box');
@@ -1096,8 +1139,10 @@
 
     window.saveNote = async function() {
       const text = document.getElementById('note-text-input').value.trim();
+      const linkUrl = document.getElementById('modal-link-url').value.trim();
+      const linkTitle = document.getElementById('modal-link-title').value.trim();
       const cat = document.getElementById('note-cat-select').value;
-      if (!text && !currentImageBase64) return;
+      if (!text && !currentImageBase64 && !linkUrl) return;
 
       const now = new Date();
       const dateStr = now.toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'}) + ' ,' + now.toLocaleDateString('he-IL');
@@ -1109,6 +1154,8 @@
             text: text, 
             category: cat,
             imageUrl: currentImageBase64 || null,
+            linkUrl: linkUrl || null,
+            linkTitle: linkTitle || null,
             lastEditedBy: null,
             lastEditedById: null
           });
@@ -1118,6 +1165,8 @@
             text: text, 
             category: cat, 
             imageUrl: currentImageBase64 || null,
+            linkUrl: linkUrl || null,
+            linkTitle: linkTitle || null,
             date: dateStr, 
             createdAt: timestamp, 
             urgent: 'רגיל', 
@@ -1179,6 +1228,8 @@
                 text: note.text || '', 
                 category: note.category || 'כללי', 
                 imageUrl: note.imageUrl || null,
+                linkUrl: note.linkUrl || null,
+                linkTitle: note.linkTitle || null,
                 date: note.date || new Date().toLocaleDateString('he-IL'), 
                 createdAt: Date.now(), 
                 urgent: note.urgent || 'רגיל', 
