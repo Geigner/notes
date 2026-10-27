@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>הפנקס</title>
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- ספריית הצפנה מאובטחת CryptoJS (בכתובת הנכונה ajax) -->
+  <!-- ספריית הצפנה מאובטחת CryptoJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
   <style>
@@ -208,7 +208,9 @@
     .note-card:hover { box-shadow: var(--shadow-hover); border-color: #94a3b8; }
     .note-card.is-urgent { border-color: var(--urgent); box-shadow: 0 0 10px var(--urgent-glow), var(--shadow); }
     .note-card.is-pinned { border-color: var(--primary); background: #fcfdfe; }
-    .note-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    
+    .note-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .note-card-title { font-size: 1.05rem; font-weight: 700; color: #1e293b; margin-bottom: 6px; display: block; }
     .note-date { font-size: 0.75rem; color: #475569; font-weight: 500; }
     
     .cat-badge-wrapper { position: relative; display: inline-block; }
@@ -285,7 +287,7 @@
       padding: 30px !important;
     }
     .modal.fullscreen-mode textarea.modal-textarea {
-      height: calc(100vh - 330px) !important;
+      height: calc(100vh - 380px) !important;
     }
 
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -362,6 +364,7 @@
       </div>
     </div>
     <div style="flex: 1; display:flex; flex-direction:column; gap:10px;">
+      <h2 id="single-note-title-display" style="font-size: 1.2rem; font-weight: 700; color: #1e293b; display: none;"></h2>
       <div id="single-note-secure-wrapper" style="flex:1; display:flex; flex-direction:column;">
         <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 200px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius);"></textarea>
         <div id="single-note-link-area"></div>
@@ -426,6 +429,10 @@
         <h3 id="modal-title">פתק חדש</h3>
         <button class="btn btn-fullscreen" onclick="toggleFullscreenModal()" id="fs-btn">🔲 מסך מלא</button>
       </div>
+
+      <!-- שדה כותרת לפתק -->
+      <input type="text" id="note-title-input" placeholder="כותרת הפתק (אופציונלי)..." dir="rtl">
+
       <div class="textarea-wrapper">
         <textarea id="note-text-input" class="modal-textarea" placeholder="הקלד או הכרז בקולך..."></textarea>
         <button class="voice-btn" id="voice-record-btn" onclick="toggleVoiceRecognition()">🎤</button>
@@ -611,6 +618,14 @@
         document.getElementById('single-note-cat').innerText = note.category || 'כללי';
         document.getElementById('single-note-date').innerText = note.date || '';
         
+        const titleDisplay = document.getElementById('single-note-title-display');
+        if (note.title) {
+          titleDisplay.innerText = note.title;
+          titleDisplay.style.display = 'block';
+        } else {
+          titleDisplay.style.display = 'none';
+        }
+
         const wrapper = document.getElementById('single-note-secure-wrapper');
         const saveBtn = document.getElementById('single-note-save-btn');
 
@@ -917,7 +932,12 @@
       if (currentCategory === '⭐ דחוף') filtered = filtered.filter(note => note.urgent === 'דחוף');
       else if (currentCategory !== 'הכל') filtered = filtered.filter(note => (note.category || 'כללי') === currentCategory);
 
-      if (searchQuery !== "") filtered = filtered.filter(note => (note.text || "").toLowerCase().includes(searchQuery));
+      if (searchQuery !== "") {
+        filtered = filtered.filter(note => 
+          (note.text || "").toLowerCase().includes(searchQuery) || 
+          (note.title || "").toLowerCase().includes(searchQuery)
+        );
+      }
 
       filtered.sort((a, b) => {
         if ((a.pinned ? 1 : 0) !== (b.pinned ? 1 : 0)) return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
@@ -1028,7 +1048,7 @@
     function generateNotesHTML(notesArray) {
       let html = '';
       notesArray.forEach(note => {
-        const { id, text, date, category, urgent, pinned, isShared, lastEditedBy, imageUrl, linkUrl, linkTitle, isLocked } = note;
+        const { id, title, text, date, category, urgent, pinned, isShared, lastEditedBy, imageUrl, linkUrl, linkTitle, isLocked } = note;
         const catName = category || 'כללי';
         const colors = getCategoryColor(catName);
         const cardVars = `style="--cat-bg-color: ${colors.bg}; --cat-border-color: ${colors.border}; --cat-text-color: ${colors.text};"`;
@@ -1036,6 +1056,7 @@
         const sharedTag = isShared ? `<span class="shared-badge">🔗 משותף</span>` : '';
         const lockedTag = isLocked ? `<span class="locked-badge">🔒 נעול</span>` : '';
         const editedByTag = lastEditedBy ? `<span class="edited-by-badge">✏️ ${lastEditedBy}</span>` : '';
+        const titleHtml = title ? `<span class="note-card-title">${escapeHtml(title)}</span>` : '';
         const imageElement = (imageUrl && (!isLocked || unlockedNotes[id])) ? `<img src="${imageUrl}" class="note-image-preview" onclick="openLightbox('${imageUrl}')" title="לחץ להגדלה">` : '';
         
         let linkElement = '';
@@ -1075,7 +1096,7 @@
                 <div class="menu-wrapper">
                   <button class="menu-btn" onclick="toggleDropdown(event, '${id}')">⋮</button>
                   <div class="dropdown-menu" id="dropdown-${id}">
-                    <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(text || '')}\`, '${catName}', \`${imageUrl || ''}\`, \`${escapeRowText(linkUrl || '')}\`, \`${escapeRowText(linkTitle || '')}\`, ${!!isLocked})">✏️ עריכה מלאה</button>
+                    <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(title || '')}\`, \`${escapeRowText(text || '')}\`, '${catName}', \`${imageUrl || ''}\`, \`${escapeRowText(linkUrl || '')}\`, \`${escapeRowText(linkTitle || '')}\`, ${!!isLocked})">✏️ עריכה מלאה</button>
                     <button class="dropdown-item" onclick="copyNoteText('${id}')">📋 העתק טקסט</button>
                     <button class="dropdown-item" onclick="togglePin('${id}')">${pinned ? '📌 שחרר סיכה' : '📌 הצמד לראש'}</button>
                     <button class="dropdown-item" onclick="toggleUrgent('${id}')">${urgent === 'דחוף' ? '☆ הסר דחוף' : '⭐ סמן כדחוף'}</button>
@@ -1088,6 +1109,7 @@
                 </div>
               </div>
             </div>
+            ${titleHtml}
             ${contentHTML}
             ${linkElement}
             ${imageElement}
@@ -1153,7 +1175,7 @@
       if (note.isLocked) {
         try { textToDownload = CryptoJS.AES.decrypt(note.text, unlockedNotes[id]).toString(CryptoJS.enc.Utf8); } catch(e){}
       }
-      const blob = new Blob([`קטגוריה: ${note.category || 'כללי'}\nתאריך: ${note.date || ''}\n\n${textToDownload}`], { type: 'text/plain;charset=utf-8' });
+      const blob = new Blob([`כותרת: ${note.title || ''}\nקטגוריה: ${note.category || 'כללי'}\nתאריך: ${note.date || ''}\n\n${textToDownload}`], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -1219,6 +1241,7 @@
       editingNoteId = null;
       currentImageBase64 = null;
       document.getElementById('modal-title').innerText = 'פתק חדש';
+      document.getElementById('note-title-input').value = '';
       document.getElementById('note-text-input').value = '';
       document.getElementById('modal-link-title').value = '';
       document.getElementById('modal-link-url').value = '';
@@ -1231,7 +1254,7 @@
       document.getElementById('note-modal').style.display = 'flex';
     }
 
-    window.openEditModal = function(id, text, cat, imageUrl, linkUrl, linkTitle, isLocked) {
+    window.openEditModal = function(id, title, text, cat, imageUrl, linkUrl, linkTitle, isLocked) {
       closeAllDropdowns();
       editingNoteId = id;
       currentImageBase64 = imageUrl || null;
@@ -1254,6 +1277,7 @@
         }
       }
 
+      document.getElementById('note-title-input').value = title || '';
       document.getElementById('note-text-input').value = actualText;
       document.getElementById('modal-link-url').value = linkUrl || '';
       document.getElementById('modal-link-title').value = linkTitle || '';
@@ -1334,6 +1358,7 @@
     }
 
     window.saveNote = async function() {
+      const title = document.getElementById('note-title-input').value.trim();
       let text = document.getElementById('note-text-input').value.trim();
       const linkUrl = document.getElementById('modal-link-url').value.trim();
       const linkTitle = document.getElementById('modal-link-title').value.trim();
@@ -1346,7 +1371,7 @@
         return;
       }
 
-      if (!text && !currentImageBase64 && !linkUrl) return;
+      if (!title && !text && !currentImageBase64 && !linkUrl) return;
 
       if (isLocked) {
         text = CryptoJS.AES.encrypt(text, pass).toString();
@@ -1360,6 +1385,7 @@
       try {
         if (editingNoteId) {
           await updateDoc(doc(db, "notes", editingNoteId), { 
+            title: title || null,
             text: text, 
             category: cat,
             imageUrl: currentImageBase64 || null,
@@ -1372,6 +1398,7 @@
           showToast("הפתק עודכן בהצלחה");
         } else {
           const docRef = await addDoc(collection(db, "notes"), {
+            title: title || null,
             text: text, 
             category: cat, 
             imageUrl: currentImageBase64 || null,
@@ -1437,6 +1464,7 @@
           if (confirm(`האם לייבא ${importedNotes.length} פתקים חדשים?`)) {
             for (let note of importedNotes) {
               await addDoc(collection(db, "notes"), { 
+                title: note.title || null,
                 text: note.text || '', 
                 category: note.category || 'כללי', 
                 imageUrl: note.imageUrl || null,
