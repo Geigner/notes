@@ -335,6 +335,10 @@
     .locked-card-prompt { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 10px; text-align: center; flex: 1; }
     .locked-card-prompt input { width: 100%; max-width: 200px; text-align: center; }
 
+    .password-wrapper { position: relative; display: inline-flex; align-items: center; width: 100%; justify-content: center; }
+    .password-wrapper input { width: 100%; padding-left: 36px; }
+    .eye-btn { position: absolute; left: 8px; background: none; border: none; cursor: pointer; font-size: 0.9rem; color: #64748b; padding: 2px; }
+
     #toast { position: fixed; bottom: 85px; right: 50%; transform: translateX(50%); background: rgba(30,41,59,0.95); color: white; padding: 6px 16px; border-radius: 16px; font-size: 0.85rem; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
   </style>
 </head>
@@ -463,12 +467,15 @@
         <input type="text" id="modal-link-url" placeholder="כתובת URL (https://...)" style="flex: 2;" dir="ltr">
       </div>
 
-      <!-- שורת נעילה בסיסמה בחלון עריכה -->
+      <!-- שורת נעילה בסיסמה בחלון עריכה עם אפשרות הצגת סיסמה -->
       <div style="display: flex; gap: 8px; align-items: center; background: #f8fafc; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border);">
         <label style="font-size: 0.85rem; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 6px; cursor: pointer;">
           <input type="checkbox" id="modal-secure-toggle" onchange="togglePasswordInput(this)"> 🔒 נעול בסיסמה
         </label>
-        <input type="password" id="modal-secure-password" placeholder="הכנס סיסמה לפתק..." style="flex: 1; display: none;" dir="ltr">
+        <div id="modal-pass-container" class="password-wrapper" style="flex: 1; display: none;">
+          <input type="password" id="modal-secure-password" placeholder="הכנס סיסמה לפתק..." dir="ltr" style="width:100%;">
+          <button type="button" class="eye-btn" onclick="togglePasswordVisibility('modal-secure-password', this)">👁️</button>
+        </div>
       </div>
 
       <div class="form-group" id="cat-select-group">
@@ -600,9 +607,22 @@
     }
 
     window.togglePasswordInput = function(checkbox) {
+      const passContainer = document.getElementById('modal-pass-container');
       const passInput = document.getElementById('modal-secure-password');
-      passInput.style.display = checkbox.checked ? 'block' : 'none';
+      passContainer.style.display = checkbox.checked ? 'inline-flex' : 'none';
       if (checkbox.checked) passInput.focus();
+    }
+
+    window.togglePasswordVisibility = function(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerText = '👁️‍🗨️';
+      } else {
+        input.type = 'password';
+        btn.innerText = '👁️';
+      }
     }
 
     function listenToSingleSharedNote(noteId) {
@@ -635,7 +655,10 @@
               <div class="locked-card-prompt">
                 <span style="font-size: 2rem;">🔒</span>
                 <p style="font-weight: 600; color: var(--text-main);">הפתק מוצפן בסיסמה</p>
-                <input type="password" id="unlock-pass-${noteId}" placeholder="הקלד סיסמה..." dir="ltr" onkeydown="if(event.key==='Enter') unlockSingleSharedNoteDirect('${noteId}', '${note.text}')">
+                <div class="password-wrapper" style="max-width: 220px;">
+                  <input type="password" id="unlock-pass-${noteId}" placeholder="הקלד סיסמה..." dir="ltr" onkeydown="if(event.key==='Enter') unlockSingleSharedNoteDirect('${noteId}', '${note.text}')">
+                  <button type="button" class="eye-btn" onclick="togglePasswordVisibility('unlock-pass-${noteId}', this)">👁️</button>
+                </div>
                 <button class="btn btn-submit" style="padding: 6px 16px; border-radius: 8px;" onclick="unlockSingleSharedNoteDirect('${noteId}', '${note.text}')">פתח פתק</button>
               </div>
             `;
@@ -964,7 +987,10 @@
           <div class="locked-card-prompt">
             <span style="font-size: 1.5rem;">🔒</span>
             <span style="font-size: 0.85rem; font-weight: 600; color: #b45309;">פתק נעול בסיסמה</span>
-            <input type="password" id="card-unlock-${id}" placeholder="הכנס סיסמה..." dir="ltr" style="padding:4px 8px; font-size:0.85rem;" onkeydown="if(event.key==='Enter') unlockCardNote(event, '${id}')">
+            <div class="password-wrapper">
+              <input type="password" id="card-unlock-${id}" placeholder="הכנס סיסמה..." dir="ltr" style="font-size:0.85rem;" onkeydown="if(event.key==='Enter') unlockCardNote(event, '${id}')">
+              <button type="button" class="eye-btn" onclick="togglePasswordVisibility('card-unlock-${id}', this)">👁️</button>
+            </div>
             <button class="btn btn-submit" style="padding: 4px 12px; font-size: 0.8rem; border-radius: 6px;" onclick="unlockCardNote(event, '${id}')">פענח</button>
           </div>
         `;
@@ -1255,7 +1281,7 @@
       document.getElementById('modal-link-url').value = '';
       document.getElementById('modal-secure-toggle').checked = false;
       document.getElementById('modal-secure-password').value = '';
-      document.getElementById('modal-secure-password').style.display = 'none';
+      document.getElementById('modal-pass-container').style.display = 'none';
       document.getElementById('note-cat-select').value = categories[0] || 'כללי';
       document.getElementById('modal-img-preview-box').classList.remove('show');
       document.getElementById('remove-img-btn').style.display = 'none';
@@ -1292,14 +1318,15 @@
       document.getElementById('note-cat-select').value = cat || "כללי";
       
       const secureToggle = document.getElementById('modal-secure-toggle');
+      const passContainer = document.getElementById('modal-pass-container');
       const securePass = document.getElementById('modal-secure-password');
       if (isLocked) {
         secureToggle.checked = true;
-        securePass.style.display = 'block';
+        passContainer.style.display = 'inline-flex';
         securePass.value = unlockedNotes[id] || '';
       } else {
         secureToggle.checked = false;
-        securePass.style.display = 'none';
+        passContainer.style.display = 'none';
         securePass.value = '';
       }
 
@@ -1449,82 +1476,3 @@
       closeAllDropdowns();
       if (confirm("האם למחוק פתק זה לצמיתות?")) await deleteDoc(doc(db, "notes", id));
     }
-
-    window.exportBackup = function() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allNotes, null, 2));
-      const a = document.createElement('a');
-      a.href = dataStr;
-      a.download = `notes_backup_${new Date().toISOString().slice(0,10)}.json`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    }
-
-    window.triggerImport = function() { document.getElementById('import-file-input').click(); }
-
-    window.importBackup = function(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async function(e) {
-        try {
-          const importedNotes = JSON.parse(e.target.result);
-          if (confirm(`האם לייבא ${importedNotes.length} פתקים חדשים?`)) {
-            for (let note of importedNotes) {
-              await addDoc(collection(db, "notes"), { 
-                title: note.title || null,
-                text: note.text || '', 
-                category: note.category || 'כללי', 
-                imageUrl: note.imageUrl || null,
-                linkUrl: note.linkUrl || null,
-                linkTitle: note.linkTitle || null,
-                date: note.date || new Date().toLocaleDateString('he-IL'), 
-                createdAt: Date.now(), 
-                urgent: note.urgent || 'רגיל', 
-                pinned: note.pinned || false, 
-                archived: note.archived || false,
-                isLocked: note.isLocked || false 
-              });
-            }
-            showToast("הייבוא הושלם בהצלחה!");
-          }
-        } catch (err) { console.error(err); }
-      };
-      reader.readAsText(file);
-    }
-
-    window.addNewCategory = function() {
-      const newCat = prompt("הכנס את שם הקטגוריה החדשה:");
-      if (newCat && newCat.trim() !== "") {
-        const name = newCat.trim();
-        if (!categories.includes(name)) {
-          categories.push(name);
-          renderCategories();
-          document.getElementById('note-cat-select').value = name;
-        }
-      }
-    }
-
-    window.toggleArchiveView = function() {
-      currentView = currentView === 'active' ? 'archived' : 'active';
-      document.getElementById('archive-view-btn').innerText = currentView === 'active' ? 'ארכיון' : 'פתקים פעילים';
-      renderNotes();
-    }
-
-    window.toggleFullscreenModal = function() {
-      const modal = document.getElementById('modal-box');
-      modal.classList.toggle('fullscreen-mode');
-    }
-
-    window.showToast = function(msg) {
-      const toast = document.getElementById('toast');
-      toast.innerText = msg;
-      toast.style.display = 'block';
-      setTimeout(() => { toast.style.display = 'none'; }, 2500);
-    }
-
-    window.escapeHtml = function(text) { return (text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
-    window.escapeRowText = function(text) { return (text || "").replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/"/g, '&quot;'); }
-  </script>
-</body>
-</html>
