@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>הפנקס</title>
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- ספריית הצפנה מאובטחת CryptoJS -->
-  <script src="https://cdnjs.cloudflare.com/ajax5/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <!-- ספריית הצפנה מאובטחת CryptoJS (בכתובת הנכונה ajax) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
   <style>
     :root {
@@ -509,12 +509,11 @@
     let unsubscribeNotes = null;
     let activeSharedNoteId = null;
     let currentImageBase64 = null;
-    let unlockedNotes = {}; // זיכרון מקומי לפתקים שנפתחו עם סיסמה בסשן הנוכחי
+    let unlockedNotes = {};
 
     const urlParams = new URLSearchParams(window.location.search);
     const sharedNoteId = urlParams.get('noteId');
 
-    // מאזין גלובלי למקש Escape (Esc)
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' || e.key === 'Esc') {
         const lightbox = document.getElementById('lightbox-modal');
