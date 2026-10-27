@@ -104,8 +104,8 @@
     }
 
     @keyframes slideInFromRight {
-      0% { opacity: 0; transform: translateX(15px); }
-      100% { opacity: 1; transform: translateX(0); }
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes slideInFromLeft {
@@ -162,12 +162,35 @@
     .search-popup-input { display: none; position: absolute; top: 0; left: 110%; width: 240px; padding: 8px 36px 8px 14px; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 24px; background: white; outline: none; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); z-index: 95; color: var(--text-main); }
     .search-dropdown-wrapper:hover .search-popup-input, .search-popup-input.active { display: block; animation: slideInFromLeft 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
+    /* תיקון קטגוריות למובייל: מופיע נגלל ומתחת במקום לברוח מהמסך */
     .categories-dropdown-wrapper { position: relative; display: inline-block; }
     .cat-toggle-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: white; border: 1px solid var(--border); border-radius: 20px; font-size: 0.85rem; font-weight: 600; color: #334155; cursor: pointer; box-shadow: var(--shadow); }
     .cat-toggle-btn:hover { background: #f8fafc; }
-    .categories-bar { display: none; position: absolute; top: 0; right: 105%; background: transparent; border: none; box-shadow: none; padding: 0; z-index: 95; gap: 8px; flex-direction: row; align-items: center; width: max-content; max-width: 600px; white-space: nowrap; }
-    .categories-dropdown-wrapper:hover .categories-bar, .categories-bar.active { display: flex; animation: slideInFromRight 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    .cat-chip { padding: 5px 14px; border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; color: #334155; transition: all 0.2s; user-select: none; display: flex; align-items: center; gap: 6px; }
+    
+    .categories-bar { 
+      display: none; 
+      position: absolute; 
+      top: 115%; 
+      right: 0; 
+      background: white; 
+      border: 1px solid var(--border); 
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); 
+      padding: 10px; 
+      z-index: 95; 
+      gap: 8px; 
+      flex-direction: row; 
+      flex-wrap: wrap;
+      align-items: center; 
+      width: max-content; 
+      max-width: 320px; 
+    }
+    .categories-dropdown-wrapper:hover .categories-bar, .categories-bar.active { 
+      display: flex; 
+      animation: slideInFromRight 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+    }
+    
+    .cat-chip { padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; color: #334155; transition: all 0.2s; user-select: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: #f8fafc; }
     .cat-chip:hover { background: #f1f5f9; color: var(--text-main); }
     .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: 600; }
     .cat-chip.urgent-chip { border-color: #fde68a; background: #fffbeb; color: #92400e; }
@@ -281,7 +304,7 @@
         <div class="categories-dropdown-wrapper">
           <button class="cat-toggle-btn" onclick="toggleCategoriesMenu(event)">
             <span>🏷️ <strong id="selected-cat-label">הכל</strong></span>
-            <span style="font-size: 0.75rem;">▶</span>
+            <span style="font-size: 0.75rem;">▼</span>
           </button>
           <div class="categories-bar" id="categories-container"></div>
         </div>
@@ -820,7 +843,6 @@
       const btn = document.getElementById(`save-btn-${id}`);
       btn.disabled = true;
       try {
-        // כאשר הבעלים שומר שינוי, מאפסים את חותמת העריכה של האורח
         await updateDoc(doc(db, "notes", id), { 
           text: textarea.value.trim(),
           lastEditedBy: null,
@@ -884,7 +906,6 @@
 
       try {
         if (editingNoteId) {
-          // עריכת פתק קיים על ידי הבעלים - מאפסים את תגית האורח
           await updateDoc(doc(db, "notes", editingNoteId), { 
             text: text, 
             category: cat,
