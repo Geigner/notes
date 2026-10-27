@@ -430,7 +430,7 @@
         <button class="btn btn-fullscreen" onclick="toggleFullscreenModal()" id="fs-btn">🔲 מסך מלא</button>
       </div>
 
-      <!-- שדה כותרת לפתק (ממוקם כאן בבירור מתחת לכותרת המודל) -->
+      <!-- שדה כותרת לפתק -->
       <input type="text" id="note-title-input" placeholder="כותרת הפתק (אופציונלי)..." dir="rtl">
 
       <div class="textarea-wrapper">
@@ -635,8 +635,8 @@
               <div class="locked-card-prompt">
                 <span style="font-size: 2rem;">🔒</span>
                 <p style="font-weight: 600; color: var(--text-main);">הפתק מוצפן בסיסמה</p>
-                <input type="password" id="unlock-pass-${noteId}" placeholder="הקלד סיסמה..." dir="ltr">
-                <button class="btn btn-submit" style="padding: 6px 16px; border-radius: 8px;" onclick="unlockSingleNote('${noteId}', '${note.text}')">פתח פתק</button>
+                <input type="password" id="unlock-pass-${noteId}" placeholder="הקלד סיסמה..." dir="ltr" onkeydown="if(event.key==='Enter') unlockSingleSharedNoteDirect('${noteId}', '${note.text}')">
+                <button class="btn btn-submit" style="padding: 6px 16px; border-radius: 8px;" onclick="unlockSingleSharedNoteDirect('${noteId}', '${note.text}')">פתח פתק</button>
               </div>
             `;
             saveBtn.style.display = 'none';
@@ -685,8 +685,10 @@
       }, (error) => { console.error(error); });
     }
 
-    window.unlockSingleNote = function(noteId, encryptedText) {
-      const pass = document.getElementById(`unlock-pass-${noteId}`).value;
+    window.unlockSingleSharedNoteDirect = function(noteId, encryptedText) {
+      const passInput = document.getElementById(`unlock-pass-${noteId}`);
+      if (!passInput) return;
+      const pass = passInput.value;
       try {
         const bytes = CryptoJS.AES.decrypt(encryptedText, pass);
         const original = bytes.toString(CryptoJS.enc.Utf8);
@@ -697,6 +699,10 @@
       } catch (err) {
         showToast("סיסמה שגויה!");
       }
+    }
+
+    window.unlockSingleNote = function(noteId, encryptedText) {
+      unlockSingleSharedNoteDirect(noteId, encryptedText);
     }
 
     window.saveSingleSharedNote = async function() {
@@ -958,7 +964,7 @@
           <div class="locked-card-prompt">
             <span style="font-size: 1.5rem;">🔒</span>
             <span style="font-size: 0.85rem; font-weight: 600; color: #b45309;">פתק נעול בסיסמה</span>
-            <input type="password" id="card-unlock-${id}" placeholder="הכנס סיסמה..." dir="ltr" style="padding:4px 8px; font-size:0.85rem;">
+            <input type="password" id="card-unlock-${id}" placeholder="הכנס סיסמה..." dir="ltr" style="padding:4px 8px; font-size:0.85rem;" onkeydown="if(event.key==='Enter') unlockCardNote(event, '${id}')">
             <button class="btn btn-submit" style="padding: 4px 12px; font-size: 0.8rem; border-radius: 6px;" onclick="unlockCardNote(event, '${id}')">פענח</button>
           </div>
         `;
@@ -1000,8 +1006,10 @@
     }
 
     window.unlockCardNote = function(event, id) {
-      event.stopPropagation();
-      const pass = document.getElementById(`card-unlock-${id}`).value;
+      if (event) event.stopPropagation();
+      const passInput = document.getElementById(`card-unlock-${id}`);
+      if (!passInput) return;
+      const pass = passInput.value;
       const note = allNotes.find(n => n.id === id);
       if (!note) return;
 
