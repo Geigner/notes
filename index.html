@@ -442,7 +442,7 @@
         <span style="font-size: 0.8rem; color: #475569; font-weight: 500;">התמונה נבחרה בהצלחה</span>
       </div>
 
-      <!-- שדות קישור חכם מסודרים (כותרת מימין, URL משמאל) -->
+      <!-- שדות קישור חכם -->
       <div style="display: flex; gap: 8px;">
         <input type="text" id="modal-link-title" placeholder="כותרת הקישור (אופציונלי)" style="flex: 1;" dir="rtl">
         <input type="text" id="modal-link-url" placeholder="כתובת URL (https://...)" style="flex: 2;" dir="ltr">
@@ -496,6 +496,36 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const sharedNoteId = urlParams.get('noteId');
+
+    // מאזין גלובלי למקש Escape (Esc)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        const lightbox = document.getElementById('lightbox-modal');
+        const modalOverlay = document.getElementById('note-modal');
+        const modalBox = document.getElementById('modal-box');
+
+        // 1. אם יש תמונה מוגדלת - סגור אותה
+        if (lightbox && lightbox.classList.contains('show')) {
+          closeLightbox();
+          return;
+        }
+
+        // 2. אם החלון במצב מסך מלא - צא ממצב מסך מלא
+        if (modalBox && modalBox.classList.contains('fullscreen-mode')) {
+          toggleFullscreenModal();
+          return;
+        }
+
+        // 3. אם חלון העריכה/הוספה פתוח - סגור אותו
+        if (modalOverlay && modalOverlay.style.display === 'flex') {
+          closeModal();
+          return;
+        }
+
+        // 4. סגור את כל התפריטים הנגללים
+        closeAllDropdowns();
+      }
+    });
 
     if (sharedNoteId) {
       document.getElementById('auth-screen').style.display = 'none';
@@ -1104,7 +1134,11 @@
       document.getElementById('note-modal').style.display = 'flex';
     }
 
-    window.closeModal = function() { document.getElementById('note-modal').style.display = 'none'; }
+    window.closeModal = function() { 
+      const modalBox = document.getElementById('modal-box');
+      if (modalBox) modalBox.classList.remove('fullscreen-mode');
+      document.getElementById('note-modal').style.display = 'none'; 
+    }
 
     window.handleImageSelection = function(event) {
       const file = event.target.files[0];
