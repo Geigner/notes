@@ -299,7 +299,7 @@
     .lightbox-close { position: absolute; top: -40px; left: 0; background: white; color: var(--text-main); border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 
     .modal-header-actions { display: flex; justify-content: space-between; align-items: center; }
-    .modal-header-actions h3 { font-size: 1.1rem; font-weight: 600; color: #1e293b; }
+    .modal-header-actions h2 { font-size: 1.1rem; font-weight: 600; color: #1e293b; }
     .btn-fullscreen { font-size: 0.85rem; color: #334155; padding: 4px 10px; border-radius: 16px; background: #f1f5f9; font-weight: 600; cursor: pointer; border: none; }
 
     .textarea-wrapper { position: relative; width: 100%; }
@@ -346,7 +346,7 @@
 
   <div id="auth-screen" style="display: none;">
     <div class="auth-card">
-      <h2>🧠 הפנקס - אישי</h2>
+      <h1>🧠 הפנקס - אישי</h1>
       <p style="color: var(--text-muted); margin-top: 8px; font-size: 0.9rem;">
         הפנקס מוגן. התחבר עם חשבון גוגל שלך כדי לצפות בפתקים.
       </p>
@@ -370,6 +370,7 @@
     <div style="flex: 1; display:flex; flex-direction:column; gap:10px;">
       <h2 id="single-note-title-display" style="font-size: 1.2rem; font-weight: 700; color: #1e293b; display: none;"></h2>
       <div id="single-note-secure-wrapper" style="flex:1; display:flex; flex-direction:column;">
+        <label for="single-note-textarea" style="display:none;">תוכן הפתק המשותף</label>
         <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 200px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius);"></textarea>
         <div id="single-note-link-area"></div>
         <div id="single-note-img-area"></div>
@@ -381,15 +382,15 @@
   <div class="container" id="main-container">
     <header>
       <div class="header-right">
-        <h1 id="app-title">הפנקס</h1>
+        <h1>הפנקס</h1>
 
         <div class="search-dropdown-wrapper" onclick="event.stopPropagation()">
-          <button class="search-trigger-btn" onclick="toggleSearchMenu(event)" title="חיפוש מהיר">🔍</button>
-          <input type="text" id="search-input" class="search-popup-input" placeholder="חיפוש חופשי בפתקים..." oninput="renderNotes()">
+          <button class="search-trigger-btn" onclick="toggleSearchMenu(event)" title="חיפוש מהיר" aria-label="פתח חלון חיפוש">🔍</button>
+          <input type="text" id="search-input" class="search-popup-input" placeholder="חיפוש חופשי בפתקים..." aria-label="חיפוש חופשי בפתקים" oninput="renderNotes()">
         </div>
 
         <div class="categories-dropdown-wrapper" onclick="event.stopPropagation()">
-          <button class="cat-toggle-btn" onclick="toggleCategoriesMenu(event)">
+          <button class="cat-toggle-btn" onclick="toggleCategoriesMenu(event)" aria-label="סינון לפי קטגוריות">
             <span>🏷️ <strong id="selected-cat-label">הכל</strong></span>
             <span style="font-size: 0.75rem;">▼</span>
           </button>
@@ -399,12 +400,12 @@
 
       <div class="header-left">
         <div class="header-actions-wrapper" onclick="event.stopPropagation()">
-          <button class="gear-menu-trigger" onclick="toggleHeaderMenu(event)" title="אפשרויות ניהול">⚙️</button>
+          <button class="gear-menu-trigger" onclick="toggleHeaderMenu(event)" title="אפשרויות ניהול" aria-label="תפריט ניהול והגדרות">⚙️</button>
           <div class="header-actions-dropdown" id="header-dropdown">
             <span class="notes-counter-badge" id="notes-counter">מחשב...</span>
             <button class="btn btn-secondary" onclick="exportBackup()">💾 גיבוי</button>
             <button class="btn btn-secondary" onclick="triggerImport()">📥 ייבוא</button>
-            <input type="file" id="import-file-input" style="display: none" accept=".json" onchange="importBackup(event)">
+            <input type="file" id="import-file-input" style="display: none" accept=".json" aria-label="קובץ ייבוי גיבוי" onchange="importBackup(event)">
             <button class="btn btn-secondary" id="manage-cat-btn" onclick="toggleCategoryManagement()">⚙️ ניהול קטגוריות</button>
             <button class="btn btn-secondary" id="archive-view-btn" onclick="toggleArchiveView()">ארכיון</button>
             <button class="btn btn-secondary" onclick="logoutFromGoogle()">🚪 התנתק</button>
@@ -420,26 +421,28 @@
 
   <div class="lightbox-overlay" id="lightbox-modal" onclick="closeLightbox()">
     <div class="lightbox-content" onclick="event.stopPropagation()">
-      <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+      <button class="lightbox-close" onclick="closeLightbox()" aria-label="סגור תצוגת תמונה">✕</button>
       <img id="lightbox-img-el" class="lightbox-img" src="" alt="תמונה מוגדלת">
     </div>
   </div>
 
-  <button class="btn fab" id="fab-btn" onclick="openAddModal()">+</button>
+  <button class="btn fab" id="fab-btn" onclick="openAddModal()" aria-label="הוסף פתק חדש">+</button>
 
   <div class="overlay" id="note-modal" onclick="if(event.target===this) closeModal()">
     <div class="modal" id="modal-box">
       <div class="modal-header-actions">
-        <h3 id="modal-title">פתק חדש</h3>
+        <h2 id="modal-title">פתק חדש</h2>
         <button class="btn btn-fullscreen" onclick="toggleFullscreenModal()" id="fs-btn">🔲 מסך מלא</button>
       </div>
 
       <!-- שדה כותרת לפתק -->
+      <label for="note-title-input" style="display:none;">כותרת הפתק</label>
       <input type="text" id="note-title-input" placeholder="כותרת הפתק (אופציונלי)..." dir="rtl">
 
       <div class="textarea-wrapper">
+        <label for="note-text-input" style="display:none;">תוכן הפתק</label>
         <textarea id="note-text-input" class="modal-textarea" placeholder="הקלד או הכרז בקולך..."></textarea>
-        <button class="voice-btn" id="voice-record-btn" onclick="toggleVoiceRecognition()">🎤</button>
+        <button class="voice-btn" id="voice-record-btn" onclick="toggleVoiceRecognition()" aria-label="הקלטה קולית">🎤</button>
       </div>
 
       <!-- כפתורי הוספת מדיה, צ'ק-ליסט וקישור -->
@@ -447,7 +450,7 @@
         <div style="display: flex; gap: 8px;">
           <label class="btn" style="font-size: 0.85rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 6px;">
             <span>🖼️ תמונה</span>
-            <input type="file" id="modal-image-input" accept="image/*" style="display: none;" onchange="handleImageSelection(event)">
+            <input type="file" id="modal-image-input" accept="image/*" style="display: none;" aria-label="העלאת תמונה לפתק" onchange="handleImageSelection(event)">
           </label>
           <button class="btn" style="font-size: 0.85rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 6px;" onclick="addChecklistItemToModal()">
             <span>☑️ משימה</span>
@@ -463,8 +466,8 @@
 
       <!-- שדות קישור חכם -->
       <div style="display: flex; gap: 8px;">
-        <input type="text" id="modal-link-title" placeholder="כותרת הקישור (אופציונלי)" style="flex: 1;" dir="rtl">
-        <input type="text" id="modal-link-url" placeholder="כתובת URL (https://...)" style="flex: 2;" dir="ltr">
+        <input type="text" id="modal-link-title" placeholder="כותרת הקישור (אופציונלי)" style="flex: 1;" aria-label="כותרת הקישור" dir="rtl">
+        <input type="text" id="modal-link-url" placeholder="כתובת URL (https://...)" style="flex: 2;" aria-label="כתובת אינטרנט URL" dir="ltr">
       </div>
 
       <!-- שורת נעילה בסיסמה בחלון עריכה עם אפשרות הצגת סיסמה -->
@@ -473,16 +476,16 @@
           <input type="checkbox" id="modal-secure-toggle" onchange="togglePasswordInput(this)"> 🔒 נעול בסיסמה
         </label>
         <div id="modal-pass-container" class="password-wrapper" style="flex: 1; display: none;">
-          <input type="password" id="modal-secure-password" placeholder="הכנס סיסמה לפתק..." dir="ltr" style="width:100%;">
-          <button type="button" class="eye-btn" onclick="togglePasswordVisibility('modal-secure-password', this)">👁️</button>
+          <input type="password" id="modal-secure-password" placeholder="הכנס סיסמה לפתק..." aria-label="סיסמת נעילה לפתק" dir="ltr" style="width:100%;">
+          <button type="button" class="eye-btn" onclick="togglePasswordVisibility('modal-secure-password', this)" aria-label="הצג או הסתר סיסמה">👁️</button>
         </div>
       </div>
 
       <div class="form-group" id="cat-select-group">
         <label for="note-cat-select">קטגוריה</label>
         <div style="display: flex; gap: 8px;">
-          <select id="note-cat-select" style="flex: 1;"></select>
-          <button class="btn" onclick="addNewCategory()" style="background: #edf2f7; padding: 0 14px; border-radius: var(--radius); color: var(--primary); font-weight: 600;">➕</button>
+          <select id="note-cat-select" style="flex: 1;" aria-label="בחר קטגוריה לפתק"></select>
+          <button class="btn" onclick="addNewCategory()" aria-label="הוסף קטגוריה חדשה" style="background: #edf2f7; padding: 0 14px; border-radius: var(--radius); color: var(--primary); font-weight: 600;">➕</button>
         </div>
       </div>
       <div class="modal-buttons">
@@ -656,8 +659,8 @@
                 <span style="font-size: 2rem;">🔒</span>
                 <p style="font-weight: 600; color: var(--text-main);">הפתק מוצפן בסיסמה</p>
                 <div class="password-wrapper" style="max-width: 220px;">
-                  <input type="password" id="unlock-pass-${noteId}" placeholder="הקלד סיסמה..." dir="ltr" onkeydown="if(event.key==='Enter') unlockSingleSharedNoteDirect('${noteId}', '${note.text}')">
-                  <button type="button" class="eye-btn" onclick="togglePasswordVisibility('unlock-pass-${noteId}', this)">👁️</button>
+                  <input type="password" id="unlock-pass-${noteId}" placeholder="הקלד סיסמה..." aria-label="סיסמת פענוח לפתק משותף" dir="ltr" onkeydown="if(event.key==='Enter') unlockSingleSharedNoteDirect('${noteId}', '${note.text}')">
+                  <button type="button" class="eye-btn" onclick="togglePasswordVisibility('unlock-pass-${noteId}', this)" aria-label="הצג או הסתר סיסמה">👁️</button>
                 </div>
                 <button class="btn btn-submit" style="padding: 6px 16px; border-radius: 8px;" onclick="unlockSingleSharedNoteDirect('${noteId}', '${note.text}')">פתח פתק</button>
               </div>
@@ -676,6 +679,7 @@
         }
 
         wrapper.innerHTML = `
+          <label for="single-note-textarea" style="display:none;">תוכן הפתק</label>
           <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 200px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius);">${escapeHtml(actualText)}</textarea>
           <div id="single-note-link-area"></div>
           <div id="single-note-img-area"></div>
@@ -988,8 +992,8 @@
             <span style="font-size: 1.5rem;">🔒</span>
             <span style="font-size: 0.85rem; font-weight: 600; color: #b45309;">פתק נעול בסיסמה</span>
             <div class="password-wrapper">
-              <input type="password" id="card-unlock-${id}" placeholder="הכנס סיסמה..." dir="ltr" style="font-size:0.85rem;" onkeydown="if(event.key==='Enter') unlockCardNote(event, '${id}')">
-              <button type="button" class="eye-btn" onclick="togglePasswordVisibility('card-unlock-${id}', this)">👁️</button>
+              <input type="password" id="card-unlock-${id}" placeholder="הכנס סיסמה..." aria-label="סיסמת פענוח לפתק" dir="ltr" style="font-size:0.85rem;" onkeydown="if(event.key==='Enter') unlockCardNote(event, '${id}')">
+              <button type="button" class="eye-btn" onclick="togglePasswordVisibility('card-unlock-${id}', this)" aria-label="הצג או הסתר סיסמה">👁️</button>
             </div>
             <button class="btn btn-submit" style="padding: 4px 12px; font-size: 0.8rem; border-radius: 6px;" onclick="unlockCardNote(event, '${id}')">פענח</button>
           </div>
@@ -1008,7 +1012,7 @@
       const hasChecklist = lines.some(line => line.trim().startsWith('[ ]') || line.trim().startsWith('[x]') || line.trim().startsWith('[X]'));
 
       if (!hasChecklist) {
-        return `<textarea class="inline-textarea" id="inline-text-${id}" oninput="showInlineSave('${id}')">${escapeHtml(actualText || '')}</textarea>`;
+        return `<label for="inline-text-${id}" style="display:none;">תוכן פתק</label><textarea class="inline-textarea" id="inline-text-${id}" aria-label="עריכת תוכן פתק" oninput="showInlineSave('${id}')">${escapeHtml(actualText || '')}</textarea>`;
       }
 
       let checklistHTML = '<div class="checklist-container">';
@@ -1019,7 +1023,7 @@
           const itemText = trimmed.replace(/^\[[ xX]\]/, '').trim();
           checklistHTML += `
             <div class="checklist-row" onclick="toggleChecklistItem('${id}', ${lineIndex})">
-              <span class="checklist-cb">${isChecked ? '☑️' : '☐'}</span>
+              <span class="checklist-cb" aria-hidden="true">${isChecked ? '☑️' : '☐'}</span>
               <span class="checklist-text ${isChecked ? 'checked' : ''}">${escapeHtml(itemText)}</span>
             </div>
           `;
@@ -1091,7 +1095,7 @@
         const lockedTag = isLocked ? `<span class="locked-badge">🔒 נעול</span>` : '';
         const editedByTag = lastEditedBy ? `<span class="edited-by-badge">✏️ ${lastEditedBy}</span>` : '';
         const titleHtml = title ? `<span class="note-card-title">${escapeHtml(title)}</span>` : '';
-        const imageElement = (imageUrl && (!isLocked || unlockedNotes[id])) ? `<img src="${imageUrl}" class="note-image-preview" onclick="openLightbox('${imageUrl}')" title="לחץ להגדלה">` : '';
+        const imageElement = (imageUrl && (!isLocked || unlockedNotes[id])) ? `<img src="${imageUrl}" class="note-image-preview" onclick="openLightbox('${imageUrl}')" alt="תמונת פתק" title="לחץ להגדלה">` : '';
         
         let linkElement = '';
         if (linkUrl && (!isLocked || unlockedNotes[id])) {
@@ -1118,7 +1122,7 @@
             <div class="note-header-top">
               <div>
                 <div class="cat-badge-wrapper">
-                  <span class="cat-badge" onclick="toggleCatDropdown(event, '${id}')">${pinned ? '📌 ' : ''}${catName} ▾</span>
+                  <span class="cat-badge" onclick="toggleCatDropdown(event, '${id}')" aria-label="שינוי קטגוריה">${pinned ? '📌 ' : ''}${catName} ▾</span>
                   <div class="cat-dropdown-menu" id="cat-dropdown-${id}">${catMenuItemsHTML}</div>
                 </div>
                 ${sharedTag}
@@ -1128,7 +1132,7 @@
               <div style="display: flex; align-items: center; gap: 4px;">
                 <span class="note-date">${date || ''}</span>
                 <div class="menu-wrapper">
-                  <button class="menu-btn" onclick="toggleDropdown(event, '${id}')">⋮</button>
+                  <button class="menu-btn" onclick="toggleDropdown(event, '${id}')" aria-label="תפריט אפשרויות לפתק">⋮</button>
                   <div class="dropdown-menu" id="dropdown-${id}">
                     <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(title || '')}\`, \`${escapeRowText(text || '')}\`, '${catName}', \`${imageUrl || ''}\`, \`${escapeRowText(linkUrl || '')}\`, \`${escapeRowText(linkTitle || '')}\`, ${!!isLocked})">✏️ עריכה מלאה</button>
                     <button class="dropdown-item" onclick="copyNoteText('${id}')">📋 העתק טקסט</button>
