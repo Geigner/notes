@@ -83,10 +83,10 @@
     .header-right, .header-left {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
-    h1 { font-size: 1.4rem; font-weight: 600; color: #1e293b; letter-spacing: -0.3px; }
+    h1 { font-size: 1.3rem; font-weight: 600; color: #1e293b; letter-spacing: -0.3px; }
     
     .gear-menu-trigger {
       background: #e2e8f0;
@@ -103,30 +103,27 @@
       transform: rotate(30deg);
     }
 
-    @keyframes slideInFromRight {
-      0% { opacity: 0; transform: translateY(10px); }
+    @keyframes slideDown {
+      0% { opacity: 0; transform: translateY(-10px); }
       100% { opacity: 1; transform: translateY(0); }
     }
 
-    @keyframes slideInFromLeft {
-      0% { opacity: 0; transform: translateX(-15px); }
-      100% { opacity: 1; transform: translateX(0); }
-    }
-
+    /* תיקון תפריט הניהול למובייל - נפתח למטה בצורה אנכית ומלאה ולא נחתך */
     .header-actions-dropdown { 
       display: none; 
       position: absolute;
-      top: 0;
-      left: 45px; 
-      background: transparent;
-      border: none;
-      box-shadow: none;
-      padding: 0;
-      z-index: 100;
+      top: 120%;
+      left: 0; 
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
+      padding: 10px;
+      z-index: 200;
       gap: 8px; 
-      flex-direction: row; 
-      align-items: center;
-      white-space: nowrap;
+      flex-direction: column; 
+      align-items: stretch;
+      min-width: 180px;
     }
 
     .header-actions-wrapper {
@@ -135,62 +132,72 @@
       align-items: center;
     }
     
-    .header-actions-wrapper:hover .header-actions-dropdown,
-    .header-actions-dropdown.active {
+    .header-actions-wrapper .header-actions-dropdown.active {
       display: flex;
-      animation: slideInFromLeft 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    .header-actions-dropdown > * {
-      opacity: 0;
-      animation: slideInFromLeft 0.25s ease forwards;
-      background: white;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
-    }
-
-    .notes-counter-badge { font-size: 0.80rem; color: #334155; background: #e2e8f0; padding: 6px 12px; border-radius: 16px; font-weight: 600; white-space: nowrap; }
+    .notes-counter-badge { font-size: 0.80rem; color: #334155; background: #e2e8f0; padding: 6px 12px; border-radius: 8px; font-weight: 600; text-align: center; }
     
     .btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-    .btn-secondary { font-size: 0.85rem; color: #334155; font-weight: 600; padding: 6px 14px; border-radius: 20px; background: white; border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .btn-secondary { font-size: 0.85rem; color: #334155; font-weight: 600; padding: 8px 14px; border-radius: 8px; background: white; border: 1px solid var(--border); box-shadow: var(--shadow); width: 100%; text-align: right; justify-content: flex-start; }
     .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
     .btn-secondary.active-mode { background: var(--primary); color: white; border-color: var(--primary); }
 
+    /* תיקון שורת החיפוש למובייל - נפתחת למטה או מתרחבת בתוך המסך */
     .search-dropdown-wrapper { position: relative; display: inline-block; }
     .search-trigger-btn { background: white; border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; font-size: 1rem; cursor: pointer; box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
     .search-trigger-btn:hover { background: #f8fafc; border-color: #94a3b8; }
-    .search-popup-input { display: none; position: absolute; top: 0; left: 110%; width: 240px; padding: 8px 36px 8px 14px; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 24px; background: white; outline: none; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); z-index: 95; color: var(--text-main); }
-    .search-dropdown-wrapper:hover .search-popup-input, .search-popup-input.active { display: block; animation: slideInFromLeft 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    
+    .search-popup-input { 
+      display: none; 
+      position: absolute; 
+      top: 120%; 
+      left: 0; 
+      width: 220px; 
+      padding: 10px 14px; 
+      font-size: 0.9rem; 
+      border: 1px solid var(--border); 
+      border-radius: 12px; 
+      background: white; 
+      outline: none; 
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15); 
+      z-index: 200; 
+      color: var(--text-main); 
+    }
+    .search-dropdown-wrapper .search-popup-input.active { 
+      display: block; 
+      animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+    }
 
-    /* תיקון קטגוריות למובייל: מופיע נגלל ומתחת במקום לברוח מהמסך */
+    /* קטגוריות למובייל */
     .categories-dropdown-wrapper { position: relative; display: inline-block; }
-    .cat-toggle-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: white; border: 1px solid var(--border); border-radius: 20px; font-size: 0.85rem; font-weight: 600; color: #334155; cursor: pointer; box-shadow: var(--shadow); }
+    .cat-toggle-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: white; border: 1px solid var(--border); border-radius: 20px; font-size: 0.8rem; font-weight: 600; color: #334155; cursor: pointer; box-shadow: var(--shadow); }
     .cat-toggle-btn:hover { background: #f8fafc; }
     
     .categories-bar { 
       display: none; 
       position: absolute; 
-      top: 115%; 
+      top: 120%; 
       right: 0; 
       background: white; 
       border: 1px solid var(--border); 
       border-radius: 12px;
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); 
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15); 
       padding: 10px; 
-      z-index: 95; 
-      gap: 8px; 
+      z-index: 200; 
+      gap: 6px; 
       flex-direction: row; 
       flex-wrap: wrap;
       align-items: center; 
-      width: max-content; 
-      max-width: 320px; 
+      width: 260px; 
     }
-    .categories-dropdown-wrapper:hover .categories-bar, .categories-bar.active { 
+    .categories-dropdown-wrapper .categories-bar.active { 
       display: flex; 
-      animation: slideInFromRight 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+      animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
     }
     
-    .cat-chip { padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; white-space: nowrap; cursor: pointer; color: #334155; transition: all 0.2s; user-select: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: #f8fafc; }
+    .cat-chip { padding: 5px 12px; border-radius: 16px; font-size: 0.8rem; white-space: nowrap; cursor: pointer; color: #334155; transition: all 0.2s; user-select: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: #f8fafc; }
     .cat-chip:hover { background: #f1f5f9; color: var(--text-main); }
     .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: 600; }
     .cat-chip.urgent-chip { border-color: #fde68a; background: #fffbeb; color: #92400e; }
@@ -282,7 +289,7 @@
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
         <span id="single-note-date" class="note-date"></span>
-        <button class="btn btn-secondary" onclick="window.location.href = window.location.pathname" title="עבור לפנקס המלא">🏠 לוח ראשי</button>
+        <button class="btn btn-secondary" onclick="window.location.href = window.location.pathname" title="עבור לפנקס המלא" style="width:auto;">🏠 לוח ראשי</button>
       </div>
     </div>
     <div style="flex: 1; display:flex; flex-direction:column; gap:10px;">
@@ -706,7 +713,6 @@
 
       if (searchQuery !== "") filtered = filtered.filter(note => (note.text || "").toLowerCase().includes(searchQuery));
 
-      // מיון מדויק ומושלם: פתקים מוצמדים בראש, ולאחריהם מהחדש לישן לפי חותמת הזמן האמיתית
       filtered.sort((a, b) => {
         if ((a.pinned ? 1 : 0) !== (b.pinned ? 1 : 0)) return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
         
