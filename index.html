@@ -143,7 +143,6 @@
     .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
     .btn-secondary.active-mode { background: var(--primary); color: white; border-color: var(--primary); }
 
-    /* תיקון מדויק לשורת החיפוש במובייל - מיושרת לימין ונפתחת שמאלה ברוחב בטוח */
     .search-dropdown-wrapper { position: relative; display: inline-block; }
     .search-trigger-btn { background: white; border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; font-size: 1rem; cursor: pointer; box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
     .search-trigger-btn:hover { background: #f8fafc; border-color: #94a3b8; }
@@ -153,8 +152,8 @@
       position: absolute; 
       top: 120%; 
       right: 0; 
-      width: 200px; 
-      max-width: 75vw;
+      width: 210px; 
+      max-width: 80vw;
       padding: 10px 14px; 
       font-size: 0.9rem; 
       border: 1px solid var(--border); 
@@ -162,7 +161,7 @@
       background: white; 
       outline: none; 
       box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15); 
-      z-index: 210; 
+      z-index: 220; 
       color: var(--text-main); 
     }
     .search-dropdown-wrapper .search-popup-input.active { 
@@ -170,7 +169,6 @@
       animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
     }
 
-    /* קטגוריות למובייל */
     .categories-dropdown-wrapper { position: relative; display: inline-block; }
     .cat-toggle-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: white; border: 1px solid var(--border); border-radius: 20px; font-size: 0.8rem; font-weight: 600; color: #334155; cursor: pointer; box-shadow: var(--shadow); }
     .cat-toggle-btn:hover { background: #f8fafc; }
@@ -304,12 +302,12 @@
       <div class="header-right">
         <h1 id="app-title">הפנקס</h1>
 
-        <div class="search-dropdown-wrapper">
+        <div class="search-dropdown-wrapper" onclick="event.stopPropagation()">
           <button class="search-trigger-btn" onclick="toggleSearchMenu(event)" title="חיפוש מהיר">🔍</button>
           <input type="text" id="search-input" class="search-popup-input" placeholder="חיפוש חופשי בפתקים..." oninput="renderNotes()">
         </div>
 
-        <div class="categories-dropdown-wrapper">
+        <div class="categories-dropdown-wrapper" onclick="event.stopPropagation()">
           <button class="cat-toggle-btn" onclick="toggleCategoriesMenu(event)">
             <span>🏷️ <strong id="selected-cat-label">הכל</strong></span>
             <span style="font-size: 0.75rem;">▼</span>
@@ -319,7 +317,7 @@
       </div>
 
       <div class="header-left">
-        <div class="header-actions-wrapper">
+        <div class="header-actions-wrapper" onclick="event.stopPropagation()">
           <button class="gear-menu-trigger" onclick="toggleHeaderMenu(event)" title="אפשרויות ניהול">⚙️</button>
           <div class="header-actions-dropdown" id="header-dropdown">
             <span class="notes-counter-badge" id="notes-counter">מחשב...</span>
@@ -620,19 +618,29 @@
 
     window.toggleHeaderMenu = function(event) {
       event.stopPropagation();
-      document.getElementById('header-dropdown').classList.toggle('active');
+      const dropdown = document.getElementById('header-dropdown');
+      const willOpen = !dropdown.classList.contains('active');
+      closeAllDropdowns();
+      if (willOpen) dropdown.classList.add('active');
     }
 
     window.toggleCategoriesMenu = function(event) {
       event.stopPropagation();
-      document.getElementById('categories-container').classList.toggle('active');
+      const container = document.getElementById('categories-container');
+      const willOpen = !container.classList.contains('active');
+      closeAllDropdowns();
+      if (willOpen) container.classList.add('active');
     }
 
     window.toggleSearchMenu = function(event) {
       event.stopPropagation();
       const input = document.getElementById('search-input');
-      input.classList.toggle('active');
-      if (input.classList.contains('active')) input.focus();
+      const willOpen = !input.classList.contains('active');
+      closeAllDropdowns();
+      if (willOpen) {
+        input.classList.add('active');
+        input.focus();
+      }
     }
 
     window.updateCounter = function() {
