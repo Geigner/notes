@@ -272,7 +272,20 @@
     .fab:hover { background: var(--primary-hover); transform: scale(1.04); }
 
     .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); display: none; justify-content: center; align-items: flex-end; z-index: 200; backdrop-filter: blur(2px); }
-    .modal { background: white; width: 100%; max-width: 550px; border-radius: 16px 16px 0 0; padding: 20px; display: flex; flex-direction: column; gap: 14px; animation: slideUp 0.25s ease-out; max-height: 90vh; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); }
+    .modal { background: white; width: 100%; max-width: 550px; border-radius: 16px 16px 0 0; padding: 20px; display: flex; flex-direction: column; gap: 14px; animation: slideUp 0.25s ease-out; max-height: 90vh; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); transition: all 0.2s ease; }
+    
+    /* תמיכה במצב מסך מלא למודל */
+    .modal.fullscreen-mode {
+      max-width: 100vw !important;
+      height: 100vh !important;
+      max-height: 100vh !important;
+      border-radius: 0 !important;
+      padding: 30px !important;
+    }
+    .modal.fullscreen-mode textarea.modal-textarea {
+      height: calc(100vh - 280px) !important;
+    }
+
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
     .lightbox-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 500; backdrop-filter: blur(4px); padding: 20px; }
@@ -283,7 +296,7 @@
 
     .modal-header-actions { display: flex; justify-content: space-between; align-items: center; }
     .modal-header-actions h3 { font-size: 1.1rem; font-weight: 600; color: #1e293b; }
-    .btn-fullscreen { font-size: 0.85rem; color: #334155; padding: 4px 10px; border-radius: 16px; background: #f1f5f9; font-weight: 600; }
+    .btn-fullscreen { font-size: 0.85rem; color: #334155; padding: 4px 10px; border-radius: 16px; background: #f1f5f9; font-weight: 600; cursor: pointer; border: none; }
 
     .textarea-wrapper { position: relative; width: 100%; }
     textarea.modal-textarea { width: 100%; height: 120px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; padding-bottom: 40px; font-size: 0.95rem; resize: none; outline: none; color: var(--text-main); }
@@ -309,8 +322,8 @@
 
     .modal-buttons { display: flex; gap: 10px; margin-top: 6px; }
     .btn-block { flex: 1; padding: 10px; border-radius: var(--radius); font-size: 0.95rem; font-weight: 600; text-align: center; }
-    .btn-submit { background: var(--primary); color: white; }
-    .btn-cancel { background: #f1f5f9; color: var(--text-main); }
+    .btn-submit { background: var(--primary); color: white; border: none; cursor: pointer; }
+    .btn-cancel { background: #f1f5f9; color: var(--text-main); border: none; cursor: pointer; }
 
     #single-note-container { display: none; max-width: 650px; margin: 40px auto; background: white; border-radius: 16px; padding: 24px; box-shadow: var(--shadow-hover); border: 1px solid var(--border); flex-direction: column; gap: 16px; }
     .single-note-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
