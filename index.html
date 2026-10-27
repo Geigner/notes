@@ -223,6 +223,13 @@
     .inline-textarea { width: 100%; flex: 1; border: 1px solid transparent; background: transparent; font-size: 0.95rem; line-height: 1.5; resize: none; outline: none; color: var(--text-main); font-family: 'Assistant', sans-serif; padding: 2px; border-radius: 4px; transition: border-color 0.2s, background 0.2s; min-height: 80px; }
     .inline-textarea:focus { border-color: var(--border); background: #fafafa; }
 
+    /* עיצוב רשימות צ'ק-ליסט אינטראקטיביות */
+    .checklist-container { display: flex; flex-direction: column; gap: 6px; margin: 4px 0; flex: 1; }
+    .checklist-row { display: flex; align-items: flex-start; gap: 8px; font-size: 0.95rem; line-height: 1.4; color: var(--text-main); cursor: pointer; user-select: none; }
+    .checklist-cb { cursor: pointer; font-size: 1.05rem; line-height: 1; margin-top: 2px; transition: transform 0.1s; color: var(--primary); }
+    .checklist-cb:hover { transform: scale(1.15); }
+    .checklist-text.checked { text-decoration: line-through; color: #94a3b8; }
+
     .note-image-preview {
       width: 100%;
       max-height: 120px;
@@ -251,7 +258,6 @@
     .modal { background: white; width: 100%; max-width: 550px; border-radius: 16px 16px 0 0; padding: 20px; display: flex; flex-direction: column; gap: 14px; animation: slideUp 0.25s ease-out; max-height: 90vh; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-    /* Lightbox Modal לתמונות מוגדלות */
     .lightbox-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 500; backdrop-filter: blur(4px); padding: 20px; }
     .lightbox-overlay.show { display: flex; }
     .lightbox-content { position: relative; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center; }
@@ -367,7 +373,6 @@
     </main>
   </div>
 
-  <!-- חלון צף (Lightbox) להגדלת תמונות בצורה נקייה -->
   <div class="lightbox-overlay" id="lightbox-modal" onclick="closeLightbox()">
     <div class="lightbox-content" onclick="event.stopPropagation()">
       <button class="lightbox-close" onclick="closeLightbox()">✕</button>
@@ -388,11 +393,17 @@
         <button class="voice-btn" id="voice-record-btn" onclick="toggleVoiceRecognition()">🎤</button>
       </div>
 
-      <div style="display: flex; align-items: center; justify-content: space-between;">
-        <label class="btn" style="font-size: 0.85rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 6px;">
-          <span>🖼️ הוסף תמונה</span>
-          <input type="file" id="modal-image-input" accept="image/*" style="display: none;" onchange="handleImageSelection(event)">
-        </label>
+      <!-- כפתורי הוספת מדיה וצ'ק-ליסט -->
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+        <div style="display: flex; gap: 8px;">
+          <label class="btn" style="font-size: 0.85rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <span>🖼️ תמונה</span>
+            <input type="file" id="modal-image-input" accept="image/*" style="display: none;" onchange="handleImageSelection(event)">
+          </label>
+          <button class="btn" style="font-size: 0.85rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 6px;" onclick="addChecklistItemToModal()">
+            <span>☑️ הוסף משימה</span>
+          </button>
+        </div>
         <button id="remove-img-btn" class="btn" style="display: none; font-size: 0.80rem; color: #be123c; background: #fff1f2; border: 1px solid #fecdd3; padding: 4px 10px; border-radius: var(--radius);" onclick="clearModalImage()">הסר תמונה</button>
       </div>
 
@@ -489,7 +500,6 @@
       signOut(auth);
     }
 
-    // פונקציות להצגת התמונה בגדול בתוך האפליקציה (Lightbox)
     window.openLightbox = function(url) {
       document.getElementById('lightbox-img-el').src = url;
       document.getElementById('lightbox-modal').classList.add('show');
@@ -497,6 +507,14 @@
 
     window.closeLightbox = function() {
       document.getElementById('lightbox-modal').classList.remove('show');
+    }
+
+    window.addChecklistItemToModal = function() {
+      const textarea = document.getElementById('note-text-input');
+      const val = textarea.value;
+      const prefix = (val.length > 0 && !val.endsWith('\n')) ? '\n' : '';
+      textarea.value = val + prefix + '[ ] ';
+      textarea.focus();
     }
 
     function listenToSingleSharedNote(noteId) {
@@ -793,6 +811,54 @@
       container.innerHTML = generateNotesHTML(filtered);
     }
 
+    function renderNoteContent(id, text) {
+      const lines = (text || "").split('\n');
+      const hasChecklist = lines.some(line => line.trim().startsWith('[ ]') || line.trim().startsWith('[x]') || line.trim().startsWith('[X]'));
+
+      if (!hasChecklist) {
+        return `<textarea class="inline-textarea" id="inline-text-${id}" oninput="showInlineSave('${id}')">${escapeHtml(text || '')}</textarea>`;
+      }
+
+      let checklistHTML = '<div class="checklist-container">';
+      lines.forEach((line, lineIndex) => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('[ ]') || trimmed.startsWith('[x]') || trimmed.startsWith('[X]')) {
+          const isChecked = trimmed.startsWith('[x]') || trimmed.startsWith('[X]');
+          const itemText = trimmed.replace(/^\[[ xX]\]/, '').trim();
+          checklistHTML += `
+            <div class="checklist-row" onclick="toggleChecklistItem('${id}', ${lineIndex})">
+              <span class="checklist-cb">${isChecked ? '☑️' : '☐'}</span>
+              <span class="checklist-text ${isChecked ? 'checked' : ''}">${escapeHtml(itemText)}</span>
+            </div>
+          `;
+        } else if (trimmed.length > 0) {
+          checklistHTML += `<div style="margin: 2px 0; font-size: 0.95rem;">${escapeHtml(line)}</div>`;
+        }
+      });
+      checklistHTML += '</div>';
+      return checklistHTML;
+    }
+
+    window.toggleChecklistItem = async function(id, lineIndex) {
+      const note = allNotes.find(n => n.id === id);
+      if (!note || !note.text) return;
+
+      let lines = note.text.split('\n');
+      if (lines[lineIndex]) {
+        let trimmed = lines[lineIndex].trim();
+        if (trimmed.startsWith('[ ]')) {
+          lines[lineIndex] = lines[lineIndex].replace('[ ]', '[x]');
+        } else if (trimmed.startsWith('[x]') || trimmed.startsWith('[X]')) {
+          lines[lineIndex] = lines[lineIndex].replace(/\[[xX]\]/, '[ ]');
+        }
+        
+        const newText = lines.join('\n');
+        try {
+          await updateDoc(doc(db, "notes", id), { text: newText });
+        } catch(err) { console.error(err); }
+      }
+    }
+
     function generateNotesHTML(notesArray) {
       let html = '';
       notesArray.forEach(note => {
@@ -815,6 +881,8 @@
         const shareBtnHTML = isShared 
           ? `<button class="dropdown-item" onclick="stopSharingNote('${id}')">🔒 הפסק שיתוף</button>`
           : `<button class="dropdown-item" onclick="shareNote('${id}', true)">🔗 שיתוף (עריכה ללא גוגל)</button>`;
+
+        const contentHTML = renderNoteContent(id, text);
 
         html += `
           <div class="note-card ${urgent === 'דחוף' ? 'is-urgent' : ''} ${pinned ? 'is-pinned' : ''}" id="note-card-${id}" ${cardVars}>
@@ -845,7 +913,7 @@
                 </div>
               </div>
             </div>
-            <textarea class="inline-textarea" id="inline-text-${id}" oninput="showInlineSave('${id}')">${escapeHtml(text || '')}</textarea>
+            ${contentHTML}
             ${imageElement}
             <button class="save-inline-btn" id="save-btn-${id}" onclick="saveInlineNote('${id}')">שמור שינויים</button>
           </div>
