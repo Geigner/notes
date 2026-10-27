@@ -1476,3 +1476,82 @@
       closeAllDropdowns();
       if (confirm("האם למחוק פתק זה לצמיתות?")) await deleteDoc(doc(db, "notes", id));
     }
+
+    window.exportBackup = function() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allNotes, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = `notes_backup_${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    window.triggerImport = function() { document.getElementById('import-file-input').click(); }
+
+    window.importBackup = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const importedNotes = JSON.parse(e.target.result);
+          if (confirm(`האם לייבא ${importedNotes.length} פתקים חדשים?`)) {
+            for (let note of importedNotes) {
+              await addDoc(collection(db, "notes"), { 
+                title: note.title || null,
+                text: note.text || '', 
+                category: note.category || 'כללי', 
+                imageUrl: note.imageUrl || null,
+                linkUrl: note.linkUrl || null,
+                linkTitle: note.linkTitle || null,
+                date: note.date || new Date().toLocaleDateString('he-IL'), 
+                createdAt: Date.now(), 
+                urgent: note.urgent || 'רגיל', 
+                pinned: note.pinned || false, 
+                archived: note.archived || false,
+                isLocked: note.isLocked || false 
+              });
+            }
+            showToast("הייבוא הושלם בהצלחה!");
+          }
+        } catch (err) { console.error(err); }
+      };
+      reader.readAsText(file);
+    }
+
+    window.addNewCategory = function() {
+      const newCat = prompt("הכנס את שם הקטגוריה החדשה:");
+      if (newCat && newCat.trim() !== "") {
+        const name = newCat.trim();
+        if (!categories.includes(name)) {
+          categories.push(name);
+          renderCategories();
+          document.getElementById('note-cat-select').value = name;
+        }
+      }
+    }
+
+    window.toggleArchiveView = function() {
+      currentView = currentView === 'active' ? 'archived' : 'active';
+      document.getElementById('archive-view-btn').innerText = currentView === 'active' ? 'ארכיון' : 'פתקים פעילים';
+      renderNotes();
+    }
+
+    window.toggleFullscreenModal = function() {
+      const modal = document.getElementById('modal-box');
+      modal.classList.toggle('fullscreen-mode');
+    }
+
+    window.showToast = function(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2500);
+    }
+
+    window.escapeHtml = function(text) { return (text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+    window.escapeRowText = function(text) { return (text || "").replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/"/g, '&quot;'); }
+  </script>
+</body>
+</html>
