@@ -90,7 +90,6 @@
 
     h1 { font-size: 1.3rem; font-weight: 600; color: #1e293b; letter-spacing: -0.3px; }
     
-    /* שעון מרכזי מעודן ואלגנטי */
     .header-clock {
       font-size: 0.85rem;
       font-weight: 500;
@@ -202,7 +201,7 @@
       flex-direction: row; 
       flex-wrap: wrap;
       align-items: center; 
-      width: 250px; 
+      width: 260px; 
       max-width: 80vw;
     }
     .categories-dropdown-wrapper .categories-bar.active { 
@@ -215,6 +214,8 @@
     .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: 600; }
     .cat-chip.urgent-chip { border-color: #fde68a; background: #fffbeb; color: #92400e; }
     .cat-chip.urgent-chip.active { background: var(--urgent); color: white; border-color: var(--urgent); }
+    .cat-chip.shared-chip { border-color: #bbf7d0; background: #f0fdf4; color: #166534; }
+    .cat-chip.shared-chip.active { background: #15803d; color: white; border-color: #15803d; }
 
     .notes-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
     .note-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 220px; position: relative; transition: all 0.2s ease; }
@@ -974,6 +975,13 @@
       urgentChip.onclick = () => { currentCategory = '⭐ דחוף'; container.classList.remove('active'); renderCategories(); renderNotes(); };
       container.appendChild(urgentChip);
 
+      // צ'יפ סינון חדש - משותפים בלבד
+      const sharedChip = document.createElement('div');
+      sharedChip.className = `cat-chip shared-chip ${currentCategory === '🔗 משותפים' ? 'active' : ''}`;
+      sharedChip.innerText = '🔗 משותפים';
+      sharedChip.onclick = () => { currentCategory = '🔗 משותפים'; container.classList.remove('active'); renderCategories(); renderNotes(); };
+      container.appendChild(sharedChip);
+
       categories.forEach(c => {
         const colors = getCategoryColor(c);
         const chip = document.createElement('div');
@@ -1013,6 +1021,7 @@
       let filtered = allNotes.filter(note => currentView === 'active' ? !note.archived : note.archived);
 
       if (currentCategory === '⭐ דחוף') filtered = filtered.filter(note => note.urgent === 'דחוף');
+      else if (currentCategory === '🔗 משותפים') filtered = filtered.filter(note => note.isShared === true);
       else if (currentCategory !== 'הכל') filtered = filtered.filter(note => (note.category || 'כללי') === currentCategory);
 
       if (searchQuery !== "") {
@@ -1318,7 +1327,7 @@
     }
 
     window.getCategoryColor = function(catName) {
-      if (catName === 'הכל' || catName === '⭐ דחוף') return { bg: '#f8fafc', border: '#cbd5e1', text: '#334155' };
+      if (catName === 'הכל' || catName === '⭐ דחוף' || catName === '🔗 משותפים') return { bg: '#f8fafc', border: '#cbd5e1', text: '#334155' };
       let hash = 0;
       for (let i = 0; i < catName.length; i++) { hash = catName.charCodeAt(i) + ((hash << 5) - hash); }
       const hue = Math.abs(hash % 360);
