@@ -548,6 +548,9 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
+    // הגדרת המייל שלך כמורשה היחיד לכניסה למערכת הראשית
+    const ALLOWED_EMAIL = "eignerguy@gmail.com";
+
     let currentUser = null;
     let currentView = 'active'; 
     let currentCategory = 'הכל';
@@ -606,8 +609,15 @@
       activeSharedNoteId = sharedNoteId;
       listenToSingleSharedNote(sharedNoteId);
     } else {
-      onAuthStateChanged(auth, (user) => {
+      onAuthStateChanged(auth, async (user) => {
         if (user) {
+          // בדיקת אבטחה: האם המייל המחובר הוא המייל שלך?
+          if (user.email !== ALLOWED_EMAIL) {
+            alert("גישה חסומה: חשבון זה אינו מורשה להיכנס למערכת.");
+            await signOut(auth);
+            return;
+          }
+
           currentUser = user;
           document.getElementById('auth-screen').style.display = 'none';
           document.getElementById('main-container').style.display = 'block';
@@ -975,7 +985,6 @@
       urgentChip.onclick = () => { currentCategory = '⭐ דחוף'; container.classList.remove('active'); renderCategories(); renderNotes(); };
       container.appendChild(urgentChip);
 
-      // צ'יפ סינון חדש - משותפים בלבד
       const sharedChip = document.createElement('div');
       sharedChip.className = `cat-chip shared-chip ${currentCategory === '🔗 משותפים' ? 'active' : ''}`;
       sharedChip.innerText = '🔗 משותפים';
