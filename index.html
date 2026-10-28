@@ -90,16 +90,17 @@
 
     h1 { font-size: 1.3rem; font-weight: 600; color: #1e293b; letter-spacing: -0.3px; }
     
+    /* שעון מרכזי מעודן ואלגנטי */
     .header-clock {
       font-size: 0.85rem;
-      font-weight: 600;
+      font-weight: 500;
       color: var(--text-muted);
-      background: #e2e8f0;
-      padding: 4px 10px;
-      border-radius: 8px;
+      letter-spacing: 0.3px;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
+      background: transparent;
+      padding: 4px 8px;
     }
 
     .gear-menu-trigger {
@@ -398,10 +399,8 @@
 
   <div class="container" id="main-container">
     <header>
-      <div class="header-right">
+      <div class="header-right" style="gap: 15px;">
         <h1>הפנקס</h1>
-        <div class="header-clock" id="live-clock" title="שעה ותאריך נוכחיים">טוען שעון...</div>
-
         <div class="search-dropdown-wrapper" onclick="event.stopPropagation()">
           <button class="search-trigger-btn" onclick="toggleSearchMenu(event)" title="חיפוש מהיר" aria-label="פתח חלון חיפוש">🔍</button>
           <input type="text" id="search-input" class="search-popup-input" placeholder="חיפוש חופשי בפתקים..." aria-label="חיפוש חופשי בפתקים" oninput="renderNotes()">
@@ -415,6 +414,9 @@
           <div class="categories-bar" id="categories-container"></div>
         </div>
       </div>
+
+      <!-- שעון מרכזי אלגנטי ושקט -->
+      <div class="header-clock" id="live-clock" title="שעה ותאריך נוכחיים">טוען שעון...</div>
 
       <div class="header-left">
         <div class="header-actions-wrapper" onclick="event.stopPropagation()">
@@ -557,14 +559,14 @@
     let currentImageBase64 = null;
     let unlockedNotes = {};
 
-    // הפעלת שעון חי בסרגל העליון
+    // הפעלת שעון חי מרכזי ועדין
     function updateLiveClock() {
       const clockEl = document.getElementById('live-clock');
       if (!clockEl) return;
       const now = new Date();
-      const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
       const dateStr = now.toLocaleDateString('he-IL');
-      clockEl.innerText = `⏰ ${timeStr} | ${dateStr}`;
+      clockEl.innerText = `${timeStr} | ${dateStr}`;
     }
     setInterval(updateLiveClock, 1000);
     updateLiveClock();
