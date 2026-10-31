@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>הפנקס</title>
+  <title>הפנקס - מרכז שליטה</title>
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <!-- ספריית הצפנה מאובטחת CryptoJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
@@ -25,7 +25,7 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Assistant', sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 90px; }
+    body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 90px; overflow-x: hidden; }
 
     /* מצב טשטוש פרטיות - מתבטל במעבר עכבר (Hover) על פתק ספציפי */
     body.privacy-mode .note-card {
@@ -37,7 +37,20 @@
       filter: blur(0px);
     }
 
-    .container { max-width: 1000px; margin: 0 auto; display: none; padding: 0 20px; }
+    /* הקונטיינר הראשי זז ימינה באלגנטיות כשמרכז השליטה פתוח משמאל */
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: none;
+      padding: 0 20px;
+      transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    body.sidebar-open .container {
+      margin-left: 320px;
+    }
+    @media (max-width: 768px) {
+      body.sidebar-open .container { margin-left: 0; }
+    }
     
     #auth-screen {
       display: flex;
@@ -192,7 +205,7 @@
       animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
     }
 
-    /* סרגל קטגוריות אופקי, נגלל ונוח למובייל ולמחשב */
+    /* סרגל קטגוריות אופקי נגלל */
     .categories-scroll-wrapper {
       display: flex;
       align-items: center;
@@ -204,13 +217,8 @@
       scrollbar-width: thin;
       scrollbar-color: var(--border) transparent;
     }
-    .categories-scroll-wrapper::-webkit-scrollbar {
-      height: 4px;
-    }
-    .categories-scroll-wrapper::-webkit-scrollbar-thumb {
-      background-color: var(--border);
-      border-radius: 4px;
-    }
+    .categories-scroll-wrapper::-webkit-scrollbar { height: 4px; }
+    .categories-scroll-wrapper::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 4px; }
     
     .cat-chip { padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; white-space: nowrap; cursor: pointer; color: #334155; transition: all 0.2s; user-select: none; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: white; box-shadow: var(--shadow); }
     .cat-chip:hover { background: #f1f5f9; color: var(--text-main); }
@@ -220,6 +228,98 @@
     .cat-chip.shared-chip { border-color: #bbf7d0; background: #f0fdf4; color: #166534; }
     .cat-chip.shared-chip.active { background: #15803d; color: white; border-color: #15803d; }
     .cat-delete-btn { background: none; border: none; color: inherit; font-size: 0.8rem; cursor: pointer; padding: 0 2px; }
+
+    /* פאנל צדדי ממוקם בצד שמאל */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 320px;
+      height: 100vh;
+      background: white;
+      border-right: 1px solid var(--border);
+      box-shadow: 5px 0 25px rgba(0,0,0,0.05);
+      z-index: 300;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      gap: 16px;
+      overflow-y: auto;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .sidebar-title { font-size: 1.1rem; font-weight: 700; color: #1e293b; }
+    
+    /* קבוצה מתקפלת (Accordion) */
+    .accordion-section {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fafafa;
+    }
+    .accordion-header {
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #334155;
+      background: #f1f5f9;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      transition: background 0.2s;
+    }
+    .accordion-header:hover { background: #e2e8f0; }
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      padding: 0 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .accordion-section.open .accordion-content {
+      max-height: 300px;
+      padding: 12px;
+    }
+
+    .quick-link-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .quick-link-item:hover { background: #f8fafc; border-color: #94a3b8; }
+    
+    .sidebar-quick-task { display: flex; gap: 6px; }
+    .sidebar-quick-task input {
+      flex: 1; padding: 8px 10px; font-size: 0.85rem;
+      border: 1px solid var(--border); border-radius: 8px; outline: none;
+    }
+    .sidebar-task-list { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; }
+    .sidebar-task-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 10px; background: white; border: 1px solid #e2e8f0;
+      border-radius: 6px; font-size: 0.85rem;
+    }
 
     .notes-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
     .note-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 220px; position: relative; transition: all 0.2s ease; }
@@ -252,32 +352,8 @@
     .checklist-cb:hover { transform: scale(1.15); }
     .checklist-text.checked { text-decoration: line-through; color: #94a3b8; }
 
-    .note-image-preview {
-      width: 100%;
-      max-height: 120px;
-      object-fit: cover;
-      border-radius: 6px;
-      margin-top: 8px;
-      cursor: pointer;
-      border: 1px solid var(--border);
-    }
-
-    .note-link-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 8px;
-      padding: 6px 12px;
-      background: #f1f5f9;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--primary);
-      text-decoration: none;
-      transition: background 0.2s;
-      width: fit-content;
-    }
+    .note-image-preview { width: 100%; max-height: 120px; object-fit: cover; border-radius: 6px; margin-top: 8px; cursor: pointer; border: 1px solid var(--border); }
+    .note-link-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 6px 12px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: var(--primary); text-decoration: none; transition: background 0.2s; width: fit-content; }
     .note-link-btn:hover { background: #e2e8f0; }
 
     .save-inline-btn { display: none; align-self: flex-end; margin-top: 4px; padding: 3px 10px; font-size: 0.75rem; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; }
@@ -297,16 +373,8 @@
     .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); display: none; justify-content: center; align-items: flex-end; z-index: 200; backdrop-filter: blur(2px); }
     .modal { background: white; width: 100%; max-width: 550px; border-radius: 16px 16px 0 0; padding: 20px; display: flex; flex-direction: column; gap: 14px; animation: slideUp 0.25s ease-out; max-height: 90vh; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); transition: all 0.2s ease; overflow-y: auto; }
     
-    .modal.fullscreen-mode {
-      max-width: 100vw !important;
-      height: 100vh !important;
-      max-height: 100vh !important;
-      border-radius: 0 !important;
-      padding: 30px !important;
-    }
-    .modal.fullscreen-mode textarea.modal-textarea {
-      height: calc(100vh - 380px) !important;
-    }
+    .modal.fullscreen-mode { max-width: 100vw !important; height: 100vh !important; max-height: 100vh !important; border-radius: 0 !important; padding: 30px !important; }
+    .modal.fullscreen-mode textarea.modal-textarea { height: calc(100vh - 380px) !important; }
 
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
@@ -322,19 +390,9 @@
 
     .textarea-wrapper { position: relative; width: 100%; }
     textarea.modal-textarea { width: 100%; height: 120px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; padding-bottom: 40px; font-size: 0.95rem; resize: none; outline: none; color: var(--text-main); }
-
     .voice-btn { position: absolute; bottom: 10px; left: 10px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 50%; width: 34px; height: 34px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     
-    .modal-image-preview-container {
-      position: relative;
-      display: none;
-      align-items: center;
-      gap: 10px;
-      background: #f8fafc;
-      padding: 8px 12px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-    }
+    .modal-image-preview-container { position: relative; display: none; align-items: center; gap: 10px; background: #f8fafc; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border); }
     .modal-image-preview-container.show { display: flex; }
     .modal-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); }
     
@@ -366,6 +424,45 @@
   </style>
 </head>
 <body onclick="closeAllDropdowns(event)">
+
+  <!-- פאנל צדדי נפתח מצד שמאל -->
+  <aside class="sidebar" id="app-sidebar" onclick="event.stopPropagation()">
+    <div class="sidebar-header">
+      <span class="sidebar-title">🧭 מרכז שליטה</span>
+      <button class="gear-menu-trigger" onclick="toggleSidebar()">✕</button>
+    </div>
+
+    <!-- משימות מהירות -->
+    <div class="accordion-section open" id="sec-tasks">
+      <div class="accordion-header" onclick="toggleAccordion('sec-tasks')">
+        <span>☑️ משימות מהירות</span>
+        <span>▼</span>
+      </div>
+      <div class="accordion-content">
+        <div class="sidebar-quick-task">
+          <input type="text" id="sidebar-task-input" placeholder="הוסף משימה מהירה..." onkeydown="if(event.key==='Enter') addSidebarTask()">
+          <button class="btn btn-submit" style="padding: 0 10px; border-radius: 6px; font-size: 0.8rem;" onclick="addSidebarTask()">הוסף</button>
+        </div>
+        <div class="sidebar-task-list" id="sidebar-task-list"></div>
+      </div>
+    </div>
+
+    <!-- קישורים שימושיים -->
+    <div class="accordion-section" id="sec-links">
+      <div class="accordion-header" onclick="toggleAccordion('sec-links')">
+        <span>🔗 קישורים שימושיים</span>
+        <span>▼</span>
+      </div>
+      <div class="accordion-content">
+        <div style="display: flex; flex-direction: column; gap: 6px;" id="links-container"></div>
+        <div style="display: flex; gap: 4px; margin-top: 6px;">
+          <input type="text" id="new-link-title" placeholder="שם הקישור" style="flex: 1; font-size: 0.8rem; padding: 6px;">
+          <input type="text" id="new-link-url" placeholder="https://..." style="flex: 1.5; font-size: 0.8rem; padding: 6px;" dir="ltr">
+          <button class="btn btn-submit" style="font-size: 0.75rem; padding: 4px 8px; border-radius: 6px;" onclick="addCustomLink()">➕</button>
+        </div>
+      </div>
+    </div>
+  </aside>
 
   <div id="auth-screen" style="display: none;">
     <div class="auth-card">
@@ -412,10 +509,12 @@
         </div>
       </div>
 
-      <!-- שעון מרכזי אלגנטי ושקט -->
+      <!-- שעון מרכזי אלגנטי -->
       <div class="header-clock" id="live-clock" title="שעה ותאריך נוכחיים">טוען שעון...</div>
 
       <div class="header-left">
+        <!-- כפתור פתיחת פאנל צדדי (מרכז שליטה) -->
+        <button class="gear-menu-trigger" onclick="toggleSidebar(event)" title="פתח מרכז שליטה וקישורים">🧭</button>
         <!-- כפתור עין לטשטוש מהיר של הפתקים -->
         <button class="gear-menu-trigger" onclick="togglePrivacyBlur()" title="הסתר/הצג פתקים (טשטוש מהיר)" id="privacy-btn">👁️</button>
         
@@ -434,7 +533,7 @@
       </div>
     </header>
 
-    <!-- סרגל קטגוריות אופקי נגלל תחת ההדר -->
+    <!-- סרגל קטגוריות אופקי נגלל -->
     <nav class="categories-scroll-wrapper" id="categories-container" aria-label="קטגוריות פתקים"></nav>
 
     <main id="notes-main-area">
@@ -458,7 +557,6 @@
         <button class="btn btn-fullscreen" onclick="toggleFullscreenModal()" id="fs-btn">🔲 מסך מלא</button>
       </div>
 
-      <!-- שדה כותרת לפתק -->
       <label for="note-title-input" style="display:none;">כותרת הפתק</label>
       <input type="text" id="note-title-input" placeholder="כותרת הפתק (אופציונלי)..." dir="rtl">
 
@@ -468,21 +566,18 @@
         <button class="voice-btn" id="voice-record-btn" onclick="toggleVoiceRecognition()" aria-label="הקלטה קולית">🎤</button>
       </div>
 
-      <!-- כפתור הוספת משימה (צ'ק-ליסט) תמיד זמין ומהיר -->
       <div style="display: flex; gap: 8px;">
         <button class="btn" style="font-size: 0.85rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 6px;" onclick="addChecklistItemToModal()">
           <span>☑️ הוסף שורת משימה</span>
         </button>
       </div>
 
-      <!-- אזור מתקדם מתקפל (לשמירה על מינימליזציה) -->
       <div class="advanced-section-toggle" onclick="toggleAdvancedPanel()">
         <span>⚙️ אפשרויות מתקדמות (תמונה, קישור, נעילה)</span>
         <span id="advanced-arrow">▼</span>
       </div>
       <div class="advanced-content-panel" id="advanced-panel">
         
-        <!-- העלאת תמונה -->
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
           <label class="btn" style="font-size: 0.85rem; color: #334155; background: white; border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 6px;">
             <span>🖼️ הוסף תמונה</span>
@@ -496,13 +591,11 @@
           <span style="font-size: 0.8rem; color: #475569; font-weight: 500;">התמונה נבחרה בהצלחה</span>
         </div>
 
-        <!-- שדות קישור חכם -->
         <div style="display: flex; gap: 8px;">
           <input type="text" id="modal-link-title" placeholder="כותרת הקישור (אופציונלי)" style="flex: 1;" aria-label="כותרת הקישור" dir="rtl">
           <input type="text" id="modal-link-url" placeholder="כתובת URL (https://...)" style="flex: 2;" aria-label="כתובת אינטרנט URL" dir="ltr">
         </div>
 
-        <!-- נעילה בסיסמה -->
         <div style="display: flex; gap: 8px; align-items: center; background: white; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border);">
           <label style="font-size: 0.85rem; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 6px; cursor: pointer;">
             <input type="checkbox" id="modal-secure-toggle" onchange="togglePasswordInput(this)"> 🔒 נעול בסיסמה
@@ -563,6 +656,13 @@
     let activeSharedNoteId = null;
     let currentImageBase64 = null;
     let unlockedNotes = {};
+    let sidebarTasks = JSON.parse(localStorage.getItem('sidebar_tasks') || '[]');
+    let customLinks = JSON.parse(localStorage.getItem('sidebar_custom_links') || JSON.stringify([
+      { id: 1, title: '📅 Google Calendar', url: 'https://calendar.google.com' },
+      { id: 2, title: '📁 Google Drive', url: 'https://drive.google.com' },
+      { id: 3, title: '✉️ Gmail', url: 'https://mail.google.com' },
+      { id: 4, title: '🗺️ Google Maps', url: 'https://maps.google.com' }
+    ]));
 
     function updateLiveClock() {
       const clockEl = document.getElementById('live-clock');
@@ -578,25 +678,54 @@
     const urlParams = new URLSearchParams(window.location.search);
     const sharedNoteId = urlParams.get('noteId');
 
+    // ניהול מקש ESC מורחב: יציאה מפוקוס בשדות, סגירת פאנל, תמונות, חלונות עריכה ותפריטים
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' || e.key === 'Esc') {
+        const activeEl = document.activeElement;
+
+        // 1. אם הפוקוס נמצא בתוך תיבת טקסט או שדה הקלדה בפתק - הוצא אותו מהפוקוס (Blur)
+        if (activeEl && (activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'INPUT')) {
+          activeEl.blur();
+          return;
+        }
+
         const lightbox = document.getElementById('lightbox-modal');
         const modalOverlay = document.getElementById('note-modal');
         const modalBox = document.getElementById('modal-box');
+        const sidebar = document.getElementById('app-sidebar');
 
+        // 2. אם הפאנל הצדדי פתוח - סגור אותו
+        if (sidebar && sidebar.classList.contains('open')) {
+          toggleSidebar();
+          return;
+        }
+        // 3. אם תצוגת תמונה מוגדלת פתוחה - סגור אותה
         if (lightbox && lightbox.classList.contains('show')) {
           closeLightbox();
           return;
         }
+        // 4. אם מצב מסך מלא בעריכה פעיל - צא ממסך מלא
         if (modalBox && modalBox.classList.contains('fullscreen-mode')) {
           toggleFullscreenModal();
           return;
         }
+        // 5. אם חלון עריכת/יצירת פתק (Modal) פתוח - סגור אותו
         if (modalOverlay && modalOverlay.style.display === 'flex') {
           closeModal();
           return;
         }
-        closeAllDropdowns();
+        
+        // 6. אם יש תפריטים נפתחים - סגור אותם
+        const hasOpenDropdowns = document.querySelectorAll('.dropdown-menu.show, .cat-dropdown-menu.show, .header-actions-dropdown.active, .search-popup-input.active').length > 0;
+        if (hasOpenDropdowns) {
+          closeAllDropdowns();
+          return;
+        }
+
+        // 7. ברירת מחדל: ביטול מצב הטשטוש (אם מופעל)
+        if (document.body.classList.contains('privacy-mode')) {
+          togglePrivacyBlur();
+        }
       }
     });
 
@@ -623,6 +752,8 @@
           document.getElementById('fab-btn').style.display = 'flex';
           document.getElementById('single-note-container').style.display = 'none';
           startRealtimeListener();
+          renderSidebarTasks();
+          renderCustomLinks();
         } else {
           currentUser = null;
           if (unsubscribeNotes) unsubscribeNotes();
@@ -645,7 +776,102 @@
       signOut(auth);
     }
 
-    // טשטוש מהיר לפרטיות בלחיצת כפתור עין
+    window.toggleSidebar = function(event) {
+      if (event) event.stopPropagation();
+      const sidebar = document.getElementById('app-sidebar');
+      sidebar.classList.toggle('open');
+      document.body.classList.toggle('sidebar-open');
+    }
+
+    window.toggleAccordion = function(sectionId) {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.classList.toggle('open');
+      }
+    }
+
+    window.addSidebarTask = function() {
+      const input = document.getElementById('sidebar-task-input');
+      const val = input.value.trim();
+      if (!val) return;
+      sidebarTasks.push({ id: Date.now(), text: val, done: false });
+      input.value = '';
+      saveAndRenderSidebarTasks();
+    }
+
+    window.toggleSidebarTask = function(id) {
+      const task = sidebarTasks.find(t => t.id === id);
+      if (task) {
+        task.done = !task.done;
+        saveAndRenderSidebarTasks();
+      }
+    }
+
+    window.deleteSidebarTask = function(id) {
+      sidebarTasks = sidebarTasks.filter(t => t.id !== id);
+      saveAndRenderSidebarTasks();
+    }
+
+    function saveAndRenderSidebarTasks() {
+      localStorage.setItem('sidebar_tasks', JSON.stringify(sidebarTasks));
+      renderSidebarTasks();
+    }
+
+    function renderSidebarTasks() {
+      const listEl = document.getElementById('sidebar-task-list');
+      if (!listEl) return;
+      if (sidebarTasks.length === 0) {
+        listEl.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 6px;">אין משימות מהירות</span>';
+        return;
+      }
+      listEl.innerHTML = sidebarTasks.map(t => `
+        <div class="sidebar-task-item">
+          <span onclick="toggleSidebarTask(${t.id})" style="cursor: pointer; text-decoration: ${t.done ? 'line-through' : 'none'}; color: ${t.done ? '#94a3b8' : 'inherit'}; flex: 1;">${t.done ? '☑️ ' : '☐ '}${escapeHtml(t.text)}</span>
+          <button class="btn" style="font-size: 0.75rem; color: #be123c; cursor: pointer;" onclick="deleteSidebarTask(${t.id})">✕</button>
+        </div>
+      `).join('');
+    }
+
+    window.addCustomLink = function() {
+      const titleInput = document.getElementById('new-link-title');
+      const urlInput = document.getElementById('new-link-url');
+      const title = titleInput.value.trim();
+      let url = urlInput.value.trim();
+      if (!title || !url) return;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+      customLinks.push({ id: Date.now(), title, url });
+      titleInput.value = '';
+      urlInput.value = '';
+      saveAndRenderCustomLinks();
+    }
+
+    window.deleteCustomLink = function(id) {
+      customLinks = customLinks.filter(l => l.id !== id);
+      saveAndRenderCustomLinks();
+    }
+
+    function saveAndRenderCustomLinks() {
+      localStorage.setItem('sidebar_custom_links', JSON.stringify(customLinks));
+      renderCustomLinks();
+    }
+
+    function renderCustomLinks() {
+      const container = document.getElementById('links-container');
+      if (!container) return;
+      if (customLinks.length === 0) {
+        container.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">אין קישורים שמורים</span>';
+        return;
+      }
+      container.innerHTML = customLinks.map(l => `
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <a href="${l.url}" target="_blank" class="quick-link-item" style="flex: 1;">🔗 ${escapeHtml(l.title)}</a>
+          <button class="btn" style="font-size: 0.75rem; color: #be123c; cursor: pointer; padding: 4px;" onclick="deleteCustomLink(${l.id})" title="מחק קישור">✕</button>
+        </div>
+      `).join('');
+    }
+
     window.togglePrivacyBlur = function() {
       document.body.classList.toggle('privacy-mode');
       const btn = document.getElementById('privacy-btn');
@@ -695,171 +921,6 @@
         input.type = 'password';
         btn.innerText = '👁️';
       }
-    }
-
-    function listenToSingleSharedNote(noteId) {
-      const mode = urlParams.get('mode') || 'view';
-      onSnapshot(doc(db, "notes", noteId), (docSnap) => {
-        if (!docSnap.exists()) {
-          document.getElementById('single-note-textarea').value = 'הפתק לא נמצא או שהשיתוף הבוטל.';
-          document.getElementById('single-note-save-btn').style.display = 'none';
-          return;
-        }
-
-        const note = docSnap.data();
-        document.getElementById('single-note-cat').innerText = note.category || 'כללי';
-        document.getElementById('single-note-date').innerText = note.date || '';
-        
-        const titleDisplay = document.getElementById('single-note-title-display');
-        if (note.title) {
-          titleDisplay.innerText = note.title;
-          titleDisplay.style.display = 'block';
-        } else {
-          titleDisplay.style.display = 'none';
-        }
-
-        const wrapper = document.getElementById('single-note-secure-wrapper');
-        const saveBtn = document.getElementById('single-note-save-btn');
-
-        if (note.isLocked) {
-          if (!unlockedNotes[noteId]) {
-            wrapper.innerHTML = `
-              <div class="locked-card-prompt">
-                <span style="font-size: 2rem;">🔒</span>
-                <p style="font-weight: 600; color: var(--text-main);">הפתק מוצפן בסיסמה</p>
-                <div class="password-wrapper" style="max-width: 220px;">
-                  <input type="password" id="unlock-pass-${noteId}" placeholder="הקלד סיסמה..." aria-label="סיסמת פענוח לפתק משותף" dir="ltr" onkeydown="if(event.key==='Enter') unlockSingleSharedNoteDirect('${noteId}', '${note.text}')">
-                  <button type="button" class="eye-btn" onclick="togglePasswordVisibility('unlock-pass-${noteId}', this)" aria-label="הצג או הסתר סיסמה">👁️</button>
-                </div>
-                <button class="btn btn-submit" style="padding: 6px 16px; border-radius: 8px;" onclick="unlockSingleSharedNoteDirect('${noteId}', '${note.text}')">פתח פתק</button>
-              </div>
-            `;
-            saveBtn.style.display = 'none';
-            return;
-          }
-        }
-
-        let actualText = note.text;
-        if (note.isLocked && unlockedNotes[noteId]) {
-          try {
-            const bytes = CryptoJS.AES.decrypt(note.text, unlockedNotes[noteId]);
-            actualText = bytes.toString(CryptoJS.enc.Utf8) || 'שגיאה בפענוח הטקסט';
-          } catch(e) { actualText = 'שגיאה בפענוח הטקסט'; }
-        }
-
-        wrapper.innerHTML = `
-          <label for="single-note-textarea" style="display:none;">תוכן הפתק</label>
-          <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 200px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius);">${escapeHtml(actualText)}</textarea>
-          <div id="single-note-link-area"></div>
-          <div id="single-note-img-area"></div>
-        `;
-
-        const linkArea = document.getElementById('single-note-link-area');
-        if (note.linkUrl) {
-          const displayTitle = note.linkTitle ? note.linkTitle : note.linkUrl;
-          linkArea.innerHTML = `<a href="${note.linkUrl}" target="_blank" class="note-link-btn">🔗 ${escapeHtml(displayTitle)}</a>`;
-        }
-
-        const imgArea = document.getElementById('single-note-img-area');
-        if (note.imageUrl) {
-          imgArea.innerHTML = `<img src="${note.imageUrl}" style="max-width:100%; max-height:250px; border-radius:8px; border:1px solid var(--border); cursor:pointer;" onclick="openLightbox('${note.imageUrl}')">`;
-        }
-
-        const editedElem = document.getElementById('single-note-edited');
-        if (note.lastEditedBy) {
-          editedElem.innerText = `✏️ נערך ע"י ${note.lastEditedBy}`;
-          editedElem.style.display = 'inline-block';
-        } else {
-          editedElem.style.display = 'none';
-        }
-
-        if (mode === 'edit') {
-          saveBtn.style.display = 'block';
-        } else {
-          saveBtn.style.display = 'none';
-        }
-      }, (error) => { console.error(error); });
-    }
-
-    window.unlockSingleSharedNoteDirect = function(noteId, encryptedText) {
-      const passInput = document.getElementById(`unlock-pass-${noteId}`);
-      if (!passInput) return;
-      const pass = passInput.value;
-      try {
-        const bytes = CryptoJS.AES.decrypt(encryptedText, pass);
-        const original = bytes.toString(CryptoJS.enc.Utf8);
-        if (!original) throw new Error();
-        unlockedNotes[noteId] = pass;
-        listenToSingleSharedNote(noteId);
-        showToast("הפתק פוענח בהצלחה!");
-      } catch (err) {
-        showToast("סיסמה שגויה!");
-      }
-    }
-
-    window.unlockSingleNote = function(noteId, encryptedText) {
-      unlockSingleSharedNoteDirect(noteId, encryptedText);
-    }
-
-    window.saveSingleSharedNote = async function() {
-      if (!activeSharedNoteId) return;
-      const textarea = document.getElementById('single-note-textarea');
-      const btn = document.getElementById('single-note-save-btn');
-      let newText = textarea.value.trim();
-
-      const docSnap = await getDoc(doc(db, "notes", activeSharedNoteId));
-      if (!docSnap.exists()) return;
-      const noteData = docSnap.data();
-
-      if (noteData.isLocked && unlockedNotes[activeSharedNoteId]) {
-        newText = CryptoJS.AES.encrypt(newText, unlockedNotes[activeSharedNoteId]).toString();
-      }
-
-      btn.disabled = true;
-      btn.innerText = 'שומר שינויים...';
-
-      const userName = currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : 'אורח';
-      const userId = currentUser ? currentUser.uid : 'guest';
-
-      try {
-        await updateDoc(doc(db, "notes", activeSharedNoteId), { 
-          text: newText,
-          lastEditedBy: userName,
-          lastEditedById: userId
-        });
-        showToast("הפתק המשותף עודכן בהצלחה!");
-      } catch (err) {
-        showToast("שגיאה בשמירת הפתק");
-      }
-      btn.disabled = false;
-      btn.innerText = 'שמור שינויים בפתק';
-    }
-
-    window.shareNote = async function(id, allowEdit) {
-      closeAllDropdowns();
-      try {
-        await updateDoc(doc(db, "notes", id), { isShared: true });
-        let shareUrl = window.location.origin + window.location.pathname + "?noteId=" + id;
-        if (allowEdit) shareUrl += "&mode=edit";
-        else shareUrl += "&mode=view";
-        
-        navigator.clipboard.writeText(shareUrl).then(() => {
-          showToast("קישור שיתוף הועתק! פותח וואטסאפ...");
-          const text = encodeURIComponent(`הנה הקישור לפתק:\n${shareUrl}`);
-          window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
-        }).catch(() => {
-          const text = encodeURIComponent(`הנה הקישור לפתק:\n${shareUrl}`);
-          window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
-        });
-      } catch (err) { console.error(err); }
-    }
-
-    window.stopSharingNote = async function(id) {
-      closeAllDropdowns();
-      try {
-        await updateDoc(doc(db, "notes", id), { isShared: false });
-        showToast("השיתוף הופסק!");
-      } catch (err) { console.error(err); }
     }
 
     function startRealtimeListener() {
