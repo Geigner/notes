@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>הפנקס</title>
+  <title>הפנקס - מרכז שליטה</title>
   <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <!-- ספריית הצפנה מאובטחת CryptoJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
@@ -37,7 +37,7 @@
       filter: blur(0px);
     }
 
-    .container { max-width: 1000px; margin: 0 auto; display: none; padding: 0 20px; }
+    .container { max-width: 1000px; margin: 0 auto; display: none; padding: 0 20px; transition: margin-left 0.3s ease; }
     
     #auth-screen {
       display: flex;
@@ -221,6 +221,101 @@
     .cat-chip.shared-chip.active { background: #15803d; color: white; border-color: #15803d; }
     .cat-delete-btn { background: none; border: none; color: inherit; font-size: 0.8rem; cursor: pointer; padding: 0 2px; }
 
+    /* עיצוב הפאנל הצדדי (Sidebar Dashboard) */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 320px;
+      height: 100vh;
+      background: white;
+      border-left: 1px solid var(--border);
+      box-shadow: -5px 0 25px rgba(0,0,0,0.05);
+      z-index: 300;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      gap: 20px;
+      overflow-y: auto;
+    }
+    .sidebar.open {
+      transform: translateX(0);
+    }
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .sidebar-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .sidebar-section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .sidebar-section h3 {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .quick-link-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .quick-link-item:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+      transform: translateX(-3px);
+    }
+    .sidebar-quick-task {
+      display: flex;
+      gap: 6px;
+    }
+    .sidebar-quick-task input {
+      flex: 1;
+      padding: 8px 10px;
+      font-size: 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+    }
+    .sidebar-task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .sidebar-task-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 10px;
+      background: #fdfdfd;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
     .notes-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
     .note-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 220px; position: relative; transition: all 0.2s ease; }
     .note-card:hover { box-shadow: var(--shadow-hover); border-color: #94a3b8; }
@@ -367,6 +462,33 @@
 </head>
 <body onclick="closeAllDropdowns(event)">
 
+  <!-- פאנל צדדי נפתח (Command Center Sidebar) -->
+  <aside class="sidebar" id="app-sidebar" onclick="event.stopPropagation()">
+    <div class="sidebar-header">
+      <span class="sidebar-title">🧭 מרכז שליטה</span>
+      <button class="gear-menu-trigger" onclick="toggleSidebar()">✕</button>
+    </div>
+
+    <!-- משימות מהירות בצד -->
+    <div class="sidebar-section">
+      <h3>☑️ משימות מהירות</h3>
+      <div class="sidebar-quick-task">
+        <input type="text" id="sidebar-task-input" placeholder="הוסף משימה מהירה..." onkeydown="if(event.key==='Enter') addSidebarTask()">
+        <button class="btn btn-submit" style="padding: 0 12px; border-radius: 8px; font-size: 0.85rem;" onclick="addSidebarTask()">הוסף</button>
+      </div>
+      <div class="sidebar-task-list" id="sidebar-task-list"></div>
+    </div>
+
+    <!-- קישורים מהירים -->
+    <div class="sidebar-section">
+      <h3>🔗 קישורים שימושיים</h3>
+      <a href="https://calendar.google.com" target="_blank" class="quick-link-item">📅 יומן Google Calendar</a>
+      <a href="https://drive.google.com" target="_blank" class="quick-link-item">📁 Google Drive</a>
+      <a href="https://mail.google.com" target="_blank" class="quick-link-item">✉️ Gmail</a>
+      <a href="https://maps.google.com" target="_blank" class="quick-link-item">🗺️ Google Maps</a>
+    </div>
+  </aside>
+
   <div id="auth-screen" style="display: none;">
     <div class="auth-card">
       <h1>🧠 הפנקס - אישי</h1>
@@ -405,6 +527,8 @@
   <div class="container" id="main-container">
     <header>
       <div class="header-right" style="gap: 15px;">
+        <!-- כפתור פתיחת פאנל צדדי (מרכז שליטה) -->
+        <button class="gear-menu-trigger" onclick="toggleSidebar(event)" title="פתח מרכז שליטה וקישורים">🧭</button>
         <h1>הפנקס</h1>
         <div class="search-dropdown-wrapper" onclick="event.stopPropagation()">
           <button class="search-trigger-btn" onclick="toggleSearchMenu(event)" title="חיפוש מהיר" aria-label="פתח חלון חיפוש">🔍</button>
@@ -563,6 +687,7 @@
     let activeSharedNoteId = null;
     let currentImageBase64 = null;
     let unlockedNotes = {};
+    let sidebarTasks = JSON.parse(localStorage.getItem('sidebar_tasks') || '[]');
 
     function updateLiveClock() {
       const clockEl = document.getElementById('live-clock');
@@ -583,7 +708,12 @@
         const lightbox = document.getElementById('lightbox-modal');
         const modalOverlay = document.getElementById('note-modal');
         const modalBox = document.getElementById('modal-box');
+        const sidebar = document.getElementById('app-sidebar');
 
+        if (sidebar && sidebar.classList.contains('open')) {
+          toggleSidebar();
+          return;
+        }
         if (lightbox && lightbox.classList.contains('show')) {
           closeLightbox();
           return;
@@ -623,6 +753,7 @@
           document.getElementById('fab-btn').style.display = 'flex';
           document.getElementById('single-note-container').style.display = 'none';
           startRealtimeListener();
+          renderSidebarTasks();
         } else {
           currentUser = null;
           if (unsubscribeNotes) unsubscribeNotes();
@@ -643,6 +774,56 @@
 
     window.logoutFromGoogle = function() {
       signOut(auth);
+    }
+
+    // פתיחה וסגירה של הפאנל הצדדי (מרכז שליטה)
+    window.toggleSidebar = function(event) {
+      if (event) event.stopPropagation();
+      const sidebar = document.getElementById('app-sidebar');
+      sidebar.classList.toggle('open');
+    }
+
+    // ניהול משימות מהירות בפאנל הצדדי
+    window.addSidebarTask = function() {
+      const input = document.getElementById('sidebar-task-input');
+      const val = input.value.trim();
+      if (!val) return;
+      sidebarTasks.push({ id: Date.now(), text: val, done: false });
+      input.value = '';
+      saveAndRenderSidebarTasks();
+    }
+
+    window.toggleSidebarTask = function(id) {
+      const task = sidebarTasks.find(t => t.id === id);
+      if (task) {
+        task.done = !task.done;
+        saveAndRenderSidebarTasks();
+      }
+    }
+
+    window.deleteSidebarTask = function(id) {
+      sidebarTasks = sidebarTasks.filter(t => t.id !== id);
+      saveAndRenderSidebarTasks();
+    }
+
+    function saveAndRenderSidebarTasks() {
+      localStorage.setItem('sidebar_tasks', JSON.stringify(sidebarTasks));
+      renderSidebarTasks();
+    }
+
+    function renderSidebarTasks() {
+      const listEl = document.getElementById('sidebar-task-list');
+      if (!listEl) return;
+      if (sidebarTasks.length === 0) {
+        listEl.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 6px;">אין משימות מהירות</span>';
+        return;
+      }
+      listEl.innerHTML = sidebarTasks.map(t => `
+        <div class="sidebar-task-item">
+          <span onclick="toggleSidebarTask(${t.id})" style="cursor: pointer; text-decoration: ${t.done ? 'line-through' : 'none'}; color: ${t.done ? '#94a3b8' : 'inherit'}; flex: 1;">${t.done ? '☑️ ' : '☐ '}${escapeHtml(t.text)}</span>
+          <button class="btn" style="font-size: 0.75rem; color: #be123c; cursor: pointer;" onclick="deleteSidebarTask(${t.id})">✕</button>
+        </div>
+      `).join('');
     }
 
     // טשטוש מהיר לפרטיות בלחיצת כפתור עין
