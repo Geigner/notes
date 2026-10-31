@@ -1,6 +1,564 @@
-<!-- חלונית בחירת קטגוריה למשימה המהירה -->
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>הפנקס - מרכז שליטה</title>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- ספריית הצפנה מאובטחת CryptoJS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+  <style>
+    :root {
+      --bg-color: #f7f8fa;
+      --card-bg: #ffffff;
+      --text-main: #2c3e50;
+      --text-muted: #475569;
+      --primary: #475d71;
+      --primary-hover: #334155;
+      --urgent: #d97706; 
+      --urgent-glow: rgba(217, 119, 6, 0.12);
+      --border: #cbd5e1;
+      --shadow: 0 2px 4px rgba(0,0,0,0.01), 0 1px 2px rgba(0,0,0,0.03);
+      --shadow-hover: 0 8px 16px rgba(0,0,0,0.04);
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Assistant', sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 90px; overflow-x: hidden; }
+
+    /* מצב טשטוש פרטיות - מתבטל במעבר עכבר (Hover) על פתק ספציפי */
+    body.privacy-mode .note-card {
+      filter: blur(7px);
+      transition: filter 0.25s ease;
+      user-select: none;
+    }
+    body.privacy-mode .note-card:hover {
+      filter: blur(0px);
+    }
+
+    /* הקונטיינר הראשי זז ימינה באלגנטיות כשמרכז השליטה פתוח משמאל */
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: none;
+      padding: 0 20px;
+      transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    body.sidebar-open .container {
+      margin-left: 320px;
+    }
+    @media (max-width: 768px) {
+      body.sidebar-open .container { margin-left: 0; }
+    }
+    
+    #auth-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+      text-align: center;
+      gap: 16px;
+    }
+
+    .auth-card {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: var(--shadow-hover);
+      border: 1px solid var(--border);
+      max-width: 380px;
+      width: 100%;
+    }
+
+    .btn-google {
+      background: #1a73e8;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 24px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      margin-top: 16px;
+      transition: background 0.2s;
+    }
+    .btn-google:hover { background: #1557b0; }
+
+    header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      padding: 16px 20px; 
+      margin-bottom: 12px; 
+      position: sticky;
+      top: 0;
+      background: rgba(247, 248, 250, 0.95);
+      backdrop-filter: blur(8px);
+      z-index: 150;
+      border-bottom: 1px solid rgba(203, 213, 225, 0.6);
+    }
+    
+    .header-right, .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h1 { font-size: 1.3rem; font-weight: 600; color: #1e293b; letter-spacing: -0.3px; }
+    
+    .header-clock {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      padding: 4px 8px;
+    }
+
+    .gear-menu-trigger {
+      background: #e2e8f0;
+      border: none;
+      font-size: 1.1rem;
+      padding: 6px 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      color: #334155;
+    }
+    .gear-menu-trigger:hover {
+      background: #cbd5e1;
+      transform: rotate(30deg);
+    }
+
+    @keyframes slideDown {
+      0% { opacity: 0; transform: translateY(-10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .header-actions-dropdown { 
+      display: none; 
+      position: absolute;
+      top: 120%;
+      left: 0; 
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
+      padding: 10px;
+      z-index: 200;
+      gap: 8px; 
+      flex-direction: column; 
+      align-items: stretch;
+      min-width: 180px;
+    }
+
+    .header-actions-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    
+    .header-actions-wrapper .header-actions-dropdown.active {
+      display: flex;
+      animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .notes-counter-badge { font-size: 0.80rem; color: #334155; background: #e2e8f0; padding: 6px 12px; border-radius: 8px; font-weight: 600; text-align: center; }
+    
+    .btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .btn-secondary { font-size: 0.85rem; color: #334155; font-weight: 600; padding: 8px 14px; border-radius: 8px; background: white; border: 1px solid var(--border); box-shadow: var(--shadow); width: 100%; text-align: right; justify-content: flex-start; }
+    .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
+
+    .search-dropdown-wrapper { position: relative; display: inline-block; }
+    .search-trigger-btn { background: white; border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; font-size: 1rem; cursor: pointer; box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .search-trigger-btn:hover { background: #f8fafc; border-color: #94a3b8; }
+    
+    .search-popup-input { 
+      display: none; 
+      position: absolute; 
+      top: 120%; 
+      right: 0; 
+      width: 210px; 
+      max-width: 80vw;
+      padding: 10px 14px; 
+      font-size: 0.9rem; 
+      border: 1px solid var(--border); 
+      border-radius: 12px; 
+      background: white; 
+      outline: none; 
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15); 
+      z-index: 220; 
+      color: var(--text-main); 
+    }
+    .search-dropdown-wrapper .search-popup-input.active { 
+      display: block; 
+      animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+    }
+
+    /* סרגל קטגוריות אופקי נגלל */
+    .categories-scroll-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding: 8px 20px 16px 20px;
+      margin-bottom: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .categories-scroll-wrapper::-webkit-scrollbar { height: 4px; }
+    .categories-scroll-wrapper::-webkit-scrollbar-thumb { background-color: var(--border); border-radius: 4px; }
+    
+    .cat-chip { padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; white-space: nowrap; cursor: pointer; color: #334155; transition: all 0.2s; user-select: none; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: white; box-shadow: var(--shadow); }
+    .cat-chip:hover { background: #f1f5f9; color: var(--text-main); }
+    .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: 600; }
+    .cat-chip.urgent-chip { border-color: #fde68a; background: #fffbeb; color: #92400e; }
+    .cat-chip.urgent-chip.active { background: var(--urgent); color: white; border-color: var(--urgent); }
+    .cat-chip.shared-chip { border-color: #bbf7d0; background: #f0fdf4; color: #166534; }
+    .cat-chip.shared-chip.active { background: #15803d; color: white; border-color: #15803d; }
+    .cat-delete-btn { background: none; border: none; color: inherit; font-size: 0.8rem; cursor: pointer; padding: 0 2px; }
+
+    /* פאנל צדדי ממוקם בצד שמאל */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 320px;
+      height: 100vh;
+      background: white;
+      border-right: 1px solid var(--border);
+      box-shadow: 5px 0 25px rgba(0,0,0,0.05);
+      z-index: 300;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      gap: 16px;
+      overflow-y: auto;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .sidebar-title { font-size: 1.1rem; font-weight: 700; color: #1e293b; }
+    
+    /* קבוצה מתקפלת (Accordion) */
+    .accordion-section {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fafafa;
+    }
+    .accordion-header {
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #334155;
+      background: #f1f5f9;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      transition: background 0.2s;
+    }
+    .accordion-header:hover { background: #e2e8f0; }
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      padding: 0 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .accordion-section.open .accordion-content {
+      max-height: 350px;
+      padding: 12px;
+    }
+
+    .quick-link-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .quick-link-item:hover { background: #f8fafc; border-color: #94a3b8; }
+    
+    .sidebar-quick-task { display: flex; gap: 6px; }
+    .sidebar-quick-task input {
+      flex: 1; padding: 8px 10px; font-size: 0.85rem;
+      border: 1px solid var(--border); border-radius: 8px; outline: none;
+    }
+    .sidebar-task-list { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; }
+    .sidebar-task-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 10px; background: white; border: 1px solid #e2e8f0;
+      border-radius: 6px; font-size: 0.85rem; gap: 6px;
+    }
+    .sidebar-task-actions { display: flex; align-items: center; gap: 4px; }
+    .convert-task-btn {
+      background: #f1f5f9; border: 1px solid var(--border); font-size: 0.75rem;
+      padding: 2px 6px; border-radius: 4px; cursor: pointer; color: var(--primary); font-weight: 600;
+    }
+    .convert-task-btn:hover { background: #e2e8f0; }
+
+    .notes-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .note-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 220px; position: relative; transition: all 0.2s ease; }
+    .note-card:hover { box-shadow: var(--shadow-hover); border-color: #94a3b8; }
+    .note-card.is-urgent { border-color: var(--urgent); box-shadow: 0 0 10px var(--urgent-glow), var(--shadow); }
+    .note-card.is-pinned { border-color: var(--primary); background: #fcfdfe; }
+    
+    .note-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .note-card-title { font-size: 1.05rem; font-weight: 700; color: #1e293b; margin-bottom: 6px; display: block; }
+    .note-date { font-size: 0.75rem; color: #475569; font-weight: 500; }
+    
+    .cat-badge-wrapper { position: relative; display: inline-block; }
+    .cat-badge { font-weight: 600; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; background-color: var(--cat-bg-color); color: var(--cat-text-color); border: 1px solid var(--cat-border-color); cursor: pointer; user-select: none; transition: opacity 0.2s, transform 0.1s; }
+    .cat-badge:hover { opacity: 0.85; transform: scale(1.03); }
+    .cat-dropdown-menu { position: absolute; top: 100%; right: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: none; z-index: 60; min-width: 130px; padding: 4px 0; margin-top: 4px; }
+    .cat-dropdown-menu.show { display: block; }
+    .cat-dropdown-item { padding: 6px 12px; font-size: 0.8rem; color: var(--text-main); background: none; border: none; width: 100%; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+    .cat-dropdown-item:hover { background: #f8fafc; color: var(--primary); }
+
+    .shared-badge { font-size: 0.7rem; color: #15803d; background: #dcfce7; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; border: 1px solid #bbf7d0; }
+    .edited-by-badge { font-size: 0.7rem; color: #0369a1; background: #e0f2fe; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; }
+    .locked-badge { font-size: 0.7rem; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; border: 1px solid #fde68a; }
+
+    .inline-textarea { width: 100%; flex: 1; border: 1px solid transparent; background: transparent; font-size: 0.95rem; line-height: 1.5; resize: none; outline: none; color: var(--text-main); font-family: 'Assistant', sans-serif; padding: 2px; border-radius: 4px; transition: border-color 0.2s, background 0.2s; min-height: 80px; }
+    .inline-textarea:focus { border-color: var(--border); background: #fafafa; }
+
+    .checklist-container { display: flex; flex-direction: column; gap: 6px; margin: 4px 0; flex: 1; }
+    .checklist-row { display: flex; align-items: flex-start; gap: 8px; font-size: 0.95rem; line-height: 1.4; color: var(--text-main); cursor: pointer; user-select: none; }
+    .checklist-cb { cursor: pointer; font-size: 1.05rem; line-height: 1; margin-top: 2px; transition: transform 0.1s; color: var(--primary); }
+    .checklist-cb:hover { transform: scale(1.15); }
+    .checklist-text.checked { text-decoration: line-through; color: #94a3b8; }
+
+    .note-image-preview { width: 100%; max-height: 120px; object-fit: cover; border-radius: 6px; margin-top: 8px; cursor: pointer; border: 1px solid var(--border); }
+    .note-link-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 6px 12px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: var(--primary); text-decoration: none; transition: background 0.2s; width: fit-content; }
+    .note-link-btn:hover { background: #e2e8f0; }
+
+    .save-inline-btn { display: none; align-self: flex-end; margin-top: 4px; padding: 3px 10px; font-size: 0.75rem; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; }
+    .save-inline-btn.show { display: block; }
+
+    .menu-wrapper { position: relative; display: inline-block; }
+    .menu-btn { background: none; border: none; font-size: 1.1rem; color: #475569; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
+    .dropdown-menu { position: absolute; top: 100%; left: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: none; z-index: 50; min-width: 170px; padding: 4px 0; }
+    .dropdown-menu.show { display: block; }
+    .dropdown-item { padding: 8px 14px; font-size: 0.85rem; color: var(--text-main); background: none; border: none; width: 100%; text-align: right; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .dropdown-item:hover { background: #f8fafc; color: var(--primary); }
+    .dropdown-item.danger { color: #be123c; }
+
+    .fab { position: fixed; bottom: 24px; left: 24px; width: 52px; height: 52px; background: var(--primary); color: white; border-radius: 50%; box-shadow: 0 4px 12px rgba(71,93,113,0.3); font-size: 1.6rem; z-index: 100; transition: transform 0.2s; display: none; }
+    .fab:hover { background: var(--primary-hover); transform: scale(1.04); }
+
+    .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); display: none; justify-content: center; align-items: flex-end; z-index: 200; backdrop-filter: blur(2px); }
+    .modal { background: white; width: 100%; max-width: 550px; border-radius: 16px 16px 0 0; padding: 20px; display: flex; flex-direction: column; gap: 14px; animation: slideUp 0.25s ease-out; max-height: 90vh; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); transition: all 0.2s ease; overflow-y: auto; }
+    
+    .modal.fullscreen-mode { max-width: 100vw !important; height: 100vh !important; max-height: 100vh !important; border-radius: 0 !important; padding: 30px !important; }
+    .modal.fullscreen-mode textarea.modal-textarea { height: calc(100vh - 380px) !important; }
+
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+    .lightbox-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 500; backdrop-filter: blur(4px); padding: 20px; }
+    .lightbox-overlay.show { display: flex; }
+    .lightbox-content { position: relative; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center; }
+    .lightbox-img { max-width: 100%; max-height: 80vh; border-radius: 8px; object-fit: contain; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .lightbox-close { position: absolute; top: -40px; left: 0; background: white; color: var(--text-main); border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+
+    .modal-header-actions { display: flex; justify-content: space-between; align-items: center; }
+    .modal-header-actions h2 { font-size: 1.1rem; font-weight: 600; color: #1e293b; }
+    .btn-fullscreen { font-size: 0.85rem; color: #334155; padding: 4px 10px; border-radius: 16px; background: #f1f5f9; font-weight: 600; cursor: pointer; border: none; }
+
+    .textarea-wrapper { position: relative; width: 100%; }
+    textarea.modal-textarea { width: 100%; height: 120px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; padding-bottom: 40px; font-size: 0.95rem; resize: none; outline: none; color: var(--text-main); }
+    .voice-btn { position: absolute; bottom: 10px; left: 10px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 50%; width: 34px; height: 34px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    
+    .modal-image-preview-container { position: relative; display: none; align-items: center; gap: 10px; background: #f8fafc; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border); }
+    .modal-image-preview-container.show { display: flex; }
+    .modal-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); }
+    
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 0.85rem; font-weight: 600; color: #475569; }
+    select, input[type="text"], input[type="password"] { padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.95rem; outline: none; background: white; color: var(--text-main); }
+
+    .advanced-section-toggle { background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; font-size: 0.85rem; font-weight: 600; color: #334155; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; transition: background 0.2s; }
+    .advanced-section-toggle:hover { background: #f1f5f9; }
+    .advanced-content-panel { display: none; flex-direction: column; gap: 12px; padding: 12px; background: #fafafa; border: 1px solid var(--border); border-radius: var(--radius); margin-top: -6px; }
+    .advanced-content-panel.show { display: flex; }
+
+    .modal-buttons { display: flex; gap: 10px; margin-top: 6px; }
+    .btn-block { flex: 1; padding: 10px; border-radius: var(--radius); font-size: 0.95rem; font-weight: 600; text-align: center; }
+    .btn-submit { background: var(--primary); color: white; border: none; cursor: pointer; }
+    .btn-cancel { background: #f1f5f9; color: var(--text-main); border: none; cursor: pointer; }
+
+    #single-note-container { display: none; max-width: 650px; margin: 40px auto; background: white; border-radius: 16px; padding: 24px; box-shadow: var(--shadow-hover); border: 1px solid var(--border); flex-direction: column; gap: 16px; }
+    .single-note-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+
+    .locked-card-prompt { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 10px; text-align: center; flex: 1; }
+    .locked-card-prompt input { width: 100%; max-width: 200px; text-align: center; }
+
+    .password-wrapper { position: relative; display: inline-flex; align-items: center; width: 100%; justify-content: center; }
+    .password-wrapper input { width: 100%; padding-left: 36px; }
+    .eye-btn { position: absolute; left: 8px; background: none; border: none; cursor: pointer; font-size: 0.9rem; color: #64748b; padding: 2px; }
+
+    #toast { position: fixed; bottom: 85px; right: 50%; transform: translateX(50%); background: rgba(30,41,59,0.95); color: white; padding: 6px 16px; border-radius: 16px; font-size: 0.85rem; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body onclick="closeAllDropdowns(event)">
+
+  <!-- פאנל צדדי נפתח מצד שמאל -->
+  <aside class="sidebar" id="app-sidebar" onclick="event.stopPropagation()">
+    <div class="sidebar-header">
+      <span class="sidebar-title">🧭 מרכז שליטה</span>
+      <button class="gear-menu-trigger" onclick="toggleSidebar()">✕</button>
+    </div>
+
+    <!-- משימות מהירות -->
+    <div class="accordion-section open" id="sec-tasks">
+      <div class="accordion-header" onclick="toggleAccordion('sec-tasks')">
+        <span>☑️ משימות מהירות</span>
+        <span>▼</span>
+      </div>
+      <div class="accordion-content">
+        <div class="sidebar-quick-task">
+          <input type="text" id="sidebar-task-input" placeholder="הוסף משימה מהירה..." onkeydown="if(event.key==='Enter') addSidebarTask()">
+          <button class="btn btn-submit" style="padding: 0 10px; border-radius: 6px; font-size: 0.8rem;" onclick="addSidebarTask()">הוסף</button>
+        </div>
+        <div class="sidebar-task-list" id="sidebar-task-list"></div>
+      </div>
+    </div>
+
+    <!-- קישורים שימושיים -->
+    <div class="accordion-section" id="sec-links">
+      <div class="accordion-header" onclick="toggleAccordion('sec-links')">
+        <span>🔗 קישורים שימושיים</span>
+        <span>▼</span>
+      </div>
+      <div class="accordion-content">
+        <div style="display: flex; flex-direction: column; gap: 6px;" id="links-container"></div>
+        <div style="display: flex; gap: 4px; margin-top: 6px;">
+          <input type="text" id="new-link-title" placeholder="שם הקישור" style="flex: 1; font-size: 0.8rem; padding: 6px;">
+          <input type="text" id="new-link-url" placeholder="https://..." style="flex: 1.5; font-size: 0.8rem; padding: 6px;" dir="ltr">
+          <button class="btn btn-submit" style="font-size: 0.75rem; padding: 4px 8px; border-radius: 6px;" onclick="addCustomLink()">➕</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div id="auth-screen" style="display: none;">
+    <div class="auth-card">
+      <h1>🧠 הפנקס - אישי</h1>
+      <p style="color: var(--text-muted); margin-top: 8px; font-size: 0.9rem;">
+        הפנקס מוגן. התחבר עם חשבון גוגל שלך כדי לצפות בפתקים.
+      </p>
+      <button class="btn-google" onclick="loginWithGoogle()" aria-label="התחברות עם חשבון גוגל">
+        <span>🔑 התחברות עם Google</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="single-note-container">
+    <div class="single-note-header">
+      <div>
+        <span id="single-note-cat" class="cat-badge">כללי</span>
+        <span id="single-note-edited" class="edited-by-badge" style="display:none;"></span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span id="single-note-date" class="note-date"></span>
+        <button class="btn btn-secondary" onclick="window.location.href = window.location.pathname" title="עבור לפנקס המלא" style="width:auto;">🏠 לוח ראשי</button>
+      </div>
+    </div>
+    <div style="flex: 1; display:flex; flex-direction:column; gap:10px;">
+      <h2 id="single-note-title-display" style="font-size: 1.2rem; font-weight: 700; color: #1e293b; display: none;"></h2>
+      <div id="single-note-secure-wrapper" style="flex:1; display:flex; flex-direction:column;">
+        <label for="single-note-textarea" style="display:none;">תוכן הפתק המשותף</label>
+        <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 200px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius);"></textarea>
+        <div id="single-note-link-area"></div>
+        <div id="single-note-img-area"></div>
+      </div>
+      <button id="single-note-save-btn" class="btn btn-submit" style="padding: 10px; width: 100%; border-radius: var(--radius);" onclick="saveSingleSharedNote()">שמור שינויים בפתק</button>
+    </div>
+  </div>
+
+  <div class="container" id="main-container">
+    <header>
+      <div class="header-right" style="gap: 15px;">
+        <h1>הפנקס</h1>
+        <div class="search-dropdown-wrapper" onclick="event.stopPropagation()">
+          <button class="search-trigger-btn" onclick="toggleSearchMenu(event)" title="חיפוש מהיר" aria-label="פתח חלון חיפוש">🔍</button>
+          <input type="text" id="search-input" class="search-popup-input" placeholder="חיפוש חופשי בפתקים..." aria-label="חיפוש חופשי בפתקים" oninput="renderNotes()">
+        </div>
+      </div>
+
+      <!-- שעון מרכזי אלגנטי -->
+      <div class="header-clock" id="live-clock" title="שעה ותאריך נוכחיים">טוען שעון...</div>
+
+      <div class="header-left">
+        <!-- כפתור פתיחת פאנל צדדי (מרכז שליטה) -->
+        <button class="gear-menu-trigger" onclick="toggleSidebar(event)" title="פתח מרכז שליטה וקישורים">🧭</button>
+        <!-- כפתור עין לטשטוש מהיר של הפתקים -->
+        <button class="gear-menu-trigger" onclick="togglePrivacyBlur()" title="הסתר/הצג פתקים (טשטוש מהיר)" id="privacy-btn">👁️</button>
+        
+        <div class="header-actions-wrapper" onclick="event.stopPropagation()">
+          <button class="gear-menu-trigger" onclick="toggleHeaderMenu(event)" title="אפשרויות ניהול" aria-label="תפריט ניהול והגדרות">⚙️</button>
+          <div class="header-actions-dropdown" id="header-dropdown">
+            <span class="notes-counter-badge" id="notes-counter">מחשב...</span>
+            <button class="btn btn-secondary" onclick="exportBackup()">💾 גיבוי</button>
+            <button class="btn btn-secondary" onclick="triggerImport()">📥 ייבוא</button>
+            <input type="file" id="import-file-input" style="display: none" accept=".json" aria-label="קובץ ייבוי גיבוי" onchange="importBackup(event)">
+            <button class="btn btn-secondary" id="manage-cat-btn" onclick="toggleCategoryManagement()">⚙️ ניהול קטגוריות</button>
+            <button class="btn btn-secondary" id="archive-view-btn" onclick="toggleArchiveView()">ארכיון</button>
+            <button class="btn btn-secondary" onclick="logoutFromGoogle()">🚪 התנתק</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- סרגל קטגוריות אופקי נגלל -->
+    <nav class="categories-scroll-wrapper" id="categories-container" aria-label="קטגוריות פתקים"></nav>
+
+    <main id="notes-main-area">
+      <div class="notes-list" id="notes-container"></div>
+    </main>
+  </div>
+
+  <div class="lightbox-overlay" id="lightbox-modal" onclick="closeLightbox()">
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+      <button class="lightbox-close" onclick="closeLightbox()" aria-label="סגור תצוגת תמונה">✕</button>
+      <img id="lightbox-img-el" class="lightbox-img" src="" alt="תמונה מוגדלת">
+    </div>
+  </div>
+
+  <button class="btn fab" id="fab-btn" onclick="openAddModal()" aria-label="הוסף פתק חדש">+</button>
+
+  <!-- חלונית בחירת קטגוריה למשימה המהירה (מתוקנת ומעוצבת כחלון Modal מרכזי) -->
   <div class="overlay" id="task-cat-modal" onclick="if(event.target===this) closeTaskCatModal()">
-    <div class="modal" style="max-width: 380px; border-radius: 16px;">
+    <div class="modal" style="max-width: 400px; margin: auto; border-radius: 16px;">
       <div class="modal-header-actions">
         <h2>בחר קטגוריה לפתק</h2>
         <button class="gear-menu-trigger" onclick="closeTaskCatModal()">✕</button>
@@ -22,3 +580,1242 @@
       </div>
     </div>
   </div>
+
+  <div class="overlay" id="note-modal" onclick="if(event.target===this) closeModal()">
+    <div class="modal" id="modal-box">
+      <div class="modal-header-actions">
+        <h2 id="modal-title">פתק חדש</h2>
+        <button class="btn btn-fullscreen" onclick="toggleFullscreenModal()" id="fs-btn">🔲 מסך מלא</button>
+      </div>
+
+      <label for="note-title-input" style="display:none;">כותרת הפתק</label>
+      <input type="text" id="note-title-input" placeholder="כותרת הפתק (אופציונלי)..." dir="rtl">
+
+      <div class="textarea-wrapper">
+        <label for="note-text-input" style="display:none;">תוכן הפתק</label>
+        <textarea id="note-text-input" class="modal-textarea" placeholder="הקלד או הכרז בקולך..."></textarea>
+        <button class="voice-btn" id="voice-record-btn" onclick="toggleVoiceRecognition()" aria-label="הקלטה קולית">🎤</button>
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <button class="btn" style="font-size: 0.85rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 6px;" onclick="addChecklistItemToModal()">
+          <span>☑️ הוסף שורת משימה</span>
+        </button>
+      </div>
+
+      <div class="advanced-section-toggle" onclick="toggleAdvancedPanel()">
+        <span>⚙️ אפשרויות מתקדמות (תמונה, קישור, נעילה)</span>
+        <span id="advanced-arrow">▼</span>
+      </div>
+      <div class="advanced-content-panel" id="advanced-panel">
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+          <label class="btn" style="font-size: 0.85rem; color: #334155; background: white; border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <span>🖼️ הוסף תמונה</span>
+            <input type="file" id="modal-image-input" accept="image/*" style="display: none;" aria-label="העלאת תמונה לפתק" onchange="handleImageSelection(event)">
+          </label>
+          <button id="remove-img-btn" class="btn" style="display: none; font-size: 0.80rem; color: #be123c; background: #fff1f2; border: 1px solid #fecdd3; padding: 4px 10px; border-radius: var(--radius);" onclick="clearModalImage()">הסר תמונה</button>
+        </div>
+
+        <div class="modal-image-preview-container" id="modal-img-preview-box">
+          <img id="modal-thumb-img" class="modal-thumb" src="" alt="תצוגה מקדימה">
+          <span style="font-size: 0.8rem; color: #475569; font-weight: 500;">התמונה נבחרה בהצלחה</span>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="modal-link-title" placeholder="כותרת הקישור (אופציונלי)" style="flex: 1;" aria-label="כותרת הקישור" dir="rtl">
+          <input type="text" id="modal-link-url" placeholder="כתובת URL (https://...)" style="flex: 2;" aria-label="כתובת אינטרנט URL" dir="ltr">
+        </div>
+
+        <div style="display: flex; gap: 8px; align-items: center; background: white; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border);">
+          <label style="font-size: 0.85rem; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <input type="checkbox" id="modal-secure-toggle" onchange="togglePasswordInput(this)"> 🔒 נעול בסיסמה
+          </label>
+          <div id="modal-pass-container" class="password-wrapper" style="flex: 1; display: none;">
+            <input type="password" id="modal-secure-password" placeholder="הכנס סיסמה..." aria-label="סיסמת נעילה לפתק" dir="ltr" style="width:100%;">
+            <button type="button" class="eye-btn" onclick="togglePasswordVisibility('modal-secure-password', this)" aria-label="הצג או הסתר סיסמה">👁️</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="form-group" id="cat-select-group">
+        <label for="note-cat-select">קטגוריה</label>
+        <div style="display: flex; gap: 8px;">
+          <select id="note-cat-select" style="flex: 1;" aria-label="בחר קטגוריה לפתק"></select>
+          <button class="btn" onclick="addNewCategory()" aria-label="הוסף קטגוריה חדשה" style="background: #edf2f7; padding: 0 14px; border-radius: var(--radius); color: var(--primary); font-weight: 600;">➕</button>
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button class="btn btn-block btn-cancel" onclick="closeModal()">ביטול</button>
+        <button class="btn btn-block btn-submit" id="save-modal-btn" onclick="saveNote()">שמירה</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAngVWlat_rJQO3lxU6QgiubCCg39EgTtU",
+      authDomain: "notes-1ea7c.firebaseapp.com",
+      projectId: "notes-1ea7c",
+      storageBucket: "notes-1ea7c.firebasestorage.app",
+      messagingSenderId: "708973221800",
+      appId: "1:708973221800:web:d68ddcb51e69e8a450af9d"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    const ALLOWED_EMAIL = "eignerguy@gmail.com";
+
+    let currentUser = null;
+    let currentView = 'active'; 
+    let currentCategory = 'הכל';
+    let allNotes = [];
+    let categories = ['כללי'];
+    let editingNoteId = null;
+    let isManagingCategories = false;
+    let unsubscribeNotes = null;
+    let activeSharedNoteId = null;
+    let currentImageBase64 = null;
+    let unlockedNotes = {};
+    let pendingTaskIdToConvert = null;
+    let sidebarTasks = JSON.parse(localStorage.getItem('sidebar_tasks') || '[]');
+    let customLinks = JSON.parse(localStorage.getItem('sidebar_custom_links') || JSON.stringify([
+      { id: 1, title: '📅 Google Calendar', url: 'https://calendar.google.com' },
+      { id: 2, title: '📁 Google Drive', url: 'https://drive.google.com' },
+      { id: 3, title: '✉️ Gmail', url: 'https://mail.google.com' },
+      { id: 4, title: '🗺️ Google Maps', url: 'https://maps.google.com' }
+    ]));
+
+    function updateLiveClock() {
+      const clockEl = document.getElementById('live-clock');
+      if (!clockEl) return;
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+      const dateStr = now.toLocaleDateString('he-IL');
+      clockEl.innerText = `${timeStr} | ${dateStr}`;
+    }
+    setInterval(updateLiveClock, 1000);
+    updateLiveClock();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedNoteId = urlParams.get('noteId');
+
+    // ניהול מקש ESC מורחב: יציאה מפוקוס בשדות, סגירת פאנל, תמונות, חלונות עריכה ותפריטים
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        const activeEl = document.activeElement;
+
+        // 1. אם הפוקוס נמצא בתוך תיבת טקסט או שדה הקלדה בפתק - הוצא אותו מהפוקוס (Blur)
+        if (activeEl && (activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'INPUT')) {
+          activeEl.blur();
+          return;
+        }
+
+        const lightbox = document.getElementById('lightbox-modal');
+        const modalOverlay = document.getElementById('note-modal');
+        const taskCatModal = document.getElementById('task-cat-modal');
+        const modalBox = document.getElementById('modal-box');
+        const sidebar = document.getElementById('app-sidebar');
+
+        // סגירת מודאל קטגוריות למשימה אם פתוח
+        if (taskCatModal && taskCatModal.style.display === 'flex') {
+          closeTaskCatModal();
+          return;
+        }
+
+        // 2. אם הפאנל הצדדי פתוח - סגור אותו
+        if (sidebar && sidebar.classList.contains('open')) {
+          toggleSidebar();
+          return;
+        }
+        // 3. אם תצוגת תמונה מוגדלת פתוחה - סגור אותה
+        if (lightbox && lightbox.classList.contains('show')) {
+          closeLightbox();
+          return;
+        }
+        // 4. אם מצב מסך מלא בעריכה פעיל - צא ממסך מלא
+        if (modalBox && modalBox.classList.contains('fullscreen-mode')) {
+          toggleFullscreenModal();
+          return;
+        }
+        // 5. אם חלון עריכת/יצירת פתק (Modal) פתוח - סגור אותו
+        if (modalOverlay && modalOverlay.style.display === 'flex') {
+          closeModal();
+          return;
+        }
+        
+        // 6. אם יש תפריטים נפתחים - סגור אותם
+        const hasOpenDropdowns = document.querySelectorAll('.dropdown-menu.show, .cat-dropdown-menu.show, .header-actions-dropdown.active, .search-popup-input.active').length > 0;
+        if (hasOpenDropdowns) {
+          closeAllDropdowns();
+          return;
+        }
+
+        // 7. ברירת מחדל: ביטול מצב הטשטוש (אם מופעל)
+        if (document.body.classList.contains('privacy-mode')) {
+          togglePrivacyBlur();
+        }
+      }
+    });
+
+    if (sharedNoteId) {
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('main-container').style.display = 'none';
+      document.getElementById('fab-btn').style.display = 'none';
+      document.getElementById('single-note-container').style.display = 'flex';
+      
+      activeSharedNoteId = sharedNoteId;
+      listenToSingleSharedNote(sharedNoteId);
+    } else {
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          if (user.email !== ALLOWED_EMAIL) {
+            alert("גישה חסומה: חשבון זה אינו מורשה להיכנס למערכת.");
+            await signOut(auth);
+            return;
+          }
+
+          currentUser = user;
+          document.getElementById('auth-screen').style.display = 'none';
+          document.getElementById('main-container').style.display = 'block';
+          document.getElementById('fab-btn').style.display = 'flex';
+          document.getElementById('single-note-container').style.display = 'none';
+          startRealtimeListener();
+          renderSidebarTasks();
+          renderCustomLinks();
+        } else {
+          currentUser = null;
+          if (unsubscribeNotes) unsubscribeNotes();
+          document.getElementById('auth-screen').style.display = 'flex';
+          document.getElementById('main-container').style.display = 'none';
+          document.getElementById('single-note-container').style.display = 'none';
+          document.getElementById('fab-btn').style.display = 'none';
+        }
+      });
+    }
+
+    window.loginWithGoogle = function() {
+      signInWithPopup(auth, provider).catch(error => {
+        console.error("שגיאה בהתחברות:", error);
+        alert("שגיאה בהתחברות עם גוגל");
+      });
+    }
+
+    window.logoutFromGoogle = function() {
+      signOut(auth);
+    }
+
+    window.toggleSidebar = function(event) {
+      if (event) event.stopPropagation();
+      const sidebar = document.getElementById('app-sidebar');
+      sidebar.classList.toggle('open');
+      document.body.classList.toggle('sidebar-open');
+    }
+
+    window.toggleAccordion = function(sectionId) {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.classList.toggle('open');
+      }
+    }
+
+    window.addSidebarTask = function() {
+      const input = document.getElementById('sidebar-task-input');
+      const val = input.value.trim();
+      if (!val) return;
+      sidebarTasks.push({ id: Date.now(), text: val, done: false });
+      input.value = '';
+      saveAndRenderSidebarTasks();
+    }
+
+    window.toggleSidebarTask = function(id) {
+      const task = sidebarTasks.find(t => t.id === id);
+      if (task) {
+        task.done = !task.done;
+        saveAndRenderSidebarTasks();
+      }
+    }
+
+    window.deleteSidebarTask = function(id) {
+      sidebarTasks = sidebarTasks.filter(t => t.id !== id);
+      saveAndRenderSidebarTasks();
+    }
+
+    window.convertTaskToNote = function(id) {
+      const task = sidebarTasks.find(t => t.id === id);
+      if (!task) return;
+      pendingTaskIdToConvert = id;
+
+      const select = document.getElementById('task-cat-select');
+      select.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+      document.getElementById('new-task-cat-input').value = '';
+      document.getElementById('task-cat-modal').style.display = 'flex';
+    }
+
+    window.closeTaskCatModal = function() {
+      document.getElementById('task-cat-modal').style.display = 'none';
+      pendingTaskIdToConvert = null;
+    }
+
+    window.addNewCategoryFromModal = function() {
+      const input = document.getElementById('new-task-cat-input');
+      const newCat = input.value.trim();
+      if (!newCat) return;
+
+      if (!categories.includes(newCat)) {
+        categories.push(newCat);
+      }
+      
+      const select = document.getElementById('task-cat-select');
+      select.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+      select.value = newCat;
+      input.value = '';
+      showToast(`הקטגוריה "${newCat}" נוספה ונבחרה`);
+    }
+
+    window.confirmTaskConversion = async function() {
+      if (!pendingTaskIdToConvert) return;
+      const task = sidebarTasks.find(t => t.id === pendingTaskIdToConvert);
+      const selectedCategory = document.getElementById('task-cat-select').value;
+      
+      if (!task) {
+        closeTaskCatModal();
+        return;
+      }
+
+      const now = new Date();
+      const dayName = now.toLocaleDateString('he-IL', { weekday: 'short' });
+      const dateOnly = now.toLocaleDateString('he-IL');
+      const timeOnly = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+      const dateStr = `${dayName}, ${dateOnly}, ${timeOnly}`;
+
+      try {
+        await addDoc(collection(db, "notes"), {
+          title: null,
+          text: task.text,
+          category: selectedCategory,
+          imageUrl: null,
+          linkUrl: null,
+          linkTitle: null,
+          date: dateStr,
+          createdAt: Date.now(),
+          urgent: 'רגיל',
+          pinned: false,
+          archived: false,
+          isShared: false,
+          isLocked: false
+        });
+
+        deleteSidebarTask(pendingTaskIdToConvert);
+        closeTaskCatModal();
+        showToast(`המשימה הפכה לפתק בקטגוריית "${selectedCategory}"!`);
+      } catch (err) {
+        console.error("שגיאה בהפיכת משימה לפתק:", err);
+        showToast("שגיאה בהפיכת המשימה לפתק");
+      }
+    }
+
+    function saveAndRenderSidebarTasks() {
+      localStorage.setItem('sidebar_tasks', JSON.stringify(sidebarTasks));
+      renderSidebarTasks();
+    }
+
+    function renderSidebarTasks() {
+      const listEl = document.getElementById('sidebar-task-list');
+      if (!listEl) return;
+      if (sidebarTasks.length === 0) {
+        listEl.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 6px;">אין משימות מהירות</span>';
+        return;
+      }
+      listEl.innerHTML = sidebarTasks.map(t => `
+        <div class="sidebar-task-item">
+          <span onclick="toggleSidebarTask(${t.id})" style="cursor: pointer; text-decoration: ${t.done ? 'line-through' : 'none'}; color: ${t.done ? '#94a3b8' : 'inherit'}; flex: 1; word-break: break-word;">${t.done ? '☑️ ' : '☐ '}${escapeHtml(t.text)}</span>
+          <div class="sidebar-task-actions">
+            <button class="convert-task-btn" onclick="convertTaskToNote(${t.id})" title="הפוך לפתק מלא בלוח">📝 לפתק</button>
+            <button class="btn" style="font-size: 0.75rem; color: #be123c; cursor: pointer; padding: 2px 4px;" onclick="deleteSidebarTask(${t.id})" title="מחק משימה">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.addCustomLink = function() {
+      const titleInput = document.getElementById('new-link-title');
+      const urlInput = document.getElementById('new-link-url');
+      const title = titleInput.value.trim();
+      let url = urlInput.value.trim();
+      if (!title || !url) return;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+      customLinks.push({ id: Date.now(), title, url });
+      titleInput.value = '';
+      urlInput.value = '';
+      saveAndRenderCustomLinks();
+    }
+
+    window.deleteCustomLink = function(id) {
+      customLinks = customLinks.filter(l => l.id !== id);
+      saveAndRenderCustomLinks();
+    }
+
+    function saveAndRenderCustomLinks() {
+      localStorage.setItem('sidebar_custom_links', JSON.stringify(customLinks));
+      renderCustomLinks();
+    }
+
+    function renderCustomLinks() {
+      const container = document.getElementById('links-container');
+      if (!container) return;
+      if (customLinks.length === 0) {
+        container.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">אין קישורים שמורים</span>';
+        return;
+      }
+      container.innerHTML = customLinks.map(l => `
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <a href="${l.url}" target="_blank" class="quick-link-item" style="flex: 1;">🔗 ${escapeHtml(l.title)}</a>
+          <button class="btn" style="font-size: 0.75rem; color: #be123c; cursor: pointer; padding: 4px;" onclick="deleteCustomLink(${l.id})" title="מחק קישור">✕</button>
+        </div>
+      `).join('');
+    }
+
+    window.togglePrivacyBlur = function() {
+      document.body.classList.toggle('privacy-mode');
+      const btn = document.getElementById('privacy-btn');
+      const isBlurred = document.body.classList.contains('privacy-mode');
+      btn.innerText = isBlurred ? '👁️‍🗨️' : '👁️';
+      showToast(isBlurred ? "הפתקים טושטשו להגנת פרטיות" : "הטשטוש הוסר");
+    }
+
+    window.openLightbox = function(url) {
+      document.getElementById('lightbox-img-el').src = url;
+      document.getElementById('lightbox-modal').classList.add('show');
+    }
+
+    window.closeLightbox = function() {
+      document.getElementById('lightbox-modal').classList.remove('show');
+    }
+
+    window.addChecklistItemToModal = function() {
+      const textarea = document.getElementById('note-text-input');
+      const val = textarea.value;
+      const prefix = (val.length > 0 && !val.endsWith('\n')) ? '\n' : '';
+      textarea.value = val + prefix + '[ ] ';
+      textarea.focus();
+    }
+
+    window.toggleAdvancedPanel = function() {
+      const panel = document.getElementById('advanced-panel');
+      const arrow = document.getElementById('advanced-arrow');
+      panel.classList.toggle('show');
+      arrow.innerText = panel.classList.contains('show') ? '▲' : '▼';
+    }
+
+    window.togglePasswordInput = function(checkbox) {
+      const passContainer = document.getElementById('modal-pass-container');
+      const passInput = document.getElementById('modal-secure-password');
+      passContainer.style.display = checkbox.checked ? 'inline-flex' : 'none';
+      if (checkbox.checked) passInput.focus();
+    }
+
+    window.togglePasswordVisibility = function(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.innerText = '👁️‍🗨️';
+      } else {
+        input.type = 'password';
+        btn.innerText = '👁️';
+      }
+    }
+
+    function startRealtimeListener() {
+      if (!currentUser) return;
+      if (unsubscribeNotes) unsubscribeNotes();
+
+      unsubscribeNotes = onSnapshot(collection(db, "notes"), (querySnapshot) => {
+        allNotes = [];
+        const activeCategoriesSet = new Set(['כללי']);
+
+        querySnapshot.forEach((docSnap) => {
+          const noteData = { id: docSnap.id, ...docSnap.data() };
+          allNotes.push(noteData);
+          if (noteData.category && noteData.category.trim() !== '') {
+            activeCategoriesSet.add(noteData.category.trim());
+          }
+        });
+
+        categories = Array.from(activeCategoriesSet);
+        updateCounter();
+        renderCategories();
+        renderNotes();
+      }, (error) => { console.error(error); });
+    }
+
+    let recognition = null;
+    let isRecording = false;
+    let baseTextBeforeRecording = '';
+
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.lang = 'he-IL';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      recognition.onresult = (event) => {
+        let interimTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          interimTranscript += event.results[i][0].transcript;
+        }
+        const input = document.getElementById('note-text-input');
+        input.value = baseTextBeforeRecording + (baseTextBeforeRecording && interimTranscript ? ' ' : '') + interimTranscript;
+      };
+
+      recognition.onerror = () => { stopVoiceRecognition(); };
+      recognition.onend = () => { stopVoiceRecognition(); };
+    }
+
+    window.toggleVoiceRecognition = function() {
+      if (!recognition) return alert("הדפדפן שלך אינו תומך בהמרת קול לטקסט.");
+      if (isRecording) {
+        recognition.stop();
+        stopVoiceRecognition();
+      } else {
+        const input = document.getElementById('note-text-input');
+        baseTextBeforeRecording = input.value.trim();
+        try {
+          recognition.start();
+          isRecording = true;
+          document.getElementById('voice-record-btn').innerText = '🔴';
+          showToast("מקשיב... דבר עכשיו");
+        } catch(err) { console.error(err); }
+      }
+    }
+
+    function stopVoiceRecognition() {
+      isRecording = false;
+      const btn = document.getElementById('voice-record-btn');
+      if (btn) btn.innerText = '🎤';
+    }
+
+    window.toggleHeaderMenu = function(event) {
+      event.stopPropagation();
+      const dropdown = document.getElementById('header-dropdown');
+      const willOpen = !dropdown.classList.contains('active');
+      closeAllDropdowns();
+      if (willOpen) dropdown.classList.add('active');
+    }
+
+    window.toggleSearchMenu = function(event) {
+      event.stopPropagation();
+      const input = document.getElementById('search-input');
+      const willOpen = !input.classList.contains('active');
+      closeAllDropdowns();
+      if (willOpen) {
+        input.classList.add('active');
+        input.focus();
+      }
+    }
+
+    window.updateCounter = function() {
+      const activeCount = allNotes.filter(n => !n.archived).length;
+      const archivedCount = allNotes.filter(n => n.archived).length;
+      const sharedCount = allNotes.filter(n => n.isShared === true).length;
+      
+      let counterText = `${activeCount} פעילים | ${archivedCount} בארכיון`;
+      if (sharedCount > 0) counterText += ` | 🔗 ${sharedCount} משותפים`;
+      document.getElementById('notes-counter').innerText = counterText;
+    }
+
+    window.toggleCategoryManagement = function() {
+      isManagingCategories = !isManagingCategories;
+      const btn = document.getElementById('manage-cat-btn');
+      btn.innerText = isManagingCategories ? '⚙️ סיום ניהול' : '⚙️ ניהול קטגוריות';
+      renderCategories();
+    }
+
+    window.renderCategories = function() {
+      const container = document.getElementById('categories-container');
+      container.innerHTML = '';
+
+      const allChip = document.createElement('div');
+      allChip.className = `cat-chip ${currentCategory === 'הכל' ? 'active' : ''}`;
+      allChip.innerText = 'הכל';
+      allChip.onclick = () => { currentCategory = 'הכל'; renderCategories(); renderNotes(); };
+      container.appendChild(allChip);
+
+      const urgentChip = document.createElement('div');
+      urgentChip.className = `cat-chip urgent-chip ${currentCategory === '⭐ דחוף' ? 'active' : ''}`;
+      urgentChip.innerText = '⭐ דחוף';
+      urgentChip.onclick = () => { currentCategory = '⭐ דחוף'; renderCategories(); renderNotes(); };
+      container.appendChild(urgentChip);
+
+      const sharedChip = document.createElement('div');
+      sharedChip.className = `cat-chip shared-chip ${currentCategory === '🔗 משותפים' ? 'active' : ''}`;
+      sharedChip.innerText = '🔗 משותפים';
+      sharedChip.onclick = () => { currentCategory = '🔗 משותפים'; renderCategories(); renderNotes(); };
+      container.appendChild(sharedChip);
+
+      categories.forEach(c => {
+        const colors = getCategoryColor(c);
+        const chip = document.createElement('div');
+        chip.className = `cat-chip ${currentCategory === c ? 'active' : ''}`;
+        let chipContent = `<span>${c}</span>`;
+        if (isManagingCategories && c !== 'כללי') {
+          chipContent += `<button class="cat-delete-btn" onclick="event.stopPropagation(); deleteCategory('${c}')">✕</button>`;
+        }
+        chip.innerHTML = chipContent;
+        if (currentCategory !== c) {
+          chip.style.background = colors.bg;
+          chip.style.color = colors.text;
+          chip.style.borderColor = colors.border;
+        }
+        chip.onclick = () => { currentCategory = c; renderCategories(); renderNotes(); };
+        container.appendChild(chip);
+      });
+
+      document.getElementById('note-cat-select').innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    window.deleteCategory = async function(catName) {
+      if (!confirm(`האם למחוק את הקטגוריה "${catName}"?`)) return;
+      try {
+        const updatePromises = allNotes.filter(n => n.category === catName).map(note => updateDoc(doc(db, "notes", note.id), { category: 'כללי' }));
+        await Promise.all(updatePromises);
+        categories = categories.filter(c => c !== catName);
+        if (currentCategory === catName) currentCategory = 'הכל';
+        showToast("הקטגוריה הוסרה בהצלחה");
+      } catch (e) { console.error(e); }
+    }
+
+    window.renderNotes = function() {
+      const container = document.getElementById('notes-container');
+      const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+      
+      let filtered = allNotes.filter(note => currentView === 'active' ? !note.archived : note.archived);
+
+      if (currentCategory === '⭐ דחוף') filtered = filtered.filter(note => note.urgent === 'דחוף');
+      else if (currentCategory === '🔗 משותפים') filtered = filtered.filter(note => note.isShared === true);
+      else if (currentCategory !== 'הכל') filtered = filtered.filter(note => (note.category || 'כללי') === currentCategory);
+
+      if (searchQuery !== "") {
+        filtered = filtered.filter(note => 
+          (note.text || "").toLowerCase().includes(searchQuery) || 
+          (note.title || "").toLowerCase().includes(searchQuery)
+        );
+      }
+
+      filtered.sort((a, b) => {
+        if ((a.pinned ? 1 : 0) !== (b.pinned ? 1 : 0)) return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
+        return (b.createdAt || 0) - (a.createdAt || 0);
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:var(--text-muted); margin-top:20px; grid-column: 1/-1;">אין פתקים להצגה</p>';
+        return;
+      }
+
+      container.innerHTML = generateNotesHTML(filtered);
+    }
+
+    function renderNoteContent(id, text, isLocked) {
+      if (isLocked && !unlockedNotes[id]) {
+        return `
+          <div class="locked-card-prompt">
+            <span style="font-size: 1.5rem;">🔒</span>
+            <span style="font-size: 0.85rem; font-weight: 600; color: #b45309;">פתק נעול בסיסמה</span>
+            <div class="password-wrapper">
+              <input type="password" id="card-unlock-${id}" placeholder="הכנס סיסמה..." aria-label="סיסמת פענוח לפתק" dir="ltr" style="font-size:0.85rem;" onkeydown="if(event.key==='Enter') unlockCardNote(event, '${id}')">
+              <button type="button" class="eye-btn" onclick="togglePasswordVisibility('card-unlock-${id}', this)" aria-label="הצג או הסתר סיסמה">👁️</button>
+            </div>
+            <button class="btn btn-submit" style="padding: 4px 12px; font-size: 0.8rem; border-radius: 6px;" onclick="unlockCardNote(event, '${id}')">פענח</button>
+          </div>
+        `;
+      }
+
+      let actualText = text;
+      if (isLocked && unlockedNotes[id]) {
+        try {
+          const bytes = CryptoJS.AES.decrypt(text, unlockedNotes[id]);
+          actualText = bytes.toString(CryptoJS.enc.Utf8) || 'שגיאה בפענוח';
+        } catch(e) { actualText = 'שגיאה בפענוח'; }
+      }
+
+      const lines = (actualText || "").split('\n');
+      const hasChecklist = lines.some(line => line.trim().startsWith('[ ]') || line.trim().startsWith('[x]') || line.trim().startsWith('[X]'));
+
+      if (!hasChecklist) {
+        return `<label for="inline-text-${id}" style="display:none;">תוכן פתק</label><textarea class="inline-textarea" id="inline-text-${id}" aria-label="עריכת תוכן פתק" oninput="showInlineSave('${id}')">${escapeHtml(actualText || '')}</textarea>`;
+      }
+
+      let checklistHTML = '<div class="checklist-container">';
+      lines.forEach((line, lineIndex) => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('[ ]') || trimmed.startsWith('[x]') || trimmed.startsWith('[X]')) {
+          const isChecked = trimmed.startsWith('[x]') || trimmed.startsWith('[X]');
+          const itemText = trimmed.replace(/^\[[ xX]\]/, '').trim();
+          checklistHTML += `
+            <div class="checklist-row" onclick="toggleChecklistItem('${id}', ${lineIndex})">
+              <span class="checklist-cb" aria-hidden="true">${isChecked ? '☑️' : '☐'}</span>
+              <span class="checklist-text ${isChecked ? 'checked' : ''}">${escapeHtml(itemText)}</span>
+            </div>
+          `;
+        } else if (trimmed.length > 0) {
+          checklistHTML += `<div style="margin: 2px 0; font-size: 0.95rem;">${escapeHtml(line)}</div>`;
+        }
+      });
+      checklistHTML += '</div>';
+      return checklistHTML;
+    }
+
+    window.unlockCardNote = function(event, id) {
+      if (event) event.stopPropagation();
+      const passInput = document.getElementById(`card-unlock-${id}`);
+      if (!passInput) return;
+      const pass = passInput.value;
+      const note = allNotes.find(n => n.id === id);
+      if (!note) return;
+
+      try {
+        const bytes = CryptoJS.AES.decrypt(note.text, pass);
+        const original = bytes.toString(CryptoJS.enc.Utf8);
+        if (!original) throw new Error();
+        unlockedNotes[id] = pass;
+        renderNotes();
+        showToast("הפתק פוענח בהצלחה!");
+      } catch (err) {
+        showToast("סיסמה שגויה!");
+      }
+    }
+
+    window.toggleChecklistItem = async function(id, lineIndex) {
+      const note = allNotes.find(n => n.id === id);
+      if (!note || !note.text) return;
+
+      let textToModify = note.text;
+      if (note.isLocked) {
+        try {
+          textToModify = CryptoJS.AES.decrypt(note.text, unlockedNotes[id]).toString(CryptoJS.enc.Utf8);
+        } catch(e) { return; }
+      }
+
+      let lines = textToModify.split('\n');
+      if (lines[lineIndex]) {
+        let trimmed = lines[lineIndex].trim();
+        if (trimmed.startsWith('[ ]')) lines[lineIndex] = lines[lineIndex].replace('[ ]', '[x]');
+        else if (trimmed.startsWith('[x]') || trimmed.startsWith('[X]')) lines[lineIndex] = lines[lineIndex].replace(/\[[xX]\]/, '[ ]');
+        
+        let newText = lines.join('\n');
+        if (note.isLocked) {
+          newText = CryptoJS.AES.encrypt(newText, unlockedNotes[id]).toString();
+        }
+
+        try {
+          await updateDoc(doc(db, "notes", id), { text: newText });
+        } catch(err) { console.error(err); }
+      }
+    }
+
+    function generateNotesHTML(notesArray) {
+      let html = '';
+      notesArray.forEach(note => {
+        const { id, title, text, date, category, urgent, pinned, isShared, lastEditedBy, imageUrl, linkUrl, linkTitle, isLocked } = note;
+        const catName = category || 'כללי';
+        const colors = getCategoryColor(catName);
+        const cardVars = `style="--cat-bg-color: ${colors.bg}; --cat-border-color: ${colors.border}; --cat-text-color: ${colors.text};"`;
+        
+        const sharedTag = isShared ? `<span class="shared-badge">🔗 משותף</span>` : '';
+        const lockedTag = isLocked ? `<span class="locked-badge">🔒 נעול</span>` : '';
+        const editedByTag = lastEditedBy ? `<span class="edited-by-badge">✏️ ${lastEditedBy}</span>` : '';
+        const titleHtml = title ? `<span class="note-card-title">${escapeHtml(title)}</span>` : '';
+        const imageElement = (imageUrl && (!isLocked || unlockedNotes[id])) ? `<img src="${imageUrl}" class="note-image-preview" onclick="openLightbox('${imageUrl}')" alt="תמונת פתק" title="לחץ להגדלה">` : '';
+        
+        let linkElement = '';
+        if (linkUrl && (!isLocked || unlockedNotes[id])) {
+          const displayTitle = linkTitle ? linkTitle : linkUrl;
+          linkElement = `<a href="${linkUrl}" target="_blank" class="note-link-btn" onclick="event.stopPropagation()">🔗 ${escapeHtml(displayTitle)}</a>`;
+        }
+
+        let catMenuItemsHTML = categories.map(c => `
+          <button class="cat-dropdown-item ${c === catName ? 'active-cat' : ''}" onclick="changeNoteCategory(event, '${id}', '${c}')">
+            <span>${c}</span>${c === catName ? '✓' : ''}
+          </button>
+        `).join('') + `<div style="border-top:1px solid var(--border); margin:4px 0;"></div>
+                       <button class="cat-dropdown-item" onclick="promptAndAddCategoryForNote(event, '${id}')"><span>➕ קטגוריה חדשה...</span></button>`;
+
+        const shareBtnHTML = isShared 
+          ? `<button class="dropdown-item" onclick="stopSharingNote('${id}')">🔒 הפסק שיתוף</button>`
+          : `<button class="dropdown-item" onclick="shareNote('${id}', true)">🔗 שיתוף (עריכה ללא גוגל)</button>`;
+
+        const contentHTML = renderNoteContent(id, text, isLocked);
+        const showSaveInline = !isLocked || unlockedNotes[id];
+
+        html += `
+          <div class="note-card ${urgent === 'דחוף' ? 'is-urgent' : ''} ${pinned ? 'is-pinned' : ''}" id="note-card-${id}" ${cardVars}>
+            <div class="note-header-top">
+              <div>
+                <div class="cat-badge-wrapper">
+                  <span class="cat-badge" onclick="toggleCatDropdown(event, '${id}')" aria-label="שינוי קטגוריה">${pinned ? '📌 ' : ''}${catName} ▾</span>
+                  <div class="cat-dropdown-menu" id="cat-dropdown-${id}">${catMenuItemsHTML}</div>
+                </div>
+                ${sharedTag}
+                ${lockedTag}
+                ${editedByTag}
+              </div>
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <span class="note-date">${date || ''}</span>
+                <div class="menu-wrapper">
+                  <button class="menu-btn" onclick="toggleDropdown(event, '${id}')" aria-label="תפריט אפשרויות לפתק">⋮</button>
+                  <div class="dropdown-menu" id="dropdown-${id}">
+                    <button class="dropdown-item" onclick="openEditModal('${id}', \`${escapeRowText(title || '')}\`, \`${escapeRowText(text || '')}\`, '${catName}', \`${imageUrl || ''}\`, \`${escapeRowText(linkUrl || '')}\`, \`${escapeRowText(linkTitle || '')}\`, ${!!isLocked})">✏️ עריכה מלאה</button>
+                    <button class="dropdown-item" onclick="copyNoteText('${id}')">📋 העתק טקסט</button>
+                    <button class="dropdown-item" onclick="togglePin('${id}')">${pinned ? '📌 שחרר סיכה' : '📌 הצמד לראש'}</button>
+                    <button class="dropdown-item" onclick="toggleUrgent('${id}')">${urgent === 'דחוף' ? '☆ הסר דחוף' : '⭐ סמן כדחוף'}</button>
+                    <button class="dropdown-item" onclick="downloadSingleNote('${id}')">📥 הורד כקובץ TXT</button>
+                    <button class="dropdown-item" onclick="shareNote('${id}', false)">🔗 שיתוף (קריאה)</button>
+                    ${shareBtnHTML}
+                    <button class="dropdown-item" onclick="toggleArchive('${id}')">${currentView === 'active' ? '📦 לארכיון' : '📤 שחזר'}</button>
+                    <button class="dropdown-item danger" onclick="deleteNote('${id}')">🗑️ מחיקה</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            ${titleHtml}
+            ${contentHTML}
+            ${linkElement}
+            ${imageElement}
+            ${showSaveInline ? `<button class="save-inline-btn" id="save-btn-${id}" onclick="saveInlineNote('${id}')">שמור שינויים</button>` : ''}
+          </div>
+        `;
+      });
+      return html;
+    }
+
+    window.toggleCatDropdown = function(event, id) {
+      event.stopPropagation();
+      const dropdown = document.getElementById(`cat-dropdown-${id}`);
+      const isOpen = dropdown.classList.contains('show');
+      closeAllDropdowns();
+      if (!isOpen) dropdown.classList.add('show');
+    }
+
+    window.changeNoteCategory = async function(event, id, newCat) {
+      event.stopPropagation();
+      closeAllDropdowns();
+      try {
+        await updateDoc(doc(db, "notes", id), { category: newCat });
+        showToast(`הקטגוריה שונתה ל-"${newCat}"`);
+      } catch (err) { console.error(err); }
+    }
+
+    window.promptAndAddCategoryForNote = async function(event, id) {
+      event.stopPropagation();
+      closeAllDropdowns();
+      const newCat = prompt("הכנס את שם הקטגוריה החדשה:");
+      if (newCat && newCat.trim() !== "") {
+        const catName = newCat.trim();
+        if (!categories.includes(catName)) categories.push(catName);
+        await changeNoteCategory(event, id, catName);
+      }
+    }
+
+    window.copyNoteText = function(id) {
+      closeAllDropdowns();
+      const note = allNotes.find(n => n.id === id);
+      if (!note) return;
+      if (note.isLocked && !unlockedNotes[id]) {
+        alert("יש לפענח את הפתק עם סיסמה לפני העתקה.");
+        return;
+      }
+      let textToCopy = note.text;
+      if (note.isLocked) {
+        try { textToCopy = CryptoJS.AES.decrypt(note.text, unlockedNotes[id]).toString(CryptoJS.enc.Utf8); } catch(e){}
+      }
+      navigator.clipboard.writeText(textToCopy).then(() => showToast("הטקסט הועתק ללוח!"));
+    }
+
+    window.downloadSingleNote = function(id) {
+      closeAllDropdowns();
+      const note = allNotes.find(n => n.id === id);
+      if (!note) return;
+      if (note.isLocked && !unlockedNotes[id]) {
+        alert("יש לפענח את הפתק עם סיסמה לפני הורדה.");
+        return;
+      }
+      let textToDownload = note.text;
+      if (note.isLocked) {
+        try { textToDownload = CryptoJS.AES.decrypt(note.text, unlockedNotes[id]).toString(CryptoJS.enc.Utf8); } catch(e){}
+      }
+      const blob = new Blob([`כותרת: ${note.title || ''}\nקטגוריה: ${note.category || 'כללי'}\nתאריך: ${note.date || ''}\n\n${textToDownload}`], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `note_${id.slice(0, 6)}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    window.showInlineSave = function(id) {
+      const btn = document.getElementById(`save-btn-${id}`);
+      if (btn) btn.classList.add('show');
+    }
+
+    window.saveInlineNote = async function(id) {
+      const textarea = document.getElementById(`inline-text-${id}`);
+      const btn = document.getElementById(`save-btn-${id}`);
+      const note = allNotes.find(n => n.id === id);
+      btn.disabled = true;
+
+      let newText = textarea.value.trim();
+      if (note && note.isLocked && unlockedNotes[id]) {
+        newText = CryptoJS.AES.encrypt(newText, unlockedNotes[id]).toString();
+      }
+
+      try {
+        await updateDoc(doc(db, "notes", id), { 
+          text: newText,
+          lastEditedBy: null,
+          lastEditedById: null
+        });
+        showToast("הפתק עודכן בהצלחה");
+        btn.classList.remove('show');
+      } catch (err) { console.error(err); }
+      btn.disabled = false;
+    }
+
+    window.toggleDropdown = function(event, id) {
+      event.stopPropagation();
+      const dropdown = document.getElementById(`dropdown-${id}`);
+      const isOpen = dropdown.classList.contains('show');
+      closeAllDropdowns();
+      if (!isOpen) dropdown.classList.add('show');
+    }
+
+    window.closeAllDropdowns = function() {
+      document.querySelectorAll('.dropdown-menu, .cat-dropdown-menu').forEach(menu => menu.classList.remove('show'));
+      document.getElementById('header-dropdown')?.classList.remove('active');
+      document.getElementById('search-input')?.classList.remove('active');
+    }
+
+    window.getCategoryColor = function(catName) {
+      if (catName === 'הכל' || catName === '⭐ דחוף' || catName === '🔗 משותפים') return { bg: '#f8fafc', border: '#cbd5e1', text: '#334155' };
+      let hash = 0;
+      for (let i = 0; i < catName.length; i++) { hash = catName.charCodeAt(i) + ((hash << 5) - hash); }
+      const hue = Math.abs(hash % 360);
+      return { bg: `hsl(${hue}, 60%, 97%)`, border: `hsl(${hue}, 40%, 75%)`, text: `hsl(${hue}, 60%, 25%)` };
+    }
+
+    window.openAddModal = function() {
+      editingNoteId = null;
+      currentImageBase64 = null;
+      document.getElementById('modal-title').innerText = 'פתק חדש';
+      document.getElementById('note-title-input').value = '';
+      document.getElementById('note-text-input').value = '';
+      document.getElementById('modal-link-title').value = '';
+      document.getElementById('modal-link-url').value = '';
+      document.getElementById('modal-secure-toggle').checked = false;
+      document.getElementById('modal-secure-password').value = '';
+      document.getElementById('modal-pass-container').style.display = 'none';
+      document.getElementById('note-cat-select').value = categories[0] || 'כללי';
+      document.getElementById('modal-img-preview-box').classList.remove('show');
+      document.getElementById('remove-img-btn').style.display = 'none';
+      document.getElementById('advanced-panel').classList.remove('show');
+      document.getElementById('advanced-arrow').innerText = '▼';
+      document.getElementById('note-modal').style.display = 'flex';
+    }
+
+    window.openEditModal = function(id, title, text, cat, imageUrl, linkUrl, linkTitle, isLocked) {
+      closeAllDropdowns();
+      editingNoteId = id;
+      currentImageBase64 = imageUrl || null;
+      document.getElementById('modal-title').innerText = 'עריכת פתק';
+
+      let actualText = text;
+      if (isLocked) {
+        if (unlockedNotes[id]) {
+          try { actualText = CryptoJS.AES.decrypt(text, unlockedNotes[id]).toString(CryptoJS.enc.Utf8); } catch(e){}
+        } else {
+          const pass = prompt("הכנס סיסמה לפתיחת וצפיית הפתק לעריכה:");
+          try {
+            actualText = CryptoJS.AES.decrypt(text, pass).toString(CryptoJS.enc.Utf8);
+            if (!actualText) throw new Error();
+            unlockedNotes[id] = pass;
+          } catch(e) {
+            alert("סיסמה שגויה!");
+            return;
+          }
+        }
+      }
+
+      document.getElementById('note-title-input').value = title || '';
+      document.getElementById('note-text-input').value = actualText;
+      document.getElementById('modal-link-url').value = linkUrl || '';
+      document.getElementById('modal-link-title').value = linkTitle || '';
+      document.getElementById('note-cat-select').value = cat || "כללי";
+      
+      const secureToggle = document.getElementById('modal-secure-toggle');
+      const passContainer = document.getElementById('modal-pass-container');
+      const securePass = document.getElementById('modal-secure-password');
+      if (isLocked) {
+        secureToggle.checked = true;
+        passContainer.style.display = 'inline-flex';
+        securePass.value = unlockedNotes[id] || '';
+      } else {
+        secureToggle.checked = false;
+        passContainer.style.display = 'none';
+        securePass.value = '';
+      }
+
+      const previewBox = document.getElementById('modal-img-preview-box');
+      const removeBtn = document.getElementById('remove-img-btn');
+      if (imageUrl) {
+        document.getElementById('modal-thumb-img').src = imageUrl;
+        previewBox.classList.add('show');
+        removeBtn.style.display = 'block';
+      } else {
+        previewBox.classList.remove('show');
+        removeBtn.style.display = 'none';
+      }
+
+      const advancedPanel = document.getElementById('advanced-panel');
+      const advancedArrow = document.getElementById('advanced-arrow');
+      if (imageUrl || linkUrl || isLocked) {
+        advancedPanel.classList.add('show');
+        advancedArrow.innerText = '▲';
+      } else {
+        advancedPanel.classList.remove('show');
+        advancedArrow.innerText = '▼';
+      }
+
+      document.getElementById('note-modal').style.display = 'flex';
+    }
+
+    window.closeModal = function() { 
+      const modalBox = document.getElementById('modal-box');
+      if (modalBox) modalBox.classList.remove('fullscreen-mode');
+      document.getElementById('note-modal').style.display = 'none'; 
+    }
+
+    window.handleImageSelection = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+          } else {
+            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          currentImageBase64 = canvas.toDataURL('image/jpeg', 0.75);
+          
+          document.getElementById('modal-thumb-img').src = currentImageBase64;
+          document.getElementById('modal-img-preview-box').classList.add('show');
+          document.getElementById('remove-img-btn').style.display = 'block';
+          showToast("התמונה נוספה בהצלחה!");
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    window.clearModalImage = function() {
+      currentImageBase64 = null;
+      document.getElementById('modal-img-preview-box').classList.remove('show');
+      document.getElementById('remove-img-btn').style.display = 'none';
+      document.getElementById('modal-image-input').value = '';
+    }
+
+    window.saveNote = async function() {
+      const title = document.getElementById('note-title-input').value.trim();
+      let text = document.getElementById('note-text-input').value.trim();
+      const linkUrl = document.getElementById('modal-link-url').value.trim();
+      const linkTitle = document.getElementById('modal-link-title').value.trim();
+      const cat = document.getElementById('note-cat-select').value;
+      const isLocked = document.getElementById('modal-secure-toggle').checked;
+      const pass = document.getElementById('modal-secure-password').value.trim();
+
+      if (isLocked && !pass) {
+        alert("אנא הזן סיסמה לנעילת הפתק.");
+        return;
+      }
+
+      if (!title && !text && !currentImageBase64 && !linkUrl) return;
+
+      if (isLocked) {
+        text = CryptoJS.AES.encrypt(text, pass).toString();
+        if (editingNoteId) unlockedNotes[editingNoteId] = pass;
+      }
+
+      const now = new Date();
+      const dayName = now.toLocaleDateString('he-IL', { weekday: 'short' });
+      const dateOnly = now.toLocaleDateString('he-IL');
+      const timeOnly = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+      const dateStr = `${dayName}, ${dateOnly}, ${timeOnly}`;
+      
+      const timestamp = Date.now();
+
+      try {
+        if (editingNoteId) {
+          await updateDoc(doc(db, "notes", editingNoteId), { 
+            title: title || null,
+            text: text, 
+            category: cat,
+            imageUrl: currentImageBase64 || null,
+            linkUrl: linkUrl || null,
+            linkTitle: linkTitle || null,
+            isLocked: isLocked,
+            lastEditedBy: null,
+            lastEditedById: null
+          });
+          showToast("הפתק עודכן בהצלחה");
+        } else {
+          const docRef = await addDoc(collection(db, "notes"), {
+            title: title || null,
+            text: text, 
+            category: cat, 
+            imageUrl: currentImageBase64 || null,
+            linkUrl: linkUrl || null,
+            linkTitle: linkTitle || null,
+            date: dateStr, 
+            createdAt: timestamp, 
+            urgent: 'רגיל', 
+            pinned: false, 
+            archived: false, 
+            isShared: false,
+            isLocked: isLocked
+          });
+          if (isLocked) unlockedNotes[docRef.id] = pass;
+          showToast("הפתק נוסף בהצלחה");
+        }
+        closeModal();
+      } catch (err) { console.error(err); }
+    }
+
+    window.togglePin = async function(id) {
+      closeAllDropdowns();
+      const note = allNotes.find(n => n.id === id);
+      if (note) await updateDoc(doc(db, "notes", id), { pinned: !note.pinned });
+    }
+
+    window.toggleUrgent = async function(id) {
+      closeAllDropdowns();
+      const note = allNotes.find(n => n.id === id);
+      if (note) await updateDoc(doc(db, "notes", id), { urgent: note.urgent === 'דחוף' ? 'רגיל' : 'דחוף' });
+    }
+
+    window.toggleArchive = async function(id) {
+      closeAllDropdowns();
+      const note = allNotes.find(n => n.id === id);
+      if (note) await updateDoc(doc(db, "notes", id), { archived: !note.archived });
+    }
+
+    window.deleteNote = async function(id) {
+      closeAllDropdowns();
+      if (confirm("האם למחוק פתק זה לצמיתות?")) await deleteDoc(doc(db, "notes", id));
+    }
+
+    window.exportBackup = function() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allNotes, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = `notes_backup_${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    window.triggerImport = function() { document.getElementById('import-file-input').click(); }
+
+    window.importBackup = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const importedNotes = JSON.parse(e.target.result);
+          if (confirm(`האם לייבא ${importedNotes.length} פתקים חדשים?`)) {
+            for (let note of importedNotes) {
+              await addDoc(collection(db, "notes"), { 
+                title: note.title || null,
+                text: note.text || '', 
+                category: note.category || 'כללי', 
+                imageUrl: note.imageUrl || null,
+                linkUrl: note.linkUrl || null,
+                linkTitle: note.linkTitle || null,
+                date: note.date || new Date().toLocaleDateString('he-IL'), 
+                createdAt: Date.now(), 
+                urgent: note.urgent || 'רגיל', 
+                pinned: note.pinned || false, 
+                archived: note.archived || false,
+                isLocked: note.isLocked || false 
+              });
+            }
+            showToast("הייבוא הושלם בהצלחה!");
+          }
+        } catch (err) { console.error(err); }
+      };
+      reader.readAsText(file);
+    }
+
+    window.addNewCategory = function() {
+      const newCat = prompt("הכנס את שם הקטגוריה החדשה:");
+      if (newCat && newCat.trim() !== "") {
+        const name = newCat.trim();
+        if (!categories.includes(name)) {
+          categories.push(name);
+          renderCategories();
+          document.getElementById('note-cat-select').value = name;
+        }
+      }
+    }
+
+    window.toggleArchiveView = function() {
+      currentView = currentView === 'active' ? 'archived' : 'active';
+      document.getElementById('archive-view-btn').innerText = currentView === 'active' ? 'ארכיון' : 'פתקים פעילים';
+      renderNotes();
+    }
+
+    window.toggleFullscreenModal = function() {
+      const modal = document.getElementById('modal-box');
+      modal.classList.toggle('fullscreen-mode');
+    }
+
+    window.showToast = function(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2500);
+    }
+
+    window.escapeHtml = function(text) { return (text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+    window.escapeRowText = function(text) { return (text || "").replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/"/g, '&quot;'); }
+  </script>
+</body>
+</html>
