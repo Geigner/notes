@@ -27,14 +27,14 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Assistant', sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 90px; }
 
-    /* מצב טשטוש פרטיות מהיר */
+    /* מצב טשטוש פרטיות מהיר - מתבטל במעבר עכבר על כרטיס ספציפי */
     body.privacy-mode .note-card {
       filter: blur(7px);
-      transition: filter 0.2s ease;
+      transition: filter 0.25s ease;
       user-select: none;
     }
     body.privacy-mode .note-card:hover {
-      filter: blur(5px);
+      filter: blur(0px);
     }
 
     .container { max-width: 1000px; margin: 0 auto; display: none; padding: 0 20px; }
@@ -656,7 +656,7 @@
       signOut(auth);
     }
 
-    // פונקציית טשטוש מהיר לפרטיות בלחיצת כפתור ע인
+    // פונקציית טשטוש מהיר לפרטיות בלחיצת כפתור עין
     window.togglePrivacyBlur = function() {
       document.body.classList.toggle('privacy-mode');
       const btn = document.getElementById('privacy-btn');
@@ -1651,7 +1651,7 @@
       modal.classList.toggle('fullscreen-mode');
     }
 
-    window.showToast = function(msg) {
+    window.showToast = function(msg)  {
       const toast = document.getElementById('toast');
       toast.innerText = msg;
       toast.style.display = 'block';
