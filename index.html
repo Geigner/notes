@@ -289,7 +289,7 @@
       gap: 8px;
     }
     .accordion-section.open .accordion-content {
-      max-height: 300px;
+      max-height: 350px;
       padding: 12px;
     }
 
@@ -314,12 +314,18 @@
       flex: 1; padding: 8px 10px; font-size: 0.85rem;
       border: 1px solid var(--border); border-radius: 8px; outline: none;
     }
-    .sidebar-task-list { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; }
+    .sidebar-task-list { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; }
     .sidebar-task-item {
       display: flex; justify-content: space-between; align-items: center;
       padding: 6px 10px; background: white; border: 1px solid #e2e8f0;
-      border-radius: 6px; font-size: 0.85rem;
+      border-radius: 6px; font-size: 0.85rem; gap: 6px;
     }
+    .sidebar-task-actions { display: flex; align-items: center; gap: 4px; }
+    .convert-task-btn {
+      background: #f1f5f9; border: 1px solid var(--border); font-size: 0.75rem;
+      padding: 2px 6px; border-radius: 4px; cursor: pointer; color: var(--primary); font-weight: 600;
+    }
+    .convert-task-btn:hover { background: #e2e8f0; }
 
     .notes-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
     .note-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 220px; position: relative; transition: all 0.2s ease; }
@@ -812,6 +818,50 @@
       saveAndRenderSidebarTasks();
     }
 
+    // פונקציה חדשה: הפיכת משימה מהירה בפאנל הצידי לפתק רשמי ב-Firebase כולל בחירת קטגוריה!
+    window.convertTaskToNote = async function(id) {
+      const task = sidebarTasks.find(t => t.id === id);
+      if (!task) return;
+
+      const catListStr = categories.join(', ');
+      const chosenCat = prompt(`בחר קטגוריה לפתק החדש (קטגוריות קיימות: ${catListStr}):`, categories[0] || 'כללי');
+
+      if (chosenCat === null) return; // המשתמש לחץ ביטול
+
+      const selectedCategory = chosenCat.trim() || 'כללי';
+
+      const now = new Date();
+      const dayName = now.toLocaleDateString('he-IL', { weekday: 'short' });
+      const dateOnly = now.toLocaleDateString('he-IL');
+      const timeOnly = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+      const dateStr = `${dayName}, ${dateOnly}, ${timeOnly}`;
+
+      try {
+        await addDoc(collection(db, "notes"), {
+          title: null,
+          text: task.text,
+          category: selectedCategory,
+          imageUrl: null,
+          linkUrl: null,
+          linkTitle: null,
+          date: dateStr,
+          createdAt: Date.now(),
+          urgent: 'רגיל',
+          pinned: false,
+          archived: false,
+          isShared: false,
+          isLocked: false
+        });
+
+        // מוחק את המשימה המהירה לאחר שהפכה בהצלחה לפתק
+        deleteSidebarTask(id);
+        showToast(`המשימה הפכה לפתק בקטגוריית "${selectedCategory}"!`);
+      } catch (err) {
+        console.error("שגיאה בהפיכת משימה לפתק:", err);
+        showToast("שגיאה בהפיכת המשימה לפתק");
+      }
+    }
+
     function saveAndRenderSidebarTasks() {
       localStorage.setItem('sidebar_tasks', JSON.stringify(sidebarTasks));
       renderSidebarTasks();
@@ -826,8 +876,11 @@
       }
       listEl.innerHTML = sidebarTasks.map(t => `
         <div class="sidebar-task-item">
-          <span onclick="toggleSidebarTask(${t.id})" style="cursor: pointer; text-decoration: ${t.done ? 'line-through' : 'none'}; color: ${t.done ? '#94a3b8' : 'inherit'}; flex: 1;">${t.done ? '☑️ ' : '☐ '}${escapeHtml(t.text)}</span>
-          <button class="btn" style="font-size: 0.75rem; color: #be123c; cursor: pointer;" onclick="deleteSidebarTask(${t.id})">✕</button>
+          <span onclick="toggleSidebarTask(${t.id})" style="cursor: pointer; text-decoration: ${t.done ? 'line-through' : 'none'}; color: ${t.done ? '#94a3b8' : 'inherit'}; flex: 1; word-break: break-word;">${t.done ? '☑️ ' : '☐ '}${escapeHtml(t.text)}</span>
+          <div class="sidebar-task-actions">
+            <button class="convert-task-btn" onclick="convertTaskToNote(${t.id})" title="הפוך לפתק מלא בלוח">📝 לפתק</button>
+            <button class="btn" style="font-size: 0.75rem; color: #be123c; cursor: pointer; padding: 2px 4px;" onclick="deleteSidebarTask(${t.id})" title="מחק משימה">✕</button>
+          </div>
         </div>
       `).join('');
     }
