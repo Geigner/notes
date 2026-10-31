@@ -37,19 +37,19 @@
       filter: blur(0px);
     }
 
-    /* הקונטיינר הראשי זז הצידה באלגנטיות כשמרכז השליטה פתוח */
+    /* הקונטיינר הראשי זז ימינה באלגנטיות כשמרכז השליטה פתוח משמאל */
     .container {
       max-width: 1000px;
       margin: 0 auto;
       display: none;
       padding: 0 20px;
-      transition: margin-right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
     body.sidebar-open .container {
-      margin-right: 320px;
+      margin-left: 320px;
     }
     @media (max-width: 768px) {
-      body.sidebar-open .container { margin-right: 0; } /* במובייל הפאנל יושב מעל הכל */
+      body.sidebar-open .container { margin-left: 0; } /* במובייל הפאנל יושב מעל הכל */
     }
     
     #auth-screen {
@@ -205,7 +205,7 @@
       animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
     }
 
-    /* סרגל קטגוריות אופקי, נגלל */
+    /* סרגל קטגוריות אופקי נגלל */
     .categories-scroll-wrapper {
       display: flex;
       align-items: center;
@@ -229,18 +229,18 @@
     .cat-chip.shared-chip.active { background: #15803d; color: white; border-color: #15803d; }
     .cat-delete-btn { background: none; border: none; color: inherit; font-size: 0.8rem; cursor: pointer; padding: 0 2px; }
 
-    /* פאנל צדדי נפתח ממוקם מימין לדף */
+    /* פאנל צדדי ממוקם כעת בצד שמאל */
     .sidebar {
       position: fixed;
       top: 0;
-      right: 0;
+      left: 0;
       width: 320px;
       height: 100vh;
       background: white;
-      border-left: 1px solid var(--border);
-      box-shadow: -5px 0 25px rgba(0,0,0,0.05);
+      border-right: 1px solid var(--border);
+      box-shadow: 5px 0 25px rgba(0,0,0,0.05);
       z-index: 300;
-      transform: translateX(100%);
+      transform: translateX(-100%);
       transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       display: flex;
       flex-direction: column;
@@ -425,7 +425,7 @@
 </head>
 <body onclick="closeAllDropdowns(event)">
 
-  <!-- פאנל צדדי נפתח מצד ימין -->
+  <!-- פאנל צדדי נפתח מצד שמאל -->
   <aside class="sidebar" id="app-sidebar" onclick="event.stopPropagation()">
     <div class="sidebar-header">
       <span class="sidebar-title">🧭 מרכז שליטה</span>
@@ -678,7 +678,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const sharedNoteId = urlParams.get('noteId');
 
-    // תיקון בעיית ה-ESC: סגירת פאנלים ותפריטים בלבד מבלי לגעת בטשטוש בטעות
+    // ניהול מקש ESC: סוגר פאנל/מודאל/תפריטים, או מסיר טשטוש אם שום דבר אחר לא פתוח
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' || e.key === 'Esc') {
         const lightbox = document.getElementById('lightbox-modal');
@@ -702,7 +702,18 @@
           closeModal();
           return;
         }
-        closeAllDropdowns();
+        
+        // בדיקה האם יש תפריטים פתוחים להסתרה
+        const hasOpenDropdowns = document.querySelectorAll('.dropdown-menu.show, .cat-dropdown-menu.show, .header-actions-dropdown.active, .search-popup-input.active').length > 0;
+        if (hasOpenDropdowns) {
+          closeAllDropdowns();
+          return;
+        }
+
+        // אם אין שום דבר פתוח, מקש ESC יבטל את מצב הטשטוש (אם מופעל)
+        if (document.body.classList.contains('privacy-mode')) {
+          togglePrivacyBlur();
+        }
       }
     });
 
@@ -753,7 +764,7 @@
       signOut(auth);
     }
 
-    // פתיחה וסגירת הפאנל הצדדי ודחיפת התוכן משמאל
+    // פתיחה וסגירת הפאנל הצדדי ודחיפת התוכן מימינה (הפאנל חוזר לשמאל)
     window.toggleSidebar = function(event) {
       if (event) event.stopPropagation();
       const sidebar = document.getElementById('app-sidebar');
