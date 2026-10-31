@@ -27,7 +27,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Assistant', sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 90px; }
 
-    /* מצב טשטוש פרטיות מהיר - מתבטל במעבר עכבר על כרטיס ספציפי */
+    /* מצב טשטוש פרטיות - מתבטל במעבר עכבר (Hover) על פתק ספציפי */
     body.privacy-mode .note-card {
       filter: blur(7px);
       transition: filter 0.25s ease;
@@ -83,7 +83,7 @@
       justify-content: space-between; 
       align-items: center; 
       padding: 16px 20px; 
-      margin-bottom: 20px; 
+      margin-bottom: 12px; 
       position: sticky;
       top: 0;
       background: rgba(247, 248, 250, 0.95);
@@ -192,40 +192,34 @@
       animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
     }
 
-    .categories-dropdown-wrapper { position: relative; display: inline-block; }
-    .cat-toggle-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: white; border: 1px solid var(--border); border-radius: 20px; font-size: 0.8rem; font-weight: 600; color: #334155; cursor: pointer; box-shadow: var(--shadow); }
-    .cat-toggle-btn:hover { background: #f8fafc; }
-    
-    .categories-bar { 
-      display: none; 
-      position: absolute; 
-      top: 120%; 
-      right: 0; 
-      background: white; 
-      border: 1px solid var(--border); 
-      border-radius: 12px;
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15); 
-      padding: 10px; 
-      z-index: 200; 
-      gap: 6px; 
-      flex-direction: row; 
-      flex-wrap: wrap;
-      align-items: center; 
-      width: 260px; 
-      max-width: 80vw;
+    /* סרגל קטגוריות אופקי, נגלל ונוח למובייל ולמחשב */
+    .categories-scroll-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding: 8px 20px 16px 20px;
+      margin-bottom: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
     }
-    .categories-dropdown-wrapper .categories-bar.active { 
-      display: flex; 
-      animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+    .categories-scroll-wrapper::-webkit-scrollbar {
+      height: 4px;
+    }
+    .categories-scroll-wrapper::-webkit-scrollbar-thumb {
+      background-color: var(--border);
+      border-radius: 4px;
     }
     
-    .cat-chip { padding: 5px 12px; border-radius: 16px; font-size: 0.8rem; white-space: nowrap; cursor: pointer; color: #334155; transition: all 0.2s; user-select: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: #f8fafc; }
+    .cat-chip { padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 500; white-space: nowrap; cursor: pointer; color: #334155; transition: all 0.2s; user-select: none; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: white; box-shadow: var(--shadow); }
     .cat-chip:hover { background: #f1f5f9; color: var(--text-main); }
     .cat-chip.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: 600; }
     .cat-chip.urgent-chip { border-color: #fde68a; background: #fffbeb; color: #92400e; }
     .cat-chip.urgent-chip.active { background: var(--urgent); color: white; border-color: var(--urgent); }
     .cat-chip.shared-chip { border-color: #bbf7d0; background: #f0fdf4; color: #166534; }
     .cat-chip.shared-chip.active { background: #15803d; color: white; border-color: #15803d; }
+    .cat-delete-btn { background: none; border: none; color: inherit; font-size: 0.8rem; cursor: pointer; padding: 0 2px; }
 
     .notes-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
     .note-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 220px; position: relative; transition: all 0.2s ease; }
@@ -416,14 +410,6 @@
           <button class="search-trigger-btn" onclick="toggleSearchMenu(event)" title="חיפוש מהיר" aria-label="פתח חלון חיפוש">🔍</button>
           <input type="text" id="search-input" class="search-popup-input" placeholder="חיפוש חופשי בפתקים..." aria-label="חיפוש חופשי בפתקים" oninput="renderNotes()">
         </div>
-
-        <div class="categories-dropdown-wrapper" onclick="event.stopPropagation()">
-          <button class="cat-toggle-btn" onclick="toggleCategoriesMenu(event)" aria-label="סינון לפי קטגוריות">
-            <span>🏷️ <strong id="selected-cat-label">הכל</strong></span>
-            <span style="font-size: 0.75rem;">▼</span>
-          </button>
-          <div class="categories-bar" id="categories-container"></div>
-        </div>
       </div>
 
       <!-- שעון מרכזי אלגנטי ושקט -->
@@ -447,6 +433,9 @@
         </div>
       </div>
     </header>
+
+    <!-- סרגל קטגוריות אופקי נגלל תחת ההדר -->
+    <nav class="categories-scroll-wrapper" id="categories-container" aria-label="קטגוריות פתקים"></nav>
 
     <main id="notes-main-area">
       <div class="notes-list" id="notes-container"></div>
@@ -656,7 +645,7 @@
       signOut(auth);
     }
 
-    // פונקציית טשטוש מהיר לפרטיות בלחיצת כפתור עין
+    // טשטוש מהיר לפרטיות בלחיצת כפתור עין
     window.togglePrivacyBlur = function() {
       document.body.classList.toggle('privacy-mode');
       const btn = document.getElementById('privacy-btn');
@@ -951,14 +940,6 @@
       if (willOpen) dropdown.classList.add('active');
     }
 
-    window.toggleCategoriesMenu = function(event) {
-      event.stopPropagation();
-      const container = document.getElementById('categories-container');
-      const willOpen = !container.classList.contains('active');
-      closeAllDropdowns();
-      if (willOpen) container.classList.add('active');
-    }
-
     window.toggleSearchMenu = function(event) {
       event.stopPropagation();
       const input = document.getElementById('search-input');
@@ -990,24 +971,23 @@
     window.renderCategories = function() {
       const container = document.getElementById('categories-container');
       container.innerHTML = '';
-      document.getElementById('selected-cat-label').innerText = currentCategory;
 
       const allChip = document.createElement('div');
       allChip.className = `cat-chip ${currentCategory === 'הכל' ? 'active' : ''}`;
       allChip.innerText = 'הכל';
-      allChip.onclick = () => { currentCategory = 'הכל'; container.classList.remove('active'); renderCategories(); renderNotes(); };
+      allChip.onclick = () => { currentCategory = 'הכל'; renderCategories(); renderNotes(); };
       container.appendChild(allChip);
 
       const urgentChip = document.createElement('div');
       urgentChip.className = `cat-chip urgent-chip ${currentCategory === '⭐ דחוף' ? 'active' : ''}`;
       urgentChip.innerText = '⭐ דחוף';
-      urgentChip.onclick = () => { currentCategory = '⭐ דחוף'; container.classList.remove('active'); renderCategories(); renderNotes(); };
+      urgentChip.onclick = () => { currentCategory = '⭐ דחוף'; renderCategories(); renderNotes(); };
       container.appendChild(urgentChip);
 
       const sharedChip = document.createElement('div');
       sharedChip.className = `cat-chip shared-chip ${currentCategory === '🔗 משותפים' ? 'active' : ''}`;
       sharedChip.innerText = '🔗 משותפים';
-      sharedChip.onclick = () => { currentCategory = '🔗 משותפים'; container.classList.remove('active'); renderCategories(); renderNotes(); };
+      sharedChip.onclick = () => { currentCategory = '🔗 משותפים'; renderCategories(); renderNotes(); };
       container.appendChild(sharedChip);
 
       categories.forEach(c => {
@@ -1024,7 +1004,7 @@
           chip.style.color = colors.text;
           chip.style.borderColor = colors.border;
         }
-        chip.onclick = () => { currentCategory = c; container.classList.remove('active'); renderCategories(); renderNotes(); };
+        chip.onclick = () => { currentCategory = c; renderCategories(); renderNotes(); };
         container.appendChild(chip);
       });
 
@@ -1350,7 +1330,6 @@
     window.closeAllDropdowns = function() {
       document.querySelectorAll('.dropdown-menu, .cat-dropdown-menu').forEach(menu => menu.classList.remove('show'));
       document.getElementById('header-dropdown')?.classList.remove('active');
-      document.getElementById('categories-container')?.classList.remove('active');
       document.getElementById('search-input')?.classList.remove('active');
     }
 
@@ -1651,7 +1630,7 @@
       modal.classList.toggle('fullscreen-mode');
     }
 
-    window.showToast = function(msg)  {
+    window.showToast = function(msg) {
       const toast = document.getElementById('toast');
       toast.innerText = msg;
       toast.style.display = 'block';
