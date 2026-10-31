@@ -611,7 +611,6 @@
     } else {
       onAuthStateChanged(auth, async (user) => {
         if (user) {
-          // בדיקת אבטחה: האם המייל המחובר הוא המייל שלך?
           if (user.email !== ALLOWED_EMAIL) {
             alert("גישה חסומה: חשבון זה אינו מורשה להיכנס למערכת.");
             await signOut(auth);
@@ -1499,7 +1498,12 @@
       }
 
       const now = new Date();
-      const dateStr = now.toLocaleTimeString('he-IL', {hour: '2-digit', minute:'2-digit'}) + ' ,' + now.toLocaleDateString('he-IL');
+      // הרכבת יום, תאריך ושעה בפורמט מלא ומעודכן
+      const dayName = now.toLocaleDateString('he-IL', { weekday: 'short' });
+      const dateOnly = now.toLocaleDateString('he-IL');
+      const timeOnly = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+      const dateStr = `${dayName}, ${dateOnly}, ${timeOnly}`;
+      
       const timestamp = Date.now();
 
       try {
