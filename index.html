@@ -678,37 +678,51 @@
     const urlParams = new URLSearchParams(window.location.search);
     const sharedNoteId = urlParams.get('noteId');
 
-    // ניהול מקש ESC מורחב: סוגר פאנל צדדי, תמונות, חלונות עריכה, תפריטים נפתחים, ולבסוף מטשטוש
+    // ניהול מקש ESC מורחב: יציאה מפוקוס בשדות, סגירת פאנל, תמונות, חלונות עריכה ותפריטים
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' || e.key === 'Esc') {
+        const activeEl = document.activeElement;
+
+        // 1. אם הפוקוס נמצא בתוך תיבת טקסט או שדה הקלדה בפתק - הוצא אותו מהפוקוס (Blur)
+        if (activeEl && (activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'INPUT')) {
+          activeEl.blur();
+          return;
+        }
+
         const lightbox = document.getElementById('lightbox-modal');
         const modalOverlay = document.getElementById('note-modal');
         const modalBox = document.getElementById('modal-box');
         const sidebar = document.getElementById('app-sidebar');
 
+        // 2. אם הפאנל הצדדי פתוח - סגור אותו
         if (sidebar && sidebar.classList.contains('open')) {
           toggleSidebar();
           return;
         }
+        // 3. אם תצוגת תמונה מוגדלת פתוחה - סגור אותה
         if (lightbox && lightbox.classList.contains('show')) {
           closeLightbox();
           return;
         }
+        // 4. אם מצב מסך מלא בעריכה פעיל - צא ממסך מלא
         if (modalBox && modalBox.classList.contains('fullscreen-mode')) {
           toggleFullscreenModal();
           return;
         }
+        // 5. אם חלון עריכת/יצירת פתק (Modal) פתוח - סגור אותו
         if (modalOverlay && modalOverlay.style.display === 'flex') {
           closeModal();
           return;
         }
         
+        // 6. אם יש תפריטים נפתחים - סגור אותם
         const hasOpenDropdowns = document.querySelectorAll('.dropdown-menu.show, .cat-dropdown-menu.show, .header-actions-dropdown.active, .search-popup-input.active').length > 0;
         if (hasOpenDropdowns) {
           closeAllDropdowns();
           return;
         }
 
+        // 7. ברירת מחדל: ביטול מצב הטשטוש (אם מופעל)
         if (document.body.classList.contains('privacy-mode')) {
           togglePrivacyBlur();
         }
