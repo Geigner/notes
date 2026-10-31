@@ -27,6 +27,16 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Assistant', sans-serif; }
     body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 90px; }
 
+    /* מצב טשטוש פרטיות מהיר */
+    body.privacy-mode .note-card {
+      filter: blur(7px);
+      transition: filter 0.2s ease;
+      user-select: none;
+    }
+    body.privacy-mode .note-card:hover {
+      filter: blur(5px);
+    }
+
     .container { max-width: 1000px; margin: 0 auto; display: none; padding: 0 20px; }
     
     #auth-screen {
@@ -420,6 +430,9 @@
       <div class="header-clock" id="live-clock" title="שעה ותאריך נוכחיים">טוען שעון...</div>
 
       <div class="header-left">
+        <!-- כפתור עין לטשטוש מהיר של הפתקים -->
+        <button class="gear-menu-trigger" onclick="togglePrivacyBlur()" title="הסתר/הצג פתקים (טשטוש מהיר)" id="privacy-btn">👁️</button>
+        
         <div class="header-actions-wrapper" onclick="event.stopPropagation()">
           <button class="gear-menu-trigger" onclick="toggleHeaderMenu(event)" title="אפשרויות ניהול" aria-label="תפריט ניהול והגדרות">⚙️</button>
           <div class="header-actions-dropdown" id="header-dropdown">
@@ -548,7 +561,6 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
-    // הגדרת המייל שלך כמורשה היחיד לכניסה למערכת הראשית
     const ALLOWED_EMAIL = "eignerguy@gmail.com";
 
     let currentUser = null;
@@ -563,7 +575,6 @@
     let currentImageBase64 = null;
     let unlockedNotes = {};
 
-    // הפעלת שעון חי מרכזי ועדין
     function updateLiveClock() {
       const clockEl = document.getElementById('live-clock');
       if (!clockEl) return;
@@ -643,6 +654,15 @@
 
     window.logoutFromGoogle = function() {
       signOut(auth);
+    }
+
+    // פונקציית טשטוש מהיר לפרטיות בלחיצת כפתור ע인
+    window.togglePrivacyBlur = function() {
+      document.body.classList.toggle('privacy-mode');
+      const btn = document.getElementById('privacy-btn');
+      const isBlurred = document.body.classList.contains('privacy-mode');
+      btn.innerText = isBlurred ? '👁️‍🗨️' : '👁️';
+      showToast(isBlurred ? "הפתקים טושטשו להגנת פרטיות" : "הטשטוש הוסר");
     }
 
     window.openLightbox = function(url) {
@@ -1498,7 +1518,6 @@
       }
 
       const now = new Date();
-      // הרכבת יום, תאריך ושעה בפורמט מלא ומעודכן
       const dayName = now.toLocaleDateString('he-IL', { weekday: 'short' });
       const dateOnly = now.toLocaleDateString('he-IL');
       const timeOnly = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
