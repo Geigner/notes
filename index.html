@@ -556,7 +556,7 @@
 
   <button class="btn fab" id="fab-btn" onclick="openAddModal()" aria-label="הוסף פתק חדש">+</button>
 
-  <!-- חלונית בחירת קטגוריה למשימה המהירה (מתוקנת ומעוצבת כחלון Modal מרכזי) -->
+  <!-- חלונית בחירת קטגוריה למשימה המהירה -->
   <div class="overlay" id="task-cat-modal" onclick="if(event.target===this) closeTaskCatModal()">
     <div class="modal" style="max-width: 400px; margin: auto; border-radius: 16px;">
       <div class="modal-header-actions">
@@ -710,12 +710,10 @@
     const urlParams = new URLSearchParams(window.location.search);
     const sharedNoteId = urlParams.get('noteId');
 
-    // ניהול מקש ESC מורחב: יציאה מפוקוס בשדות, סגירת פאנל, תמונות, חלונות עריכה ותפריטים
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' || e.key === 'Esc') {
         const activeEl = document.activeElement;
 
-        // 1. אם הפוקוס נמצא בתוך תיבת טקסט או שדה הקלדה בפתק - הוצא אותו מהפוקוס (Blur)
         if (activeEl && (activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'INPUT')) {
           activeEl.blur();
           return;
@@ -727,41 +725,34 @@
         const modalBox = document.getElementById('modal-box');
         const sidebar = document.getElementById('app-sidebar');
 
-        // סגירת מודאל קטגוריות למשימה אם פתוח
         if (taskCatModal && taskCatModal.style.display === 'flex') {
           closeTaskCatModal();
           return;
         }
 
-        // 2. אם הפאנל הצדדי פתוח - סגור אותו
         if (sidebar && sidebar.classList.contains('open')) {
           toggleSidebar();
           return;
         }
-        // 3. אם תצוגת תמונה מוגדלת פתוחה - סגור אותה
         if (lightbox && lightbox.classList.contains('show')) {
           closeLightbox();
           return;
         }
-        // 4. אם מצב מסך מלא בעריכה פעיל - צא ממסך מלא
         if (modalBox && modalBox.classList.contains('fullscreen-mode')) {
           toggleFullscreenModal();
           return;
         }
-        // 5. אם חלון עריכת/יצירת פתק (Modal) פתוח - סגור אותו
         if (modalOverlay && modalOverlay.style.display === 'flex') {
           closeModal();
           return;
         }
         
-        // 6. אם יש תפריטים נפתחים - סגור אותם
         const hasOpenDropdowns = document.querySelectorAll('.dropdown-menu.show, .cat-dropdown-menu.show, .header-actions-dropdown.active, .search-popup-input.active').length > 0;
         if (hasOpenDropdowns) {
           closeAllDropdowns();
           return;
         }
 
-        // 7. ברירת מחדל: ביטול מצב הטשטוש (אם מופעל)
         if (document.body.classList.contains('privacy-mode')) {
           togglePrivacyBlur();
         }
@@ -1171,21 +1162,63 @@
         const colors = getCategoryColor(c);
         const chip = document.createElement('div');
         chip.className = `cat-chip ${currentCategory === c ? 'active' : ''}`;
+        
         let chipContent = `<span>${c}</span>`;
         if (isManagingCategories && c !== 'כללי') {
-          chipContent += `<button class="cat-delete-btn" onclick="event.stopPropagation(); deleteCategory('${c}')">✕</button>`;
+          chipContent += `<button class="cat-delete-btn" onclick="event.stopPropagation(); deleteCategory('${c}')" title="מחק קטגוריה">✕</button>`;
         }
         chip.innerHTML = chipContent;
+
         if (currentCategory !== c) {
           chip.style.background = colors.bg;
           chip.style.color = colors.text;
           chip.style.borderColor = colors.border;
         }
-        chip.onclick = () => { currentCategory = c; renderCategories(); renderNotes(); };
+
+        // שינוי התנהגות הלחיצה במצב ניהול קטגוריות: עריכה ישירה של שם הבועה
+        chip.onclick = () => {
+          if (isManagingCategories && c !== 'כללי') {
+            renameCategory(c);
+          } else {
+            currentCategory = c;
+            renderCategories();
+            renderNotes();
+          }
+        };
+
         container.appendChild(chip);
       });
 
       document.getElementById('note-cat-select').innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    window.renameCategory = async function(oldName) {
+      const newName = prompt(`הכנס שם חדש לקטגוריה "${oldName}":`, oldName);
+      if (!newName || newName.trim() === "" || newName === oldName) return;
+      const trimmedNewName = newName.trim();
+      
+      if (categories.includes(trimmedNewName)) {
+        alert("קטגוריה בשם זה כבר קיימת!");
+        return;
+      }
+
+      try {
+        const notesToUpdate = allNotes.filter(n => (n.category || 'כללי') === oldName);
+        const updatePromises = notesToUpdate.map(note => 
+          updateDoc(doc(db, "notes", note.id), { category: trimmedNewName })
+        );
+        await Promise.all(updatePromises);
+
+        categories = categories.map(cat => cat === oldName ? trimmedNewName : cat);
+        if (currentCategory === oldName) currentCategory = trimmedNewName;
+
+        renderCategories();
+        renderNotes();
+        showToast(`הקטגוריה עודכנה ל-"${trimmedNewName}" בהצלחה`);
+      } catch (e) {
+        console.error("שגיאה בעדכון קטגוריה:", e);
+        showToast("שגיאה בעדכון הקטגוריה");
+      }
     }
 
     window.deleteCategory = async function(catName) {
