@@ -229,12 +229,13 @@
     .cat-chip.shared-chip.active { background: #15803d; color: white; border-color: #15803d; }
     .cat-delete-btn { background: none; border: none; color: inherit; font-size: 0.8rem; cursor: pointer; padding: 0 2px; }
 
-    /* פאנל צדדי ממוקם בצד שמאל */
+    /* פאנל צדדי ממוקם בצד שמאל - תוקן למובייל */
     .sidebar {
       position: fixed;
       top: 0;
       left: 0;
       width: 320px;
+      max-width: 90vw;
       height: 100vh;
       background: white;
       border-right: 1px solid var(--border);
@@ -244,8 +245,8 @@
       transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       display: flex;
       flex-direction: column;
-      padding: 20px;
-      gap: 16px;
+      padding: 16px;
+      gap: 14px;
       overflow-y: auto;
     }
     .sidebar.open { transform: translateX(0); }
@@ -283,14 +284,14 @@
       max-height: 0;
       overflow: hidden;
       transition: max-height 0.3s ease, padding 0.3s ease;
-      padding: 0 12px;
+      padding: 0 10px;
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
     .accordion-section.open .accordion-content {
-      max-height: 350px;
-      padding: 12px;
+      max-height: 400px;
+      padding: 10px;
     }
 
     .quick-link-item {
@@ -306,13 +307,17 @@
       font-size: 0.85rem;
       font-weight: 600;
       transition: all 0.2s;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
     }
     .quick-link-item:hover { background: #f8fafc; border-color: #94a3b8; }
     
     .sidebar-quick-task { display: flex; gap: 6px; }
     .sidebar-quick-task input {
       flex: 1; padding: 8px 10px; font-size: 0.85rem;
-      border: 1px solid var(--border); border-radius: 8px; outline: none;
+      border: 1px solid var(--border); border-radius: 8px; outline: none; min-width: 0;
     }
     .sidebar-task-list { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; }
     .sidebar-task-item {
@@ -320,12 +325,32 @@
       padding: 6px 10px; background: white; border: 1px solid #e2e8f0;
       border-radius: 6px; font-size: 0.85rem; gap: 6px;
     }
-    .sidebar-task-actions { display: flex; align-items: center; gap: 4px; }
+    .sidebar-task-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
     .convert-task-btn {
       background: #f1f5f9; border: 1px solid var(--border); font-size: 0.75rem;
       padding: 2px 6px; border-radius: 4px; cursor: pointer; color: var(--primary); font-weight: 600;
     }
     .convert-task-btn:hover { background: #e2e8f0; }
+
+    /* תיקון מעטפת הוספת קישור שתתאים למובייל בלי חיתוכים */
+    .add-link-form {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .link-inputs-row {
+      display: flex;
+      gap: 4px;
+    }
+    .link-inputs-row input {
+      flex: 1;
+      font-size: 0.8rem;
+      padding: 6px 8px;
+      min-width: 0;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
 
     .notes-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
     .note-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 220px; position: relative; transition: all 0.2s ease; }
@@ -461,10 +486,14 @@
       </div>
       <div class="accordion-content">
         <div style="display: flex; flex-direction: column; gap: 6px;" id="links-container"></div>
-        <div style="display: flex; gap: 4px; margin-top: 6px;">
-          <input type="text" id="new-link-title" placeholder="שם הקישור" style="flex: 1; font-size: 0.8rem; padding: 6px;">
-          <input type="text" id="new-link-url" placeholder="https://..." style="flex: 1.5; font-size: 0.8rem; padding: 6px;" dir="ltr">
-          <button class="btn btn-submit" style="font-size: 0.75rem; padding: 4px 8px; border-radius: 6px;" onclick="addCustomLink()">➕</button>
+        
+        <!-- טופס הוספת קישור מותאם למובייל -->
+        <div class="add-link-form">
+          <div class="link-inputs-row">
+            <input type="text" id="new-link-title" placeholder="שם הקישור" style="flex: 1;">
+            <input type="text" id="new-link-url" placeholder="https://..." style="flex: 1.5;" dir="ltr">
+          </div>
+          <button class="btn btn-submit" style="font-size: 0.8rem; padding: 6px; border-radius: 6px; width: 100%;" onclick="addCustomLink()">➕ הוסף קישור</button>
         </div>
       </div>
     </div>
@@ -697,6 +726,7 @@
       { id: 'l3', title: '✉️ Gmail', url: 'https://mail.google.com' },
       { id: 'l4', title: '🗺️ Google Maps', url: 'https://maps.google.com' }
     ];
+    let linkDeleteStates = {}; // מעקב אחרי לחיצה כפולה למחיקת קישור
 
     function updateLiveClock() {
       const clockEl = document.getElementById('live-clock');
@@ -823,11 +853,9 @@
       }
     }
 
-    // סנכרון ענן למשימות המהירות ולקישורים
     function startSidebarListeners() {
       if (!currentUser) return;
 
-      // האזנה למשימות מהירות ב־Firestore
       if (unsubscribeTasks) unsubscribeTasks();
       unsubscribeTasks = onSnapshot(collection(db, "sidebar_tasks"), (snapshot) => {
         sidebarTasks = [];
@@ -836,9 +864,8 @@
         });
         sidebarTasks.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         renderSidebarTasks();
-      }, (err) => console.error("שגיאה בטעינת משימות מהירות:", err));
+      }, (err) => console.error(err));
 
-      // האזנה לקישורים שימושיים ב־Firestore
       if (unsubscribeLinks) unsubscribeLinks();
       unsubscribeLinks = onSnapshot(collection(db, "sidebar_links"), (snapshot) => {
         if (!snapshot.empty) {
@@ -848,11 +875,10 @@
           });
           customLinks.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
         } else {
-          // אם אין קישורים בענן, ניצור את ברירת המחדל פעם אחת
           initDefaultLinks();
         }
         renderCustomLinks();
-      }, (err) => console.error("שגיאה בטעינת קישורים:", err));
+      }, (err) => console.error(err));
     }
 
     async function initDefaultLinks() {
@@ -878,10 +904,7 @@
           done: false,
           createdAt: Date.now()
         });
-      } catch (err) {
-        console.error("שגיאה בהוספת משימה מהירה:", err);
-        showToast("שגיאה בהוספת המשימה");
-      }
+      } catch (err) { console.error(err); }
     }
 
     window.toggleSidebarTask = async function(id) {
@@ -967,10 +990,7 @@
         await deleteSidebarTask(pendingTaskIdToConvert);
         closeTaskCatModal();
         showToast(`המשימה הפכה לפתק בקטגוריית "${selectedCategory}"!`);
-      } catch (err) {
-        console.error("שגיאה בהפיכת משימה לפתק:", err);
-        showToast("שגיאה בהפיכת המשימה לפתק");
-      }
+      } catch (err) { console.error(err); }
     }
 
     function renderSidebarTasks() {
@@ -1013,10 +1033,25 @@
       } catch (err) { console.error(err); }
     }
 
-    window.deleteCustomLink = async function(id) {
-      try {
-        await deleteDoc(doc(db, "sidebar_links", id));
-      } catch (err) { console.error(err); }
+    // מנגנון שתי לחיצות למחיקת קישור
+    window.handleLinkDeleteClick = async function(id) {
+      if (!linkDeleteStates[id]) {
+        linkDeleteStates[id] = true;
+        renderCustomLinks();
+        // איפוס אחרי 3 שניות אם המשתמש לא לחץ שוב
+        setTimeout(() => {
+          if (linkDeleteStates[id]) {
+            linkDeleteStates[id] = false;
+            renderCustomLinks();
+          }
+        }, 3000);
+      } else {
+        linkDeleteStates[id] = false;
+        try {
+          await deleteDoc(doc(db, "sidebar_links", id));
+          showToast("הקישור נמחק בהצלחה");
+        } catch (err) { console.error(err); }
+      }
     }
 
     function renderCustomLinks() {
@@ -1026,12 +1061,20 @@
         container.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">אין קישורים שמורים</span>';
         return;
       }
-      container.innerHTML = customLinks.map(l => `
-        <div style="display: flex; align-items: center; gap: 4px;">
-          <a href="${l.url}" target="_blank" class="quick-link-item" style="flex: 1;">🔗 ${escapeHtml(l.title)}</a>
-          <button class="btn" style="font-size: 0.75rem; color: #be123c; cursor: pointer; padding: 4px;" onclick="deleteCustomLink('${l.id}')" title="מחק קישור">✕</button>
-        </div>
-      `).join('');
+      container.innerHTML = customLinks.map(l => {
+        const isConfirming = linkDeleteStates[l.id];
+        const deleteBtnStyle = isConfirming 
+          ? 'background: #be123c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;' 
+          : 'font-size: 0.85rem; color: #be123c; cursor: pointer; padding: 4px 8px;';
+        const deleteBtnText = isConfirming ? '🗑️ אישור מחיקה?' : '✕';
+
+        return `
+          <div style="display: flex; align-items: center; gap: 4px; overflow: hidden;">
+            <a href="${l.url}" target="_blank" class="quick-link-item">🔗 ${escapeHtml(l.title)}</a>
+            <button class="btn" style="${deleteBtnStyle}" onclick="handleLinkDeleteClick('${l.id}')" title="מחק קישור">${deleteBtnText}</button>
+          </div>
+        `;
+      }).join('');
     }
 
     window.togglePrivacyBlur = function() {
@@ -1269,10 +1312,7 @@
         renderCategories();
         renderNotes();
         showToast(`הקטגוריה עודכנה ל-"${trimmedNewName}" בהצלחה`);
-      } catch (e) {
-        console.error("שגיאה בעדכון קטגוריה:", e);
-        showToast("שגיאה בעדכון הקטגוריה");
-      }
+      } catch (e) { console.error(e); }
     }
 
     window.deleteCategory = async function(catName) {
