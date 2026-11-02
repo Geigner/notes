@@ -1500,7 +1500,7 @@
           ? `<button class="dropdown-item" onclick="stopSharingNote('${id}')">🔒 הפסק שיתוף</button>`
           : `<button class="dropdown-item" onclick="shareNote('${id}', true)">🔗 שיתוף (עריכה ללא גוגל)</button>`;
           
-        const publicBtnText = isPublic ? '🌐 הסר פרסום מהאתר' : '🌐 פרסם באתר השירים';
+        const publicBtnText = isPublic ? '🌐 הסר פרסום  ' : '🌐 פרסם  ';
 
         const contentHTML = renderNoteContent(id, text, isLocked);
         const showSaveInline = !isLocked || unlockedNotes[id];
