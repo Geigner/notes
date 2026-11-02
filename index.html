@@ -370,7 +370,6 @@
     .cat-dropdown-item:hover { background: #f8fafc; color: var(--primary); }
 
     .shared-badge { font-size: 0.7rem; color: #15803d; background: #dcfce7; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; border: 1px solid #bbf7d0; }
-    .public-badge { font-size: 0.7rem; color: #1d4ed8; background: #eff6ff; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; border: 1px solid #bfdbfe; }
     .edited-by-badge { font-size: 0.7rem; color: #0369a1; background: #e0f2fe; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; }
     .locked-badge { font-size: 0.7rem; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; border: 1px solid #fde68a; }
 
@@ -1224,7 +1223,7 @@
       
       let counterText = `${activeCount} פעילים | ${archivedCount} בארכיון`;
       if (sharedCount > 0) counterText += ` | 🔗 ${sharedCount} משותפים`;
-      if (publicCount > 0) counterText += ` | 🌐 ${publicCount} ציבוריים`;
+      if (publicCount > 0) counterText += ` | 🌐 ${publicCount} מפורסמים`;
       document.getElementById('notes-counter').innerText = counterText;
     }
 
@@ -1357,20 +1356,6 @@
       container.innerHTML = generateNotesHTML(filtered);
     }
 
-    window.togglePublicStatus = async function(id) {
-      closeAllDropdowns();
-      const note = allNotes.find(n => n.id === id);
-      if (!note) return;
-      const newPublicState = !note.isPublic;
-      try {
-        await updateDoc(doc(db, "notes", id), { isPublic: newPublicState });
-        showToast(newPublicState ? "הפתק פורסם באתר בהצלחה!" : "הפתק הוסר מהאתר הציבורי.");
-      } catch (err) {
-        console.error(err);
-        alert("שגיאה בעדכון מצב הפרסום");
-      }
-    }
-
     function renderNoteContent(id, text, isLocked) {
       if (isLocked && !unlockedNotes[id]) {
         return `
@@ -1469,6 +1454,20 @@
       }
     }
 
+    window.togglePublicStatus = async function(id) {
+      closeAllDropdowns();
+      const note = allNotes.find(n => n.id === id);
+      if (!note) return;
+      const currentStatus = !!note.isPublic;
+      try {
+        await updateDoc(doc(db, "notes", id), { isPublic: !currentStatus });
+        showToast(!currentStatus ? "הפתק פורסם באתר בהצלחה!" : "הפרסום הוסר מהפתק");
+      } catch (err) {
+        console.error(err);
+        showToast("שגיאה בעדכון סטטוס הפרסום");
+      }
+    };
+
     function generateNotesHTML(notesArray) {
       let html = '';
       notesArray.forEach(note => {
@@ -1478,7 +1477,7 @@
         const cardVars = `style="--cat-bg-color: ${colors.bg}; --cat-border-color: ${colors.border}; --cat-text-color: ${colors.text};"`;
         
         const sharedTag = isShared ? `<span class="shared-badge">🔗 משותף</span>` : '';
-        const publicTag = isPublic ? `<span class="public-badge">🌐 ציבורי באתר</span>` : '';
+        const publicTag = isPublic ? `<span class="shared-badge" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">🌐 מפורסם</span>` : '';
         const lockedTag = isLocked ? `<span class="locked-badge">🔒 נעול</span>` : '';
         const editedByTag = lastEditedBy ? `<span class="edited-by-badge">✏️ ${lastEditedBy}</span>` : '';
         const titleHtml = title ? `<span class="note-card-title">${escapeHtml(title)}</span>` : '';
@@ -1500,10 +1499,8 @@
         const shareBtnHTML = isShared 
           ? `<button class="dropdown-item" onclick="stopSharingNote('${id}')">🔒 הפסק שיתוף</button>`
           : `<button class="dropdown-item" onclick="shareNote('${id}', true)">🔗 שיתוף (עריכה ללא גוגל)</button>`;
-
-        const publishBtnHTML = isPublic
-          ? `<button class="dropdown-item" onclick="togglePublicStatus('${id}')">🌐 הסר מהאתר הציבורי</button>`
-          : `<button class="dropdown-item" onclick="togglePublicStatus('${id}')">🌐 פרסם באתר השירים</button>`;
+          
+        const publicBtnText = isPublic ? '🌐 הסר פרסום מהאתר' : '🌐 פרסם באתר השירים';
 
         const contentHTML = renderNoteContent(id, text, isLocked);
         const showSaveInline = !isLocked || unlockedNotes[id];
@@ -1530,8 +1527,8 @@
                     <button class="dropdown-item" onclick="copyNoteText('${id}')">📋 העתק טקסט</button>
                     <button class="dropdown-item" onclick="togglePin('${id}')">${pinned ? '📌 שחרר סיכה' : '📌 הצמד לראש'}</button>
                     <button class="dropdown-item" onclick="toggleUrgent('${id}')">${urgent === 'דחוף' ? '☆ הסר דחוף' : '⭐ סמן כדחוף'}</button>
+                    <button class="dropdown-item" onclick="togglePublicStatus('${id}')">${publicBtnText}</button>
                     <button class="dropdown-item" onclick="downloadSingleNote('${id}')">📥 הורד כקובץ TXT</button>
-                    ${publishBtnHTML}
                     <button class="dropdown-item" onclick="shareNote('${id}', false)">🔗 שיתוף (קריאה)</button>
                     ${shareBtnHTML}
                     <button class="dropdown-item" onclick="toggleArchive('${id}')">${currentView === 'active' ? '📦 לארכיון' : '📤 שחזר'}</button>
@@ -1765,4 +1762,208 @@
       reader.onload = function(e) {
         const img = new Image();
         img.src = e.target.result;
-        img.onload = function
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+          } else {
+            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          currentImageBase64 = canvas.toDataURL('image/jpeg', 0.75);
+          
+          document.getElementById('modal-thumb-img').src = currentImageBase64;
+          document.getElementById('modal-img-preview-box').classList.add('show');
+          document.getElementById('remove-img-btn').style.display = 'block';
+          showToast("התמונה נוספה בהצלחה!");
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    window.clearModalImage = function() {
+      currentImageBase64 = null;
+      document.getElementById('modal-img-preview-box').classList.remove('show');
+      document.getElementById('remove-img-btn').style.display = 'none';
+      document.getElementById('modal-image-input').value = '';
+    }
+
+    window.saveNote = async function() {
+      const title = document.getElementById('note-title-input').value.trim();
+      let text = document.getElementById('note-text-input').value.trim();
+      const linkUrl = document.getElementById('modal-link-url').value.trim();
+      const linkTitle = document.getElementById('modal-link-title').value.trim();
+      const cat = document.getElementById('note-cat-select').value;
+      const isLocked = document.getElementById('modal-secure-toggle').checked;
+      const pass = document.getElementById('modal-secure-password').value.trim();
+
+      if (isLocked && !pass) {
+        alert("אנא הזן סיסמה לנעילת הפתק.");
+        return;
+      }
+
+      if (!title && !text && !currentImageBase64 && !linkUrl) return;
+
+      if (isLocked) {
+        text = CryptoJS.AES.encrypt(text, pass).toString();
+        if (editingNoteId) unlockedNotes[editingNoteId] = pass;
+      }
+
+      const now = new Date();
+      const dayName = now.toLocaleDateString('he-IL', { weekday: 'short' });
+      const dateOnly = now.toLocaleDateString('he-IL');
+      const timeOnly = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+      const dateStr = `${dayName}, ${dateOnly}, ${timeOnly}`;
+      
+      const timestamp = Date.now();
+
+      try {
+        if (editingNoteId) {
+          await updateDoc(doc(db, "notes", editingNoteId), { 
+            title: title || null,
+            text: text, 
+            category: cat,
+            imageUrl: currentImageBase64 || null,
+            linkUrl: linkUrl || null,
+            linkTitle: linkTitle || null,
+            isLocked: isLocked,
+            lastEditedBy: null,
+            lastEditedById: null
+          });
+          showToast("הפתק עודכן בהצלחה");
+        } else {
+          const docRef = await addDoc(collection(db, "notes"), {
+            title: title || null,
+            text: text, 
+            category: cat, 
+            imageUrl: currentImageBase64 || null,
+            linkUrl: linkUrl || null,
+            linkTitle: linkTitle || null,
+            date: dateStr, 
+            createdAt: timestamp, 
+            urgent: 'רגיל', 
+            pinned: false, 
+            archived: false, 
+            isShared: false,
+            isLocked: isLocked,
+            isPublic: false
+          });
+          if (isLocked) unlockedNotes[docRef.id] = pass;
+          showToast("הפתק נוסף בהצלחה");
+        }
+        closeModal();
+      } catch (err) { console.error(err); }
+    }
+
+    window.togglePin = async function(id) {
+      closeAllDropdowns();
+      const note = allNotes.find(n => n.id === id);
+      if (note) await updateDoc(doc(db, "notes", id), { pinned: !note.pinned });
+    }
+
+    window.toggleUrgent = async function(id) {
+      closeAllDropdowns();
+      const note = allNotes.find(n => n.id === id);
+      if (note) await updateDoc(doc(db, "notes", id), { urgent: note.urgent === 'דחוף' ? 'רגיל' : 'דחוף' });
+    }
+
+    window.toggleArchive = async function(id) {
+      closeAllDropdowns();
+      const note = allNotes.find(n => n.id === id);
+      if (note) await updateDoc(doc(db, "notes", id), { archived: !note.archived });
+    }
+
+    window.deleteNote = async function(id) {
+      closeAllDropdowns();
+      if (confirm("האם למחוק פתק זה לצמיתות?")) await deleteDoc(doc(db, "notes", id));
+    }
+
+    window.exportBackup = function() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allNotes, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = `notes_backup_${new Date().toISOString().slice(0,10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    window.triggerImport = function() { document.getElementById('import-file-input').click(); }
+
+    window.importBackup = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const importedNotes = JSON.parse(e.target.result);
+          if (confirm(`האם לייבא ${importedNotes.length} פתקים חדשים?`)) {
+            for (let note of importedNotes) {
+              await addDoc(collection(db, "notes"), { 
+                title: note.title || null,
+                text: note.text || '', 
+                category: note.category || 'כללי', 
+                imageUrl: note.imageUrl || null,
+                linkUrl: note.linkUrl || null,
+                linkTitle: note.linkTitle || null,
+                date: note.date || new Date().toLocaleDateString('he-IL'), 
+                createdAt: Date.now(), 
+                urgent: note.urgent || 'רגיל', 
+                pinned: note.pinned || false, 
+                archived: note.archived || false,
+                isLocked: note.isLocked || false,
+                isPublic: note.isPublic || false 
+              });
+            }
+            showToast("הייבוא הושלם בהצלחה!");
+          }
+        } catch (err) { console.error(err); }
+      };
+      reader.readAsText(file);
+    }
+
+    window.addNewCategory = function() {
+      const newCat = prompt("הכנס את שם הקטגוריה החדשה:");
+      if (newCat && newCat.trim() !== "") {
+        const name = newCat.trim();
+        if (!categories.includes(name)) {
+          categories.push(name);
+          renderCategories();
+          document.getElementById('note-cat-select').value = name;
+        }
+      }
+    }
+
+    window.toggleArchiveView = function() {
+      currentView = currentView === 'active' ? 'archived' : 'active';
+      document.getElementById('archive-view-btn').innerText = currentView === 'active' ? 'ארכיון' : 'פתקים פעילים';
+      renderNotes();
+    }
+
+    window.toggleFullscreenModal = function() {
+      const modal = document.getElementById('modal-box');
+      modal.classList.toggle('fullscreen-mode');
+    }
+
+    window.showToast = function(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2500);
+    }
+
+    window.escapeHtml = function(text) { return (text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+    window.escapeRowText = function(text) { return (text || "").replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/"/g, '&quot;'); }
+  </script>
+</body>
+</html>
