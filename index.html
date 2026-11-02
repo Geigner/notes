@@ -229,7 +229,7 @@
     .cat-chip.shared-chip.active { background: #15803d; color: white; border-color: #15803d; }
     .cat-delete-btn { background: none; border: none; color: inherit; font-size: 0.8rem; cursor: pointer; padding: 0 2px; }
 
-    /* פאנל צדדי ממוקם בצד שמאל - תוקן למובייל */
+    /* פאנל צדדי ממוקם בצד שמאל - התאמה למסכי מובייל */
     .sidebar {
       position: fixed;
       top: 0;
@@ -332,7 +332,6 @@
     }
     .convert-task-btn:hover { background: #e2e8f0; }
 
-    /* תיקון מעטפת הוספת קישור שתתאים למובייל בלי חיתוכים */
     .add-link-form {
       display: flex;
       flex-direction: column;
@@ -726,7 +725,7 @@
       { id: 'l3', title: '✉️ Gmail', url: 'https://mail.google.com' },
       { id: 'l4', title: '🗺️ Google Maps', url: 'https://maps.google.com' }
     ];
-    let linkDeleteStates = {}; // מעקב אחרי לחיצה כפולה למחיקת קישור
+    let linkDeleteStates = {};
 
     function updateLiveClock() {
       const clockEl = document.getElementById('live-clock');
@@ -1033,12 +1032,10 @@
       } catch (err) { console.error(err); }
     }
 
-    // מנגנון שתי לחיצות למחיקת קישור
     window.handleLinkDeleteClick = async function(id) {
       if (!linkDeleteStates[id]) {
         linkDeleteStates[id] = true;
         renderCustomLinks();
-        // איפוס אחרי 3 שניות אם המשתמש לא לחץ שוב
         setTimeout(() => {
           if (linkDeleteStates[id]) {
             linkDeleteStates[id] = false;
