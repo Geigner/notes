@@ -684,17 +684,19 @@
     let editingNoteId = null;
     let isManagingCategories = false;
     let unsubscribeNotes = null;
+    let unsubscribeTasks = null;
+    let unsubscribeLinks = null;
     let activeSharedNoteId = null;
     let currentImageBase64 = null;
     let unlockedNotes = {};
     let pendingTaskIdToConvert = null;
-    let sidebarTasks = JSON.parse(localStorage.getItem('sidebar_tasks') || '[]');
-    let customLinks = JSON.parse(localStorage.getItem('sidebar_custom_links') || JSON.stringify([
-      { id: 1, title: '📅 Google Calendar', url: 'https://calendar.google.com' },
-      { id: 2, title: '📁 Google Drive', url: 'https://drive.google.com' },
-      { id: 3, title: '✉️ Gmail', url: 'https://mail.google.com' },
-      { id: 4, title: '🗺️ Google Maps', url: 'https://maps.google.com' }
-    ]));
+    let sidebarTasks = [];
+    let customLinks = [
+      { id: 'l1', title: '📅 Google Calendar', url: 'https://calendar.google.com' },
+      { id: 'l2', title: '📁 Google Drive', url: 'https://drive.google.com' },
+      { id: 'l3', title: '✉️ Gmail', url: 'https://mail.google.com' },
+      { id: 'l4', title: '🗺️ Google Maps', url: 'https://maps.google.com' }
+    ];
 
     function updateLiveClock() {
       const clockEl = document.getElementById('live-clock');
@@ -782,11 +784,12 @@
           document.getElementById('fab-btn').style.display = 'flex';
           document.getElementById('single-note-container').style.display = 'none';
           startRealtimeListener();
-          renderSidebarTasks();
-          renderCustomLinks();
+          startSidebarListeners();
         } else {
           currentUser = null;
           if (unsubscribeNotes) unsubscribeNotes();
+          if (unsubscribeTasks) unsubscribeTasks();
+          if (unsubscribeLinks) unsubscribeLinks();
           document.getElementById('auth-screen').style.display = 'flex';
           document.getElementById('main-container').style.display = 'none';
           document.getElementById('single-note-container').style.display = 'none';
@@ -820,26 +823,80 @@
       }
     }
 
-    window.addSidebarTask = function() {
-      const input = document.getElementById('sidebar-task-input');
-      const val = input.value.trim();
-      if (!val) return;
-      sidebarTasks.push({ id: Date.now(), text: val, done: false });
-      input.value = '';
-      saveAndRenderSidebarTasks();
+    // סנכרון ענן למשימות המהירות ולקישורים
+    function startSidebarListeners() {
+      if (!currentUser) return;
+
+      // האזנה למשימות מהירות ב־Firestore
+      if (unsubscribeTasks) unsubscribeTasks();
+      unsubscribeTasks = onSnapshot(collection(db, "sidebar_tasks"), (snapshot) => {
+        sidebarTasks = [];
+        snapshot.forEach((docSnap) => {
+          sidebarTasks.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        sidebarTasks.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        renderSidebarTasks();
+      }, (err) => console.error("שגיאה בטעינת משימות מהירות:", err));
+
+      // האזנה לקישורים שימושיים ב־Firestore
+      if (unsubscribeLinks) unsubscribeLinks();
+      unsubscribeLinks = onSnapshot(collection(db, "sidebar_links"), (snapshot) => {
+        if (!snapshot.empty) {
+          customLinks = [];
+          snapshot.forEach((docSnap) => {
+            customLinks.push({ id: docSnap.id, ...docSnap.data() });
+          });
+          customLinks.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+        } else {
+          // אם אין קישורים בענן, ניצור את ברירת המחדל פעם אחת
+          initDefaultLinks();
+        }
+        renderCustomLinks();
+      }, (err) => console.error("שגיאה בטעינת קישורים:", err));
     }
 
-    window.toggleSidebarTask = function(id) {
-      const task = sidebarTasks.find(t => t.id === id);
-      if (task) {
-        task.done = !task.done;
-        saveAndRenderSidebarTasks();
+    async function initDefaultLinks() {
+      for (let link of customLinks) {
+        try {
+          await addDoc(collection(db, "sidebar_links"), {
+            title: link.title,
+            url: link.url,
+            createdAt: Date.now()
+          });
+        } catch (e) { console.error(e); }
       }
     }
 
-    window.deleteSidebarTask = function(id) {
-      sidebarTasks = sidebarTasks.filter(t => t.id !== id);
-      saveAndRenderSidebarTasks();
+    window.addSidebarTask = async function() {
+      const input = document.getElementById('sidebar-task-input');
+      const val = input.value.trim();
+      if (!val) return;
+      input.value = '';
+      try {
+        await addDoc(collection(db, "sidebar_tasks"), {
+          text: val,
+          done: false,
+          createdAt: Date.now()
+        });
+      } catch (err) {
+        console.error("שגיאה בהוספת משימה מהירה:", err);
+        showToast("שגיאה בהוספת המשימה");
+      }
+    }
+
+    window.toggleSidebarTask = async function(id) {
+      const task = sidebarTasks.find(t => t.id === id);
+      if (task) {
+        try {
+          await updateDoc(doc(db, "sidebar_tasks", id), { done: !task.done });
+        } catch (err) { console.error(err); }
+      }
+    }
+
+    window.deleteSidebarTask = async function(id) {
+      try {
+        await deleteDoc(doc(db, "sidebar_tasks", id));
+      } catch (err) { console.error(err); }
     }
 
     window.convertTaskToNote = function(id) {
@@ -907,18 +964,13 @@
           isLocked: false
         });
 
-        deleteSidebarTask(pendingTaskIdToConvert);
+        await deleteSidebarTask(pendingTaskIdToConvert);
         closeTaskCatModal();
         showToast(`המשימה הפכה לפתק בקטגוריית "${selectedCategory}"!`);
       } catch (err) {
         console.error("שגיאה בהפיכת משימה לפתק:", err);
         showToast("שגיאה בהפיכת המשימה לפתק");
       }
-    }
-
-    function saveAndRenderSidebarTasks() {
-      localStorage.setItem('sidebar_tasks', JSON.stringify(sidebarTasks));
-      renderSidebarTasks();
     }
 
     function renderSidebarTasks() {
@@ -930,16 +982,16 @@
       }
       listEl.innerHTML = sidebarTasks.map(t => `
         <div class="sidebar-task-item">
-          <span onclick="toggleSidebarTask(${t.id})" style="cursor: pointer; text-decoration: ${t.done ? 'line-through' : 'none'}; color: ${t.done ? '#94a3b8' : 'inherit'}; flex: 1; word-break: break-word;">${t.done ? '☑️ ' : '☐ '}${escapeHtml(t.text)}</span>
+          <span onclick="toggleSidebarTask('${t.id}')" style="cursor: pointer; text-decoration: ${t.done ? 'line-through' : 'none'}; color: ${t.done ? '#94a3b8' : 'inherit'}; flex: 1; word-break: break-word;">${t.done ? '☑️ ' : '☐ '}${escapeHtml(t.text)}</span>
           <div class="sidebar-task-actions">
-            <button class="convert-task-btn" onclick="convertTaskToNote(${t.id})" title="הפוך לפתק מלא בלוח">📝 לפתק</button>
-            <button class="btn" style="font-size: 0.75rem; color: #be123c; cursor: pointer; padding: 2px 4px;" onclick="deleteSidebarTask(${t.id})" title="מחק משימה">✕</button>
+            <button class="convert-task-btn" onclick="convertTaskToNote('${t.id}')" title="הפוך לפתק מלא בלוח">📝 לפתק</button>
+            <button class="btn" style="font-size: 0.75rem; color: #be123c; cursor: pointer; padding: 2px 4px;" onclick="deleteSidebarTask('${t.id}')" title="מחק משימה">✕</button>
           </div>
         </div>
       `).join('');
     }
 
-    window.addCustomLink = function() {
+    window.addCustomLink = async function() {
       const titleInput = document.getElementById('new-link-title');
       const urlInput = document.getElementById('new-link-url');
       const title = titleInput.value.trim();
@@ -948,20 +1000,23 @@
       if (!url.startsWith('http://') && !url.startsWith('https://')) {
         url = 'https://' + url;
       }
-      customLinks.push({ id: Date.now(), title, url });
       titleInput.value = '';
       urlInput.value = '';
-      saveAndRenderCustomLinks();
+
+      try {
+        await addDoc(collection(db, "sidebar_links"), {
+          title,
+          url,
+          createdAt: Date.now()
+        });
+        showToast("הקישור נוסף בהצלחה!");
+      } catch (err) { console.error(err); }
     }
 
-    window.deleteCustomLink = function(id) {
-      customLinks = customLinks.filter(l => l.id !== id);
-      saveAndRenderCustomLinks();
-    }
-
-    function saveAndRenderCustomLinks() {
-      localStorage.setItem('sidebar_custom_links', JSON.stringify(customLinks));
-      renderCustomLinks();
+    window.deleteCustomLink = async function(id) {
+      try {
+        await deleteDoc(doc(db, "sidebar_links", id));
+      } catch (err) { console.error(err); }
     }
 
     function renderCustomLinks() {
@@ -974,7 +1029,7 @@
       container.innerHTML = customLinks.map(l => `
         <div style="display: flex; align-items: center; gap: 4px;">
           <a href="${l.url}" target="_blank" class="quick-link-item" style="flex: 1;">🔗 ${escapeHtml(l.title)}</a>
-          <button class="btn" style="font-size: 0.75rem; color: #be123c; cursor: pointer; padding: 4px;" onclick="deleteCustomLink(${l.id})" title="מחק קישור">✕</button>
+          <button class="btn" style="font-size: 0.75rem; color: #be123c; cursor: pointer; padding: 4px;" onclick="deleteCustomLink('${l.id}')" title="מחק קישור">✕</button>
         </div>
       `).join('');
     }
@@ -1175,7 +1230,6 @@
           chip.style.borderColor = colors.border;
         }
 
-        // שינוי התנהגות הלחיצה במצב ניהול קטגוריות: עריכה ישירה של שם הבועה
         chip.onclick = () => {
           if (isManagingCategories && c !== 'כללי') {
             renameCategory(c);
