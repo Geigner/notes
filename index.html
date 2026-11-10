@@ -613,7 +613,14 @@
     <div class="modal" id="modal-box">
       <div class="modal-header-actions">
         <h2 id="modal-title">פתק חדש</h2>
-        <button class="btn btn-fullscreen" onclick="toggleFullscreenModal()" id="fs-btn">🔲 מסך מלא</button>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <!-- כפתורי פלוס ומינוס מינימליסטיים לגודל הטקסט -->
+          <div style="display: flex; gap: 2px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 8px; padding: 2px;">
+            <button type="button" class="btn" style="padding: 2px 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer; border-radius: 6px;" onclick="adjustModalTextSize(1)" title="הגדל טקסט">+</button>
+            <button type="button" class="btn" style="padding: 2px 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer; border-radius: 6px;" onclick="adjustModalTextSize(-1)" title="הקטן טקסט">-</button>
+          </div>
+          <button class="btn btn-fullscreen" onclick="toggleFullscreenModal()" id="fs-btn">🔲 מסך מלא</button>
+        </div>
       </div>
 
       <label for="note-title-input" style="display:none;">כותרת הפתק</label>
@@ -726,6 +733,7 @@
       { id: 'l4', title: '🗺️ Google Maps', url: 'https://maps.google.com' }
     ];
     let linkDeleteStates = {};
+    let currentModalFontSize = 0.95; // ערך התחלתי לגודל הטקסט במודל
 
     function updateLiveClock() {
       const clockEl = document.getElementById('live-clock');
@@ -1123,6 +1131,18 @@
       } else {
         input.type = 'password';
         btn.innerText = '👁️';
+      }
+    }
+
+    // פונקציית שליטה דינמית בגודל הטקסט במודל (פלוס ומינוס)
+    window.adjustModalTextSize = function(delta) {
+      currentModalFontSize += delta * 0.1; // שינוי של 0.1rem בכל לחיצה
+      if (currentModalFontSize < 0.75) currentModalFontSize = 0.75;
+      if (currentModalFontSize > 1.8) currentModalFontSize = 1.8;
+
+      const textarea = document.getElementById('note-text-input');
+      if (textarea) {
+        textarea.style.fontSize = `${currentModalFontSize}rem`;
       }
     }
 
@@ -1667,9 +1687,13 @@
     window.openAddModal = function() {
       editingNoteId = null;
       currentImageBase64 = null;
+      currentModalFontSize = 0.95; // איפוס לגודל ברירת מחדל
+      const textareaEl = document.getElementById('note-text-input');
+      if (textareaEl) textareaEl.style.fontSize = `${currentModalFontSize}rem`;
+
       document.getElementById('modal-title').innerText = 'פתק חדש';
       document.getElementById('note-title-input').value = '';
-      document.getElementById('note-text-input').value = '';
+      textareaEl.value = '';
       document.getElementById('modal-link-title').value = '';
       document.getElementById('modal-link-url').value = '';
       document.getElementById('modal-secure-toggle').checked = false;
@@ -1687,6 +1711,10 @@
       closeAllDropdowns();
       editingNoteId = id;
       currentImageBase64 = imageUrl || null;
+      currentModalFontSize = 0.95; // איפוס לגודל ברירת מחדל בעת פתיחה
+      const textareaEl = document.getElementById('note-text-input');
+      if (textareaEl) textareaEl.style.fontSize = `${currentModalFontSize}rem`;
+
       document.getElementById('modal-title').innerText = 'עריכת פתק';
 
       let actualText = text;
@@ -1707,7 +1735,7 @@
       }
 
       document.getElementById('note-title-input').value = title || '';
-      document.getElementById('note-text-input').value = actualText;
+      textareaEl.value = actualText;
       document.getElementById('modal-link-url').value = linkUrl || '';
       document.getElementById('modal-link-title').value = linkTitle || '';
       document.getElementById('note-cat-select').value = cat || "כללי";
