@@ -835,6 +835,131 @@
       });
     }
 
+    // פונקציית שיתוף בוואטצאפ (צפייה או עריכה)
+    window.shareNoteViaWhatsApp = async function(id, isEditable) {
+      closeAllDropdowns();
+      const note = allNotes.find(n => n.id === id);
+      if (!note) return;
+
+      if (isEditable) {
+        try {
+          await updateDoc(doc(db, "notes", id), { isShared: true });
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      const baseUrl = window.location.origin + window.location.pathname;
+      const noteLink = `${baseUrl}?noteId=${id}`;
+      const noteTitle = note.title ? `"${note.title}"` : 'פתק מהפנקס';
+
+      let message = '';
+      if (isEditable) {
+        message = `שלום! שיתפתי איתך פתק לעריכה בפנקס (${noteTitle}).\nתוכל/י לצפות ולערוך אותו בקישור הבא:\n${noteLink}`;
+      } else {
+        message = `שלום! שיתפתי איתך פתק לצפייה בלבד בפנקס (${noteTitle}).\nתוכל/י לצפות בו בקישור הבא:\n${noteLink}`;
+      }
+
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+      
+      window.open(whatsappUrl, '_blank');
+      showToast("קישור השיתוף נפתח בוואטצאפ!");
+    }
+
+    window.stopSharingNote = async function(id) {
+      closeAllDropdowns();
+      try {
+        await updateDoc(doc(db, "notes", id), { isShared: false });
+        showToast("השיתוף הופסק בהצלחה");
+      } catch (err) { console.error(err); }
+    }
+
+    // ניהול צפייה ועריכה בפתק משותף דרך קישור ייעודי
+    function listenToSingleSharedNote(noteId) {
+      const docRef = doc(db, "notes", noteId);
+      getDoc(docRef).then(async (docSnap) => {
+        if (!docSnap.exists()) {
+          document.getElementById('single-note-container').innerHTML = `
+            <div style="text-align: center; padding: 40px; display: flex; flex-direction: column; gap: 16px;">
+              <h2 style="color: #be123c;">הפתק לא נמצא</h2>
+              <p style="color: var(--text-muted);">יתכן שהפתק הוסר או שכתובת הקישור אינה נכונה.</p>
+              <button class="btn btn-submit" style="padding: 10px; border-radius: var(--radius);" onclick="window.location.href = window.location.pathname">🏠 חזרה לדף הבית</button>
+            </div>
+          `;
+          return;
+        }
+
+        const noteData = docSnap.data();
+        document.getElementById('single-note-cat').innerText = noteData.category || 'כללי';
+        document.getElementById('single-note-date').innerText = noteData.date || '';
+
+        const titleDisplay = document.getElementById('single-note-title-display');
+        if (noteData.title) {
+          titleDisplay.innerText = noteData.title;
+          titleDisplay.style.display = 'block';
+        }
+
+        const textarea = document.getElementById('single-note-textarea');
+        let displayedText = noteData.text || '';
+
+        if (noteData.isLocked) {
+          const pass = prompt("פתק זה נעול בסיסמה. אנא הזן סיסמה לצפייה ועריכה:");
+          try {
+            const bytes = CryptoJS.AES.decrypt(noteData.text, pass);
+            displayedText = bytes.toString(CryptoJS.enc.Utf8);
+            if (!displayedText) throw new Error();
+            window._activeSharedPassword = pass;
+          } catch(e) {
+            alert("סיסמה שגויה!");
+            window.location.href = window.location.pathname;
+            return;
+          }
+        }
+
+        textarea.value = displayedText;
+
+        if (noteData.imageUrl) {
+          document.getElementById('single-note-img-area').innerHTML = `<img src="${noteData.imageUrl}" class="note-image-preview" onclick="openLightbox('${noteData.imageUrl}')" alt="תמונת פתק">`;
+        }
+        if (noteData.linkUrl) {
+          document.getElementById('single-note-link-area').innerHTML = `<a href="${noteData.linkUrl}" target="_blank" class="note-link-btn">🔗 ${escapeHtml(noteData.linkTitle || noteData.linkUrl)}</a>`;
+        }
+
+        if (noteData.lastEditedBy) {
+          const editedEl = document.getElementById('single-note-edited');
+          editedEl.innerText = `✏️ נערך לאחרונה ע"י: ${noteData.lastEditedBy}`;
+          editedEl.style.display = 'inline-block';
+        }
+      }).catch(err => {
+        console.error(err);
+      });
+    }
+
+    window.saveSingleSharedNote = async function() {
+      if (!activeSharedNoteId) return;
+      const textarea = document.getElementById('single-note-textarea');
+      let newText = textarea.value.trim();
+
+      if (window._activeSharedPassword) {
+        newText = CryptoJS.AES.encrypt(newText, window._activeSharedPassword).toString();
+      }
+
+      const editorName = prompt("אנא הזן את שמך כדי שנוכל לדעת מי ערך את הפתק:") || 'משתמש אנונימי';
+
+      try {
+        await updateDoc(doc(db, "notes", activeSharedNoteId), {
+          text: newText,
+          lastEditedBy: editorName,
+          lastEditedById: 'guest'
+        });
+        showToast("השינויים בפתק נשמרו בהצלחה!");
+      } catch (err) {
+        console.error(err);
+        alert("שגיאה בשמירת השינויים בפתק");
+      }
+    }
+
     window.loginWithGoogle = function() {
       signInWithPopup(auth, provider).catch(error => {
         console.error("שגיאה בהתחברות:", error);
@@ -1134,9 +1259,8 @@
       }
     }
 
-    // פונקציית שליטה דינמית בגודל הטקסט במודל (פלוס ומינוס)
     window.adjustModalTextSize = function(delta) {
-      currentModalFontSize += delta * 0.1; // שינוי של 0.1rem בכל לחיצה
+      currentModalFontSize += delta * 0.1;
       if (currentModalFontSize < 0.75) currentModalFontSize = 0.75;
       if (currentModalFontSize > 1.8) currentModalFontSize = 1.8;
 
@@ -1518,7 +1642,7 @@
 
         const shareBtnHTML = isShared 
           ? `<button class="dropdown-item" onclick="stopSharingNote('${id}')">🔒 הפסק שיתוף</button>`
-          : `<button class="dropdown-item" onclick="shareNote('${id}', true)">🔗 שיתוף (עריכה ללא גוגל)</button>`;
+          : '';
           
         const publicBtnText = isPublic ? '🌐 הסר פרסום  ' : '🌐 פרסם  ';
 
@@ -1549,7 +1673,8 @@
                     <button class="dropdown-item" onclick="toggleUrgent('${id}')">${urgent === 'דחוף' ? '☆ הסר דחוף' : '⭐ סמן כדחוף'}</button>
                     <button class="dropdown-item" onclick="togglePublicStatus('${id}')">${publicBtnText}</button>
                     <button class="dropdown-item" onclick="downloadSingleNote('${id}')">📥 הורד כקובץ TXT</button>
-                    <button class="dropdown-item" onclick="shareNote('${id}', false)">🔗 שיתוף (קריאה)</button>
+                    <button class="dropdown-item" onclick="shareNoteViaWhatsApp('${id}', false)">💬 שיתוף בוואטצאפ (צפייה)</button>
+                    <button class="dropdown-item" onclick="shareNoteViaWhatsApp('${id}', true)">💬 שיתוף בוואטצאפ (עריכה)</button>
                     ${shareBtnHTML}
                     <button class="dropdown-item" onclick="toggleArchive('${id}')">${currentView === 'active' ? '📦 לארכיון' : '📤 שחזר'}</button>
                     <button class="dropdown-item danger" onclick="deleteNote('${id}')">🗑️ מחיקה</button>
@@ -1687,7 +1812,7 @@
     window.openAddModal = function() {
       editingNoteId = null;
       currentImageBase64 = null;
-      currentModalFontSize = 0.95; // איפוס לגודל ברירת מחדל
+      currentModalFontSize = 0.95;
       const textareaEl = document.getElementById('note-text-input');
       if (textareaEl) textareaEl.style.fontSize = `${currentModalFontSize}rem`;
 
@@ -1711,7 +1836,7 @@
       closeAllDropdowns();
       editingNoteId = id;
       currentImageBase64 = imageUrl || null;
-      currentModalFontSize = 0.95; // איפוס לגודל ברירת מחדל בעת פתיחה
+      currentModalFontSize = 0.95;
       const textareaEl = document.getElementById('note-text-input');
       if (textareaEl) textareaEl.style.fontSize = `${currentModalFontSize}rem`;
 
