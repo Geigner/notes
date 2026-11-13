@@ -733,7 +733,7 @@
       { id: 'l4', title: '🗺️ Google Maps', url: 'https://maps.google.com' }
     ];
     let linkDeleteStates = {};
-    let currentModalFontSize = 0.95; // ערך התחלתי לגודל הטקסט במודל
+    let currentModalFontSize = 0.95;
 
     function updateLiveClock() {
       const clockEl = document.getElementById('live-clock');
@@ -955,8 +955,8 @@
         });
         showToast("השינויים בפתק נשמרו בהצלחה!");
       } catch (err) {
-        console.error(err);
-        alert("שגיאה בשמירת השינויים בפתק");
+        console.error("שגיאה בשמירת פתק משותף:", err);
+        alert("שגיאה בשמירת השינויים. ייתכן שפג תוקף השיתוף או שאין הרשאה.");
       }
     }
 
