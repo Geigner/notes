@@ -951,7 +951,7 @@
         await updateDoc(doc(db, "notes", activeSharedNoteId), {
           text: newText,
           lastEditedBy: editorName,
-          lastEditedById: 'guest'
+          lastEditedId: 'guest'
         });
         showToast("השינויים בפתק נשמרו בהצלחה!");
       } catch (err) {
