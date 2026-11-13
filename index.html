@@ -415,7 +415,6 @@
     .lightbox-close { position: absolute; top: -40px; left: 0; background: white; color: var(--text-main); border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 
     .modal-header-actions { display: flex; justify-content: space-between; align-items: center; }
-    .modal-header-actions h2 { font-size: 1.1rem; font-weight: 600; color: #1e293b; }
     .btn-fullscreen { font-size: 0.85rem; color: #334155; padding: 4px 10px; border-radius: 16px; background: #f1f5f9; font-weight: 600; cursor: pointer; border: none; }
 
     .textarea-wrapper { position: relative; width: 100%; }
@@ -431,11 +430,9 @@
     .form-group label { font-size: 0.8rem; font-weight: 600; color: #475569; }
     select, input[type="text"], input[type="password"] { padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.9rem; outline: none; background: white; color: var(--text-main); }
 
-    /* עיצוב סולידי ומצומצם לאופציות המתקדמות */
-    .advanced-section-toggle { background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 12px; font-size: 0.8rem; font-weight: 600; color: #334155; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; transition: background 0.2s; width: fit-content; }
-    .advanced-section-toggle:hover { background: #f1f5f9; }
-    .advanced-content-panel { display: none; flex-direction: column; gap: 8px; padding: 10px; background: #fafafa; border: 1px solid var(--border); border-radius: var(--radius); margin-top: -4px; }
-    .advanced-content-panel.show { display: flex; }
+    /* פאנלי אופציות נפרדים ש נפתחים רק בלחיצה */
+    .option-panel { display: none; flex-direction: column; gap: 8px; padding: 10px; background: #fafafa; border: 1px solid var(--border); border-radius: var(--radius); margin-top: 4px; animation: slideDown 0.2s ease; }
+    .option-panel.show { display: flex; }
 
     .modal-buttons { display: flex; gap: 10px; margin-top: 4px; }
     .btn-block { flex: 1; padding: 8px; border-radius: var(--radius); font-size: 0.9rem; font-weight: 600; text-align: center; }
@@ -611,8 +608,13 @@
 
   <div class="overlay" id="note-modal" onclick="if(event.target===this) closeModal()">
     <div class="modal" id="modal-box">
+      <!-- שורה עליונה מעודכנת: קטגוריה במקום הכותרת המיותרת, בתוספת כפתורי פלוס/מינוס ומסך מלא -->
       <div class="modal-header-actions">
-        <h2 id="modal-title">פתק חדש</h2>
+        <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+          <select id="note-cat-select" style="font-size: 0.85rem; padding: 4px 8px; width: 140px;" aria-label="בחר קטגוריה לפתק"></select>
+          <button class="btn" onclick="addNewCategory()" aria-label="הוסף קטגוריה חדשה" style="background: #edf2f7; padding: 4px 8px; border-radius: var(--radius); color: var(--primary); font-weight: 600; font-size: 0.8rem;">➕ קטגוריה</button>
+        </div>
+        
         <div style="display: flex; gap: 6px; align-items: center;">
           <div style="display: flex; gap: 2px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 8px; padding: 2px;">
             <button type="button" class="btn" style="padding: 2px 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer; border-radius: 6px;" onclick="adjustModalTextSize(1)" title="הגדל טקסט">+</button>
@@ -631,39 +633,48 @@
         <button class="voice-btn" id="voice-record-btn" onclick="toggleVoiceRecognition()" aria-label="הקלטה קולית">🎤</button>
       </div>
 
-      <!-- שורת כלים עליונה קומפקטית הכוללת את הוספת המשימה וכפתור האפשרויות המתקדמות -->
-      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-        <button class="btn" style="font-size: 0.8rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 5px 10px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="addChecklistItemToModal()">
-          <span>☑️ הוסף משימה</span>
+      <!-- שורת כלים מינימליסטית המציגה כפתורים נפרדים שכל אחד פותח את האזור שלו בלבד -->
+      <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+        <button class="btn" style="font-size: 0.8rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 5px 10px; border-radius: var(--radius); cursor: pointer;" onclick="addChecklistItemToModal()">
+          ☑️ משימה
         </button>
-
-        <div class="advanced-section-toggle" onclick="toggleAdvancedPanel()">
-          <span>⚙️ אפשרויות מתקדמות (תמונה, קישור, נעילה)</span>
-          <span id="advanced-arrow">▼</span>
-        </div>
+        <button class="btn" id="btn-toggle-img-panel" style="font-size: 0.8rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 5px 10px; border-radius: var(--radius); cursor: pointer;" onclick="toggleOptionPanel('img')">
+          🖼️ תמונה
+        </button>
+        <button class="btn" id="btn-toggle-link-panel" style="font-size: 0.8rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 5px 10px; border-radius: var(--radius); cursor: pointer;" onclick="toggleOptionPanel('link')">
+          🔗 קישור
+        </button>
+        <button class="btn" id="btn-toggle-lock-panel" style="font-size: 0.8rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 5px 10px; border-radius: var(--radius); cursor: pointer;" onclick="toggleOptionPanel('lock')">
+          🔒 נעילה
+        </button>
       </div>
 
-      <!-- פאנל מתקדם קומפקטי שנפתח בצורה נקי וסולידית -->
-      <div class="advanced-content-panel" id="advanced-panel">
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
-          <label class="btn" style="font-size: 0.8rem; color: #334155; background: white; border: 1px solid var(--border); padding: 5px 10px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 4px;">
-            <span>🖼️ הוסף תמונה</span>
+      <!-- פאנל תמונה נפרד -->
+      <div class="option-panel" id="panel-img">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <label class="btn" style="font-size: 0.8rem; color: #334155; background: white; border: 1px solid var(--border); padding: 5px 10px; border-radius: var(--radius); cursor: pointer;">
+            <span>📁 בחר תמונה מהמכשיר</span>
             <input type="file" id="modal-image-input" accept="image/*" style="display: none;" aria-label="העלאת תמונה לפתק" onchange="handleImageSelection(event)">
           </label>
           <button id="remove-img-btn" class="btn" style="display: none; font-size: 0.75rem; color: #be123c; background: #fff1f2; border: 1px solid #fecdd3; padding: 3px 8px; border-radius: var(--radius);" onclick="clearModalImage()">הסר תמונה</button>
         </div>
-
         <div class="modal-image-preview-container" id="modal-img-preview-box">
           <img id="modal-thumb-img" class="modal-thumb" src="" alt="תצוגה מקדימה">
           <span style="font-size: 0.75rem; color: #475569; font-weight: 500;">התמונה נבחרה בהצלחה</span>
         </div>
+      </div>
 
+      <!-- פאנל קישור נפרד -->
+      <div class="option-panel" id="panel-link">
         <div style="display: flex; gap: 6px;">
           <input type="text" id="modal-link-title" placeholder="כותרת הקישור (אופציונלי)" style="flex: 1; font-size: 0.85rem; padding: 6px;" aria-label="כותרת הקישור" dir="rtl">
           <input type="text" id="modal-link-url" placeholder="כתובת URL (https://...)" style="flex: 1.5; font-size: 0.85rem; padding: 6px;" aria-label="כתובת אינטרנט URL" dir="ltr">
         </div>
+      </div>
 
-        <div style="display: flex; gap: 8px; align-items: center; background: white; padding: 6px 10px; border-radius: var(--radius); border: 1px solid var(--border);">
+      <!-- פאנל נעילה נפרד -->
+      <div class="option-panel" id="panel-lock">
+        <div style="display: flex; gap: 8px; align-items: center;">
           <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 4px; cursor: pointer;">
             <input type="checkbox" id="modal-secure-toggle" onchange="togglePasswordInput(this)"> 🔒 נעול בסיסמה
           </label>
@@ -674,14 +685,7 @@
         </div>
       </div>
 
-      <div class="form-group" id="cat-select-group">
-        <label for="note-cat-select">קטגוריה</label>
-        <div style="display: flex; gap: 8px;">
-          <select id="note-cat-select" style="flex: 1;" aria-label="בחר קטגוריה לפתק"></select>
-          <button class="btn" onclick="addNewCategory()" aria-label="הוסף קטגוריה חדשה" style="background: #edf2f7; padding: 0 12px; border-radius: var(--radius); color: var(--primary); font-weight: 600;">➕</button>
-        </div>
-      </div>
-      <div class="modal-buttons">
+      <div class="modal-buttons" style="margin-top: 8px;">
         <button class="btn btn-block btn-cancel" onclick="closeModal()">ביטול</button>
         <button class="btn btn-block btn-submit" id="save-modal-btn" onclick="saveNote()">שמירה</button>
       </div>
@@ -1242,11 +1246,28 @@
       textarea.focus();
     }
 
-    window.toggleAdvancedPanel = function() {
-      const panel = document.getElementById('advanced-panel');
-      const arrow = document.getElementById('advanced-arrow');
-      panel.classList.toggle('show');
-      arrow.innerText = panel.classList.contains('show') ? '▲' : '▼';
+    window.toggleOptionPanel = function(type) {
+      const panelImg = document.getElementById('panel-img');
+      const panelLink = document.getElementById('panel-link');
+      const panelLock = document.getElementById('panel-lock');
+      
+      const targetPanel = document.getElementById(`panel-${type}`);
+      const isOpen = targetPanel.classList.contains('show');
+
+      // סגור את כולם תחילה
+      panelImg.classList.remove('show');
+      panelLink.classList.remove('show');
+      panelLock.classList.remove('show');
+
+      // אם הוא לא היה פתוח, פתח אותו
+      if (!isOpen) {
+        targetPanel.classList.add('show');
+        if (type === 'link') {
+          document.getElementById('modal-link-url').focus();
+        } else if (type === 'lock') {
+          document.getElementById('modal-secure-password').focus();
+        }
+      }
     }
 
     window.togglePasswordInput = function(checkbox) {
@@ -1825,7 +1846,6 @@
       const textareaEl = document.getElementById('note-text-input');
       if (textareaEl) textareaEl.style.fontSize = `${currentModalFontSize}rem`;
 
-      document.getElementById('modal-title').innerText = 'פתק חדש';
       document.getElementById('note-title-input').value = '';
       textareaEl.value = '';
       document.getElementById('modal-link-title').value = '';
@@ -1836,8 +1856,12 @@
       document.getElementById('note-cat-select').value = categories[0] || 'כללי';
       document.getElementById('modal-img-preview-box').classList.remove('show');
       document.getElementById('remove-img-btn').style.display = 'none';
-      document.getElementById('advanced-panel').classList.remove('show');
-      document.getElementById('advanced-arrow').innerText = '▼';
+      
+      // סגירת כל פאנלי האופציות בפתיחה חדשה
+      document.getElementById('panel-img').classList.remove('show');
+      document.getElementById('panel-link').classList.remove('show');
+      document.getElementById('panel-lock').classList.remove('show');
+
       document.getElementById('note-modal').style.display = 'flex';
     }
 
@@ -1848,8 +1872,6 @@
       currentModalFontSize = 0.95;
       const textareaEl = document.getElementById('note-text-input');
       if (textareaEl) textareaEl.style.fontSize = `${currentModalFontSize}rem`;
-
-      document.getElementById('modal-title').innerText = 'עריכת פתק';
 
       let actualText = text;
       if (isLocked) {
@@ -1898,15 +1920,14 @@
         removeBtn.style.display = 'none';
       }
 
-      const advancedPanel = document.getElementById('advanced-panel');
-      const advancedArrow = document.getElementById('advanced-arrow');
-      if (imageUrl || linkUrl || isLocked) {
-        advancedPanel.classList.add('show');
-        advancedArrow.innerText = '▲';
-      } else {
-        advancedPanel.classList.remove('show');
-        advancedArrow.innerText = '▼';
-      }
+      // סגירת כל הפאנלים או פתיחת פאנל רלוונטי לפי הנתונים הקיימים
+      document.getElementById('panel-img').classList.remove('show');
+      document.getElementById('panel-link').classList.remove('show');
+      document.getElementById('panel-lock').classList.remove('show');
+
+      if (imageUrl) document.getElementById('panel-img').classList.add('show');
+      if (linkUrl) document.getElementById('panel-link').classList.add('show');
+      if (isLocked) document.getElementById('panel-lock').classList.add('show');
 
       document.getElementById('note-modal').style.display = 'flex';
     }
