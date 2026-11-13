@@ -401,10 +401,10 @@
     .fab:hover { background: var(--primary-hover); transform: scale(1.04); }
 
     .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); display: none; justify-content: center; align-items: flex-end; z-index: 200; backdrop-filter: blur(2px); }
-    .modal { background: white; width: 100%; max-width: 550px; border-radius: 16px 16px 0 0; padding: 20px; display: flex; flex-direction: column; gap: 14px; animation: slideUp 0.25s ease-out; max-height: 90vh; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); transition: all 0.2s ease; overflow-y: auto; }
+    .modal { background: white; width: 100%; max-width: 550px; border-radius: 16px 16px 0 0; padding: 20px; display: flex; flex-direction: column; gap: 12px; animation: slideUp 0.25s ease-out; max-height: 90vh; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); transition: all 0.2s ease; overflow-y: auto; }
     
     .modal.fullscreen-mode { max-width: 100vw !important; height: 100vh !important; max-height: 100vh !important; border-radius: 0 !important; padding: 30px !important; }
-    .modal.fullscreen-mode textarea.modal-textarea { height: calc(100vh - 280px) !important; }
+    .modal.fullscreen-mode textarea.modal-textarea { height: calc(100vh - 240px) !important; }
 
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
@@ -419,24 +419,26 @@
     .btn-fullscreen { font-size: 0.85rem; color: #334155; padding: 4px 10px; border-radius: 16px; background: #f1f5f9; font-weight: 600; cursor: pointer; border: none; }
 
     .textarea-wrapper { position: relative; width: 100%; }
-    textarea.modal-textarea { width: 100%; height: 160px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; padding-bottom: 40px; font-size: 0.95rem; resize: none; outline: none; color: var(--text-main); }
+    /* תיקון רקע לבן אטום וטקסט קריא לחלוטין */
+    textarea.modal-textarea { width: 100%; height: 160px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; padding-bottom: 40px; font-size: 0.95rem; resize: none; outline: none; color: var(--text-main); background-color: #ffffff; }
     .voice-btn { position: absolute; bottom: 10px; left: 10px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 50%; width: 34px; height: 34px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     
-    .modal-image-preview-container { position: relative; display: none; align-items: center; gap: 10px; background: #f8fafc; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border); }
+    .modal-image-preview-container { position: relative; display: none; align-items: center; gap: 10px; background: #f8fafc; padding: 6px 10px; border-radius: var(--radius); border: 1px solid var(--border); }
     .modal-image-preview-container.show { display: flex; }
-    .modal-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); }
+    .modal-thumb { width: 32px; height: 32px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); }
     
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group label { font-size: 0.85rem; font-weight: 600; color: #475569; }
-    select, input[type="text"], input[type="password"] { padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.95rem; outline: none; background: white; color: var(--text-main); }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 0.8rem; font-weight: 600; color: #475569; }
+    select, input[type="text"], input[type="password"] { padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.9rem; outline: none; background: white; color: var(--text-main); }
 
-    .advanced-section-toggle { background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; font-size: 0.85rem; font-weight: 600; color: #334155; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; transition: background 0.2s; }
+    /* עיצוב סולידי ומצומצם לאופציות המתקדמות */
+    .advanced-section-toggle { background: #f8fafc; border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 12px; font-size: 0.8rem; font-weight: 600; color: #334155; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; transition: background 0.2s; width: fit-content; }
     .advanced-section-toggle:hover { background: #f1f5f9; }
-    .advanced-content-panel { display: none; flex-direction: column; gap: 12px; padding: 12px; background: #fafafa; border: 1px solid var(--border); border-radius: var(--radius); margin-top: -6px; }
+    .advanced-content-panel { display: none; flex-direction: column; gap: 8px; padding: 10px; background: #fafafa; border: 1px solid var(--border); border-radius: var(--radius); margin-top: -4px; }
     .advanced-content-panel.show { display: flex; }
 
-    .modal-buttons { display: flex; gap: 10px; margin-top: 6px; }
-    .btn-block { flex: 1; padding: 10px; border-radius: var(--radius); font-size: 0.95rem; font-weight: 600; text-align: center; }
+    .modal-buttons { display: flex; gap: 10px; margin-top: 4px; }
+    .btn-block { flex: 1; padding: 8px; border-radius: var(--radius); font-size: 0.9rem; font-weight: 600; text-align: center; }
     .btn-submit { background: var(--primary); color: white; border: none; cursor: pointer; }
     .btn-cancel { background: #f1f5f9; color: var(--text-main); border: none; cursor: pointer; }
 
@@ -517,7 +519,6 @@
         <span id="single-note-edited" class="edited-by-badge" style="display:none;"></span>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
-        <!-- כפתורי פלוס ומינוס לשליטה בגודל הטקסט גם בפתק משותף -->
         <div style="display: flex; gap: 2px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 8px; padding: 2px;">
           <button type="button" class="btn" style="padding: 2px 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer; border-radius: 6px;" onclick="adjustSharedTextSize(1)" title="הגדל טקסט">+</button>
           <button type="button" class="btn" style="padding: 2px 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer; border-radius: 6px;" onclick="adjustSharedTextSize(-1)" title="הקטן טקסט">-</button>
@@ -529,7 +530,7 @@
       <h2 id="single-note-title-display" style="font-size: 1.2rem; font-weight: 700; color: #1e293b; display: none;"></h2>
       <div id="single-note-secure-wrapper" style="flex:1; display:flex; flex-direction:column;">
         <label for="single-note-textarea" style="display:none;">תוכן הפתק המשותף</label>
-        <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 220px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius);"></textarea>
+        <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 220px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); background-color: #ffffff;"></textarea>
         <div id="single-note-link-area"></div>
         <div id="single-note-img-area"></div>
       </div>
@@ -547,13 +548,10 @@
         </div>
       </div>
 
-      <!-- שעון מרכזי אלגנטי -->
       <div class="header-clock" id="live-clock" title="שעה ותאריך נוכחיים">טוען שעון...</div>
 
       <div class="header-left">
-        <!-- כפתור פתיחת פאנל צדדי (מרכז שליטה) -->
         <button class="gear-menu-trigger" onclick="toggleSidebar(event)" title="פתח מרכז שליטה וקישורים">🧭</button>
-        <!-- כפתור עין לטשטוש מהיר של הפתקים -->
         <button class="gear-menu-trigger" onclick="togglePrivacyBlur()" title="הסתר/הצג פתקים (טשטוש מהיר)" id="privacy-btn">👁️</button>
         
         <div class="header-actions-wrapper" onclick="event.stopPropagation()">
@@ -571,7 +569,6 @@
       </div>
     </header>
 
-    <!-- סרגל קטגוריות אופקי נגלל -->
     <nav class="categories-scroll-wrapper" id="categories-container" aria-label="קטגוריות פתקים"></nav>
 
     <main id="notes-main-area">
@@ -588,7 +585,6 @@
 
   <button class="btn fab" id="fab-btn" onclick="openAddModal()" aria-label="הוסף פתק חדש">+</button>
 
-  <!-- חלונית בחירת קטגוריה למשימה המהירה -->
   <div class="overlay" id="task-cat-modal" onclick="if(event.target===this) closeTaskCatModal()">
     <div class="modal" style="max-width: 400px; margin: auto; border-radius: 16px;">
       <div class="modal-header-actions">
@@ -618,7 +614,6 @@
       <div class="modal-header-actions">
         <h2 id="modal-title">פתק חדש</h2>
         <div style="display: flex; gap: 6px; align-items: center;">
-          <!-- כפתורי פלוס ומינוס מינימליסטיים לגודל הטקסט -->
           <div style="display: flex; gap: 2px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 8px; padding: 2px;">
             <button type="button" class="btn" style="padding: 2px 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer; border-radius: 6px;" onclick="adjustModalTextSize(1)" title="הגדל טקסט">+</button>
             <button type="button" class="btn" style="padding: 2px 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer; border-radius: 6px;" onclick="adjustModalTextSize(-1)" title="הקטן טקסט">-</button>
@@ -636,54 +631,54 @@
         <button class="voice-btn" id="voice-record-btn" onclick="toggleVoiceRecognition()" aria-label="הקלטה קולית">🎤</button>
       </div>
 
-      <div style="display: flex; gap: 8px;">
-        <button class="btn" style="font-size: 0.85rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 6px;" onclick="addChecklistItemToModal()">
-          <span>☑️ הוסף שורת משימה</span>
+      <!-- שורת כלים עליונה קומפקטית הכוללת את הוספת המשימה וכפתור האפשרויות המתקדמות -->
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <button class="btn" style="font-size: 0.8rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 5px 10px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="addChecklistItemToModal()">
+          <span>☑️ הוסף משימה</span>
         </button>
+
+        <div class="advanced-section-toggle" onclick="toggleAdvancedPanel()">
+          <span>⚙️ אפשרויות מתקדמות (תמונה, קישור, נעילה)</span>
+          <span id="advanced-arrow">▼</span>
+        </div>
       </div>
 
-      <!-- כפתור פתיחה/סגירה אחוד וקומפקטי לאפשרויות המתקדמות -->
-      <div class="advanced-section-toggle" onclick="toggleAdvancedPanel()">
-        <span>⚙️ אפשרויות מתקדמות (תמונה, קישור, נעילה)</span>
-        <span id="advanced-arrow">▼</span>
-      </div>
+      <!-- פאנל מתקדם קומפקטי שנפתח בצורה נקי וסולידית -->
       <div class="advanced-content-panel" id="advanced-panel">
-        
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
-          <label class="btn" style="font-size: 0.85rem; color: #334155; background: white; border: 1px solid var(--border); padding: 6px 12px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 6px;">
+          <label class="btn" style="font-size: 0.8rem; color: #334155; background: white; border: 1px solid var(--border); padding: 5px 10px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 4px;">
             <span>🖼️ הוסף תמונה</span>
             <input type="file" id="modal-image-input" accept="image/*" style="display: none;" aria-label="העלאת תמונה לפתק" onchange="handleImageSelection(event)">
           </label>
-          <button id="remove-img-btn" class="btn" style="display: none; font-size: 0.80rem; color: #be123c; background: #fff1f2; border: 1px solid #fecdd3; padding: 4px 10px; border-radius: var(--radius);" onclick="clearModalImage()">הסר תמונה</button>
+          <button id="remove-img-btn" class="btn" style="display: none; font-size: 0.75rem; color: #be123c; background: #fff1f2; border: 1px solid #fecdd3; padding: 3px 8px; border-radius: var(--radius);" onclick="clearModalImage()">הסר תמונה</button>
         </div>
 
         <div class="modal-image-preview-container" id="modal-img-preview-box">
           <img id="modal-thumb-img" class="modal-thumb" src="" alt="תצוגה מקדימה">
-          <span style="font-size: 0.8rem; color: #475569; font-weight: 500;">התמונה נבחרה בהצלחה</span>
+          <span style="font-size: 0.75rem; color: #475569; font-weight: 500;">התמונה נבחרה בהצלחה</span>
         </div>
 
-        <div style="display: flex; gap: 8px;">
-          <input type="text" id="modal-link-title" placeholder="כותרת הקישור (אופציונלי)" style="flex: 1;" aria-label="כותרת הקישור" dir="rtl">
-          <input type="text" id="modal-link-url" placeholder="כתובת URL (https://...)" style="flex: 2;" aria-label="כתובת אינטרנט URL" dir="ltr">
+        <div style="display: flex; gap: 6px;">
+          <input type="text" id="modal-link-title" placeholder="כותרת הקישור (אופציונלי)" style="flex: 1; font-size: 0.85rem; padding: 6px;" aria-label="כותרת הקישור" dir="rtl">
+          <input type="text" id="modal-link-url" placeholder="כתובת URL (https://...)" style="flex: 1.5; font-size: 0.85rem; padding: 6px;" aria-label="כתובת אינטרנט URL" dir="ltr">
         </div>
 
-        <div style="display: flex; gap: 8px; align-items: center; background: white; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border);">
-          <label style="font-size: 0.85rem; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+        <div style="display: flex; gap: 8px; align-items: center; background: white; padding: 6px 10px; border-radius: var(--radius); border: 1px solid var(--border);">
+          <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 4px; cursor: pointer;">
             <input type="checkbox" id="modal-secure-toggle" onchange="togglePasswordInput(this)"> 🔒 נעול בסיסמה
           </label>
           <div id="modal-pass-container" class="password-wrapper" style="flex: 1; display: none;">
-            <input type="password" id="modal-secure-password" placeholder="הכנס סיסמה..." aria-label="סיסמת נעילה לפתק" dir="ltr" style="width:100%;">
+            <input type="password" id="modal-secure-password" placeholder="הכנס סיסמה..." aria-label="סיסמת נעילה לפתק" dir="ltr" style="width:100%; font-size: 0.85rem; padding: 4px;">
             <button type="button" class="eye-btn" onclick="togglePasswordVisibility('modal-secure-password', this)" aria-label="הצג או הסתר סיסמה">👁️</button>
           </div>
         </div>
-
       </div>
 
       <div class="form-group" id="cat-select-group">
         <label for="note-cat-select">קטגוריה</label>
         <div style="display: flex; gap: 8px;">
           <select id="note-cat-select" style="flex: 1;" aria-label="בחר קטגוריה לפתק"></select>
-          <button class="btn" onclick="addNewCategory()" aria-label="הוסף קטגוריה חדשה" style="background: #edf2f7; padding: 0 14px; border-radius: var(--radius); color: var(--primary); font-weight: 600;">➕</button>
+          <button class="btn" onclick="addNewCategory()" aria-label="הוסף קטגוריה חדשה" style="background: #edf2f7; padding: 0 12px; border-radius: var(--radius); color: var(--primary); font-weight: 600;">➕</button>
         </div>
       </div>
       <div class="modal-buttons">
@@ -841,7 +836,6 @@
       });
     }
 
-    // פונקציית שיתוף בוואטצאפ (צפייה או עריכה)
     window.shareNoteViaWhatsApp = async function(id, isEditable) {
       closeAllDropdowns();
       const note = allNotes.find(n => n.id === id);
@@ -881,7 +875,6 @@
       } catch (err) { console.error(err); }
     }
 
-    // ניהול צפייה ועריכה בפתק משותף דרך קישור ייעודי
     function listenToSingleSharedNote(noteId) {
       const docRef = doc(db, "notes", noteId);
       getDoc(docRef).then(async (docSnap) => {
@@ -965,7 +958,6 @@
       }
     }
 
-    // פונקציית שליטה בגודל הטקסט במסך פתק משותף
     window.adjustSharedTextSize = function(delta) {
       currentSharedFontSize += delta * 0.1;
       if (currentSharedFontSize < 0.8) currentSharedFontSize = 0.8;
