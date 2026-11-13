@@ -404,7 +404,7 @@
     .modal { background: white; width: 100%; max-width: 550px; border-radius: 16px 16px 0 0; padding: 20px; display: flex; flex-direction: column; gap: 14px; animation: slideUp 0.25s ease-out; max-height: 90vh; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); transition: all 0.2s ease; overflow-y: auto; }
     
     .modal.fullscreen-mode { max-width: 100vw !important; height: 100vh !important; max-height: 100vh !important; border-radius: 0 !important; padding: 30px !important; }
-    .modal.fullscreen-mode textarea.modal-textarea { height: calc(100vh - 380px) !important; }
+    .modal.fullscreen-mode textarea.modal-textarea { height: calc(100vh - 280px) !important; }
 
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
@@ -419,7 +419,7 @@
     .btn-fullscreen { font-size: 0.85rem; color: #334155; padding: 4px 10px; border-radius: 16px; background: #f1f5f9; font-weight: 600; cursor: pointer; border: none; }
 
     .textarea-wrapper { position: relative; width: 100%; }
-    textarea.modal-textarea { width: 100%; height: 120px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; padding-bottom: 40px; font-size: 0.95rem; resize: none; outline: none; color: var(--text-main); }
+    textarea.modal-textarea { width: 100%; height: 160px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; padding-bottom: 40px; font-size: 0.95rem; resize: none; outline: none; color: var(--text-main); }
     .voice-btn { position: absolute; bottom: 10px; left: 10px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 50%; width: 34px; height: 34px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     
     .modal-image-preview-container { position: relative; display: none; align-items: center; gap: 10px; background: #f8fafc; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border); }
@@ -517,6 +517,11 @@
         <span id="single-note-edited" class="edited-by-badge" style="display:none;"></span>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
+        <!-- כפתורי פלוס ומינוס לשליטה בגודל הטקסט גם בפתק משותף -->
+        <div style="display: flex; gap: 2px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 8px; padding: 2px;">
+          <button type="button" class="btn" style="padding: 2px 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer; border-radius: 6px;" onclick="adjustSharedTextSize(1)" title="הגדל טקסט">+</button>
+          <button type="button" class="btn" style="padding: 2px 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer; border-radius: 6px;" onclick="adjustSharedTextSize(-1)" title="הקטן טקסט">-</button>
+        </div>
         <span id="single-note-date" class="note-date"></span>
       </div>
     </div>
@@ -524,7 +529,7 @@
       <h2 id="single-note-title-display" style="font-size: 1.2rem; font-weight: 700; color: #1e293b; display: none;"></h2>
       <div id="single-note-secure-wrapper" style="flex:1; display:flex; flex-direction:column;">
         <label for="single-note-textarea" style="display:none;">תוכן הפתק המשותף</label>
-        <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 200px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius);"></textarea>
+        <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 220px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius);"></textarea>
         <div id="single-note-link-area"></div>
         <div id="single-note-img-area"></div>
       </div>
@@ -637,6 +642,7 @@
         </button>
       </div>
 
+      <!-- כפתור פתיחה/סגירה אחוד וקומפקטי לאפשרויות המתקדמות -->
       <div class="advanced-section-toggle" onclick="toggleAdvancedPanel()">
         <span>⚙️ אפשרויות מתקדמות (תמונה, קישור, נעילה)</span>
         <span id="advanced-arrow">▼</span>
@@ -733,6 +739,7 @@
     ];
     let linkDeleteStates = {};
     let currentModalFontSize = 0.95;
+    let currentSharedFontSize = 1.1;
 
     function updateLiveClock() {
       const clockEl = document.getElementById('live-clock');
@@ -949,12 +956,24 @@
         await updateDoc(doc(db, "notes", activeSharedNoteId), {
           text: newText,
           lastEditedBy: editorName,
-          lastEditedId: 'guest'
+          lastEditedById: 'guest'
         });
         showToast("השינויים בפתק נשמרו בהצלחה!");
       } catch (err) {
         console.error("שגיאה בשמירת פתק משותף:", err);
         alert("שגיאה בשמירת השינויים. ייתכן שפג תוקף השיתוף או שאין הרשאה.");
+      }
+    }
+
+    // פונקציית שליטה בגודל הטקסט במסך פתק משותף
+    window.adjustSharedTextSize = function(delta) {
+      currentSharedFontSize += delta * 0.1;
+      if (currentSharedFontSize < 0.8) currentSharedFontSize = 0.8;
+      if (currentSharedFontSize > 1.8) currentSharedFontSize = 1.8;
+
+      const textarea = document.getElementById('single-note-textarea');
+      if (textarea) {
+        textarea.style.fontSize = `${currentSharedFontSize}rem`;
       }
     }
 
