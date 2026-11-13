@@ -134,6 +134,7 @@
       cursor: pointer;
       transition: background 0.2s, transform 0.2s;
       color: #334155;
+      position: relative;
     }
     .gear-menu-trigger:hover {
       background: #cbd5e1;
@@ -145,39 +146,37 @@
       100% { opacity: 1; transform: translateY(0); }
     }
 
-    .header-actions-dropdown { 
-      display: none; 
+    /* תפריט הגדרות מאוחד (גלגל שיניים) שמרכז את כל הכלים והאפשרויות בצורה נקייה ואינטואיטיבית */
+    .master-dropdown-menu {
+      display: none;
       position: absolute;
       top: 120%;
-      left: 0; 
+      left: 0;
       background: white;
       border: 1px solid var(--border);
       border-radius: 12px;
       box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
       padding: 10px;
-      z-index: 200;
-      gap: 8px; 
-      flex-direction: column; 
-      align-items: stretch;
-      min-width: 180px;
+      z-index: 250;
+      min-width: 200px;
+      flex-direction: column;
+      gap: 6px;
     }
-
-    .header-actions-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-    
-    .header-actions-wrapper .header-actions-dropdown.active {
+    .master-dropdown-menu.active {
       display: flex;
       animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    .notes-counter-badge { font-size: 0.80rem; color: #334155; background: #e2e8f0; padding: 6px 12px; border-radius: 8px; font-weight: 600; text-align: center; }
+    .master-dropdown-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .notes-counter-badge { font-size: 0.80rem; color: #334155; background: #e2e8f0; padding: 6px 12px; border-radius: 8px; font-weight: 600; text-align: center; margin-bottom: 4px; }
     
     .btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-    .btn-secondary { font-size: 0.85rem; color: #334155; font-weight: 600; padding: 8px 14px; border-radius: 8px; background: white; border: 1px solid var(--border); box-shadow: var(--shadow); width: 100%; text-align: right; justify-content: flex-start; }
-    .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
+    .btn-secondary { font-size: 0.85rem; color: #334155; font-weight: 600; padding: 8px 12px; border-radius: 8px; background: white; border: 1px solid var(--border); width: 100%; text-align: right; justify-content: flex-start; gap: 8px; }
+    .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; color: var(--primary); }
 
     .search-dropdown-wrapper { position: relative; display: inline-block; }
     .search-trigger-btn { background: white; border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; font-size: 1rem; cursor: pointer; box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
@@ -229,7 +228,7 @@
     .cat-chip.shared-chip.active { background: #15803d; color: white; border-color: #15803d; }
     .cat-delete-btn { background: none; border: none; color: inherit; font-size: 0.8rem; cursor: pointer; padding: 0 2px; }
 
-    /* פאנל צדדי ממוקם בצד שמאל - התאמה למסכי מובייל */
+    /* פאנל צדדי מתקדם נפתח מצד שמאל (אקורדיון נפתח ומתארך לפי הצורך) */
     .sidebar {
       position: fixed;
       top: 0;
@@ -259,7 +258,7 @@
     }
     .sidebar-title { font-size: 1.1rem; font-weight: 700; color: #1e293b; }
     
-    /* קבוצה מתקפלת (Accordion) */
+    /* קבוצה מתקפלת (Accordion) בתפריט הצד */
     .accordion-section {
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -283,14 +282,14 @@
     .accordion-content {
       max-height: 0;
       overflow: hidden;
-      transition: max-height 0.3s ease, padding 0.3s ease;
+      transition: max-height 0.35s ease, padding 0.35s ease;
       padding: 0 10px;
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
     .accordion-section.open .accordion-content {
-      max-height: 400px;
+      max-height: 500px;
       padding: 10px;
     }
 
@@ -418,7 +417,6 @@
     .btn-fullscreen { font-size: 0.85rem; color: #334155; padding: 4px 10px; border-radius: 16px; background: #f1f5f9; font-weight: 600; cursor: pointer; border: none; }
 
     .textarea-wrapper { position: relative; width: 100%; }
-    /* תיקון רקע לבן אטום וטקסט קריא לחלוטין */
     textarea.modal-textarea { width: 100%; height: 160px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; padding-bottom: 40px; font-size: 0.95rem; resize: none; outline: none; color: var(--text-main); background-color: #ffffff; }
     .voice-btn { position: absolute; bottom: 10px; left: 10px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 50%; width: 34px; height: 34px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     
@@ -430,7 +428,6 @@
     .form-group label { font-size: 0.8rem; font-weight: 600; color: #475569; }
     select, input[type="text"], input[type="password"] { padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.9rem; outline: none; background: white; color: var(--text-main); }
 
-    /* פאנלי אופציות נפרדים ש נפתחים רק בלחיצה */
     .option-panel { display: none; flex-direction: column; gap: 8px; padding: 10px; background: #fafafa; border: 1px solid var(--border); border-radius: var(--radius); margin-top: 4px; animation: slideDown 0.2s ease; }
     .option-panel.show { display: flex; }
 
@@ -454,7 +451,7 @@
 </head>
 <body onclick="closeAllDropdowns(event)">
 
-  <!-- פאנל צדדי נפתח מצד שמאל -->
+  <!-- פאנל צדדי נפתח מצד שמאל (מרכז שליטה המרכז הכל) -->
   <aside class="sidebar" id="app-sidebar" onclick="event.stopPropagation()">
     <div class="sidebar-header">
       <span class="sidebar-title">🧭 מרכז שליטה</span>
@@ -485,7 +482,6 @@
       <div class="accordion-content">
         <div style="display: flex; flex-direction: column; gap: 6px;" id="links-container"></div>
         
-        <!-- טופס הוספת קישור מותאם למובייל -->
         <div class="add-link-form">
           <div class="link-inputs-row">
             <input type="text" id="new-link-title" placeholder="שם הקישור" style="flex: 1;">
@@ -548,19 +544,20 @@
       <div class="header-clock" id="live-clock" title="שעה ותאריך נוכחיים">טוען שעון...</div>
 
       <div class="header-left">
-        <button class="gear-menu-trigger" onclick="toggleSidebar(event)" title="פתח מרכז שליטה וקישורים">🧭</button>
-        <button class="gear-menu-trigger" onclick="togglePrivacyBlur()" title="הסתר/הצג פתקים (טשטוש מהיר)" id="privacy-btn">👁️</button>
-        
-        <div class="header-actions-wrapper" onclick="event.stopPropagation()">
-          <button class="gear-menu-trigger" onclick="toggleHeaderMenu(event)" title="אפשרויות ניהול" aria-label="תפריט ניהול והגדרות">⚙️</button>
-          <div class="header-actions-dropdown" id="header-dropdown">
+        <!-- כפתור גלגל שיניים אחד ויחיד המרכז את כל האפשרויות בתפריט נפתח נקי ואינטואיטיבי -->
+        <div class="master-dropdown-wrapper" onclick="event.stopPropagation()">
+          <button class="gear-menu-trigger" onclick="toggleMasterMenu(event)" title="אפשרויות וניהול" aria-label="תפריט ניהול והגדרות">⚙️</button>
+          
+          <div class="master-dropdown-menu" id="master-dropdown">
             <span class="notes-counter-badge" id="notes-counter">מחשב...</span>
-            <button class="btn btn-secondary" onclick="exportBackup()">💾 גיבוי</button>
-            <button class="btn btn-secondary" onclick="triggerImport()">📥 ייבוא</button>
+            <button class="btn btn-secondary" onclick="toggleSidebar(); closeAllDropdowns();">🧭 מרכז שליטה וקישורים</button>
+            <button class="btn btn-secondary" onclick="togglePrivacyBlur(); closeAllDropdowns();" id="privacy-btn-dropdown">👁️ מצב טשטוש מהיר</button>
+            <button class="btn btn-secondary" onclick="exportBackup(); closeAllDropdowns();">💾 גיבוי נתונים</button>
+            <button class="btn btn-secondary" onclick="triggerImport(); closeAllDropdowns();">📥 ייבוא נתונים</button>
             <input type="file" id="import-file-input" style="display: none" accept=".json" aria-label="קובץ ייבוי גיבוי" onchange="importBackup(event)">
             <button class="btn btn-secondary" id="manage-cat-btn" onclick="toggleCategoryManagement()">⚙️ ניהול קטגוריות</button>
-            <button class="btn btn-secondary" id="archive-view-btn" onclick="toggleArchiveView()">ארכיון</button>
-            <button class="btn btn-secondary" onclick="logoutFromGoogle()">🚪 התנתק</button>
+            <button class="btn btn-secondary" id="archive-view-btn" onclick="toggleArchiveView()">📦 ארכיון</button>
+            <button class="btn btn-secondary" onclick="logoutFromGoogle()" style="color: #be123c;">🚪 התנתק מהמערכת</button>
           </div>
         </div>
       </div>
@@ -608,7 +605,6 @@
 
   <div class="overlay" id="note-modal" onclick="if(event.target===this) closeModal()">
     <div class="modal" id="modal-box">
-      <!-- שורה עליונה מעודכנת: קטגוריה במקום הכותרת המיותרת, בתוספת כפתורי פלוס/מינוס ומסך מלא -->
       <div class="modal-header-actions">
         <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
           <select id="note-cat-select" style="font-size: 0.85rem; padding: 4px 8px; width: 140px;" aria-label="בחר קטגוריה לפתק"></select>
@@ -633,7 +629,6 @@
         <button class="voice-btn" id="voice-record-btn" onclick="toggleVoiceRecognition()" aria-label="הקלטה קולית">🎤</button>
       </div>
 
-      <!-- שורת כלים מינימליסטית המציגה כפתורים נפרדים שכל אחד פותח את האזור שלו בלבד -->
       <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
         <button class="btn" style="font-size: 0.8rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 5px 10px; border-radius: var(--radius); cursor: pointer;" onclick="addChecklistItemToModal()">
           ☑️ משימה
@@ -649,7 +644,6 @@
         </button>
       </div>
 
-      <!-- פאנל תמונה נפרד -->
       <div class="option-panel" id="panel-img">
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <label class="btn" style="font-size: 0.8rem; color: #334155; background: white; border: 1px solid var(--border); padding: 5px 10px; border-radius: var(--radius); cursor: pointer;">
@@ -664,7 +658,6 @@
         </div>
       </div>
 
-      <!-- פאנל קישור נפרד -->
       <div class="option-panel" id="panel-link">
         <div style="display: flex; gap: 6px;">
           <input type="text" id="modal-link-title" placeholder="כותרת הקישור (אופציונלי)" style="flex: 1; font-size: 0.85rem; padding: 6px;" aria-label="כותרת הקישור" dir="rtl">
@@ -672,7 +665,6 @@
         </div>
       </div>
 
-      <!-- פאנל נעילה נפרד -->
       <div class="option-panel" id="panel-lock">
         <div style="display: flex; gap: 8px; align-items: center;">
           <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 4px; cursor: pointer;">
@@ -791,7 +783,7 @@
           return;
         }
         
-        const hasOpenDropdowns = document.querySelectorAll('.dropdown-menu.show, .cat-dropdown-menu.show, .header-actions-dropdown.active, .search-popup-input.active').length > 0;
+        const hasOpenDropdowns = document.querySelectorAll('.dropdown-menu.show, .cat-dropdown-menu.show, .master-dropdown-menu.active, .search-popup-input.active').length > 0;
         if (hasOpenDropdowns) {
           closeAllDropdowns();
           return;
@@ -984,8 +976,7 @@
       signOut(auth);
     }
 
-    window.toggleSidebar = function(event) {
-      if (event) event.stopPropagation();
+    window.toggleSidebar = function() {
       const sidebar = document.getElementById('app-sidebar');
       sidebar.classList.toggle('open');
       document.body.classList.toggle('sidebar-open');
@@ -1223,9 +1214,9 @@
 
     window.togglePrivacyBlur = function() {
       document.body.classList.toggle('privacy-mode');
-      const btn = document.getElementById('privacy-btn');
       const isBlurred = document.body.classList.contains('privacy-mode');
-      btn.innerText = isBlurred ? '👁️‍🗨️' : '👁️';
+      const blurBtnDropdown = document.getElementById('privacy-btn-dropdown');
+      if (blurBtnDropdown) blurBtnDropdown.innerText = isBlurred ? '👁️‍🗨️ בטל טשטוש' : '👁️ מצב טשטוש מהיר';
       showToast(isBlurred ? "הפתקים טושטשו להגנת פרטיות" : "הטשטוש הוסר");
     }
 
@@ -1254,12 +1245,10 @@
       const targetPanel = document.getElementById(`panel-${type}`);
       const isOpen = targetPanel.classList.contains('show');
 
-      // סגור את כולם תחילה
       panelImg.classList.remove('show');
       panelLink.classList.remove('show');
       panelLock.classList.remove('show');
 
-      // אם הוא לא היה פתוח, פתח אותו
       if (!isOpen) {
         targetPanel.classList.add('show');
         if (type === 'link') {
@@ -1370,9 +1359,9 @@
       if (btn) btn.innerText = '🎤';
     }
 
-    window.toggleHeaderMenu = function(event) {
+    window.toggleMasterMenu = function(event) {
       event.stopPropagation();
-      const dropdown = document.getElementById('header-dropdown');
+      const dropdown = document.getElementById('master-dropdown');
       const willOpen = !dropdown.classList.contains('active');
       closeAllDropdowns();
       if (willOpen) dropdown.classList.add('active');
@@ -1398,18 +1387,20 @@
       let counterText = `${activeCount} פעילים | ${archivedCount} בארכיון`;
       if (sharedCount > 0) counterText += ` | 🔗 ${sharedCount} משותפים`;
       if (publicCount > 0) counterText += ` | 🌐 ${publicCount} מפורסמים`;
-      document.getElementById('notes-counter').innerText = counterText;
+      const counterEl = document.getElementById('notes-counter');
+      if (counterEl) counterEl.innerText = counterText;
     }
 
     window.toggleCategoryManagement = function() {
       isManagingCategories = !isManagingCategories;
       const btn = document.getElementById('manage-cat-btn');
-      btn.innerText = isManagingCategories ? '⚙️ סיום ניהול' : '⚙️ ניהול קטגוריות';
+      if (btn) btn.innerText = isManagingCategories ? '⚙️ סיום ניהול' : '⚙️ ניהול קטגוריות';
       renderCategories();
     }
 
     window.renderCategories = function() {
       const container = document.getElementById('categories-container');
+      if (!container) return;
       container.innerHTML = '';
 
       const allChip = document.createElement('div');
@@ -1460,7 +1451,10 @@
         container.appendChild(chip);
       });
 
-      document.getElementById('note-cat-select').innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+      const noteCatSelect = document.getElementById('note-cat-select');
+      if (noteCatSelect) {
+        noteCatSelect.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+      }
     }
 
     window.renameCategory = async function(oldName) {
@@ -1827,7 +1821,7 @@
 
     window.closeAllDropdowns = function() {
       document.querySelectorAll('.dropdown-menu, .cat-dropdown-menu').forEach(menu => menu.classList.remove('show'));
-      document.getElementById('header-dropdown')?.classList.remove('active');
+      document.getElementById('master-dropdown')?.classList.remove('active');
       document.getElementById('search-input')?.classList.remove('active');
     }
 
@@ -1846,18 +1840,27 @@
       const textareaEl = document.getElementById('note-text-input');
       if (textareaEl) textareaEl.style.fontSize = `${currentModalFontSize}rem`;
 
-      document.getElementById('note-title-input').value = '';
-      textareaEl.value = '';
-      document.getElementById('modal-link-title').value = '';
-      document.getElementById('modal-link-url').value = '';
-      document.getElementById('modal-secure-toggle').checked = false;
-      document.getElementById('modal-secure-password').value = '';
-      document.getElementById('modal-pass-container').style.display = 'none';
-      document.getElementById('note-cat-select').value = categories[0] || 'כללי';
-      document.getElementById('modal-img-preview-box').classList.remove('show');
-      document.getElementById('remove-img-btn').style.display = 'none';
+      const titleInput = document.getElementById('note-title-input');
+      if (titleInput) titleInput.value = '';
+      if (textareaEl) textareaEl.value = '';
+      const linkTitleEl = document.getElementById('modal-link-title');
+      if (linkTitleEl) linkTitleEl.value = '';
+      const linkUrlEl = document.getElementById('modal-link-url');
+      if (linkUrlEl) linkUrlEl.value = '';
+      const secureToggle = document.getElementById('modal-secure-toggle');
+      if (secureToggle) secureToggle.checked = false;
+      const securePass = document.getElementById('modal-secure-password');
+      if (securePass) securePass.value = '';
+      const passContainer = document.getElementById('modal-pass-container');
+      if (passContainer) passContainer.style.display = 'none';
+      const noteCatSelect = document.getElementById('note-cat-select');
+      if (noteCatSelect) noteCatSelect.value = categories[0] || 'כללי';
       
-      // סגירת כל פאנלי האופציות בפתיחה חדשה
+      const previewBox = document.getElementById('modal-img-preview-box');
+      if (previewBox) previewBox.classList.remove('show');
+      const removeImgBtn = document.getElementById('remove-img-btn');
+      if (removeImgBtn) removeImgBtn.style.display = 'none';
+      
       document.getElementById('panel-img').classList.remove('show');
       document.getElementById('panel-link').classList.remove('show');
       document.getElementById('panel-lock').classList.remove('show');
@@ -1920,7 +1923,6 @@
         removeBtn.style.display = 'none';
       }
 
-      // סגירת כל הפאנלים או פתיחת פאנל רלוונטי לפי הנתונים הקיימים
       document.getElementById('panel-img').classList.remove('show');
       document.getElementById('panel-link').classList.remove('show');
       document.getElementById('panel-lock').classList.remove('show');
@@ -2122,24 +2124,27 @@
         if (!categories.includes(name)) {
           categories.push(name);
           renderCategories();
-          document.getElementById('note-cat-select').value = name;
+          const noteCatSelect = document.getElementById('note-cat-select');
+          if (noteCatSelect) noteCatSelect.value = name;
         }
       }
     }
 
     window.toggleArchiveView = function() {
       currentView = currentView === 'active' ? 'archived' : 'active';
-      document.getElementById('archive-view-btn').innerText = currentView === 'active' ? 'ארכיון' : 'פתקים פעילים';
+      const archiveBtn = document.getElementById('archive-view-btn');
+      if (archiveBtn) archiveBtn.innerText = currentView === 'active' ? '📦 ארכיון' : '📄 פתקים פעילים';
       renderNotes();
     }
 
     window.toggleFullscreenModal = function() {
       const modal = document.getElementById('modal-box');
-      modal.classList.toggle('fullscreen-mode');
+      if (modal) modal.classList.toggle('fullscreen-mode');
     }
 
     window.showToast = function(msg) {
       const toast = document.getElementById('toast');
+      if (!toast) return;
       toast.innerText = msg;
       toast.style.display = 'block';
       setTimeout(() => { toast.style.display = 'none'; }, 2500);
