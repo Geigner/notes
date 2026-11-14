@@ -394,7 +394,7 @@
 
     .menu-wrapper { position: relative; display: inline-block; }
     .menu-btn { background: none; border: none; font-size: 1.1rem; color: #475569; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
-    .dropdown-menu { position: absolute; top: 100%; left: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: none; z-index: 50; min-width: 185px; padding: 4px 0; }
+    .dropdown-menu { position: absolute; top: 100%; left: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: none; z-index: 50; min-width: 195px; padding: 4px 0; }
     .dropdown-menu.show { display: block; }
     .dropdown-item { padding: 8px 14px; font-size: 0.85rem; color: var(--text-main); background: none; border: none; width: 100%; text-align: right; cursor: pointer; display: flex; align-items: center; gap: 8px; }
     .dropdown-item:hover { background: #f8fafc; color: var(--primary); }
@@ -695,7 +695,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, deleteDoc, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -753,7 +753,7 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const sharedNoteId = urlParams.get('noteId');
-    const sharedMode = urlParams.get('mode') || 'view';
+    const tokenParam = urlParams.get('token');
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' || e.key === 'Esc') {
@@ -811,8 +811,7 @@
       document.getElementById('single-note-container').style.display = 'flex';
       
       activeSharedNoteId = sharedNoteId;
-      currentSharedMode = sharedMode;
-      listenToSingleSharedNote(sharedNoteId, sharedMode);
+      listenToSingleSharedNote(sharedNoteId, tokenParam);
     } else {
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -842,29 +841,36 @@
       });
     }
 
+    function generateRandomToken() {
+      return Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
+    }
+
     window.shareNoteViaWhatsApp = async function(id, isEditable) {
       closeAllDropdowns();
       const note = allNotes.find(n => n.id === id);
       if (!note) return;
 
-      const modeStr = isEditable ? 'edit' : 'view';
+      const tokenType = isEditable ? 'edit' : 'view';
+      const newToken = generateRandomToken();
+      const fullToken = `${tokenType}_${newToken}`;
 
-      // תמיד מסמנים isShared: true כדי שהשרת יאפשר לקרוא את תוכן הפתק
-      // ושומרים את shareMode כדי לשקף אם השיתוף הוא לצפייה או לעריכה
       try {
-        showToast("מעדכן הרשאות שיתוף מול השרת...");
+        showToast("יוצר קישור מאובטח חדש...");
+        const fieldToUpdate = isEditable ? 'editTokens' : 'viewTokens';
+        const existingTokens = note[fieldToUpdate] || [];
+
         await updateDoc(doc(db, "notes", id), { 
           isShared: true,
-          shareMode: modeStr
+          [fieldToUpdate]: [...existingTokens, fullToken]
         });
       } catch (err) {
-        console.error("שגיאה בעדכון מצב שיתוף:", err);
-        alert("שגיאה בעדכון הרשאות השיתוף.");
+        console.error("שגיאה ביצירת טוקן שיתוף:", err);
+        alert("שגיאה ביצירת קישור מאובטח.");
         return;
       }
 
       const baseUrl = window.location.origin + window.location.pathname;
-      const noteLink = `${baseUrl}?noteId=${id}&mode=${modeStr}`;
+      const noteLink = `${baseUrl}?noteId=${id}&token=${fullToken}`;
       const noteTitle = note.title ? `"${note.title}"` : 'פתק מהפנקס';
 
       let message = '';
@@ -886,26 +892,41 @@
       try {
         await updateDoc(doc(db, "notes", id), { 
           isShared: false,
-          shareMode: null
+          viewTokens: [],
+          editTokens: []
         });
-        showToast("השיתוף הופסק בהצלחה");
+        showToast("כל הקישורים והשיתופים בוטלו בהצלחה");
       } catch (err) { console.error(err); }
     }
 
-    function listenToSingleSharedNote(noteId, mode) {
+    function listenToSingleSharedNote(noteId, token) {
       const docRef = doc(db, "notes", noteId);
       getDoc(docRef).then(async (docSnap) => {
         if (!docSnap.exists()) {
-          document.getElementById('single-note-container').innerHTML = `
-            <div style="text-align: center; padding: 40px; display: flex; flex-direction: column; gap: 16px;">
-              <h2 style="color: #be123c;">הפתק לא נמצא</h2>
-              <p style="color: var(--text-muted);">יתכן שהפתק הוסר או שכתובת הקישור אינה נכונה.</p>
-            </div>
-          `;
+          showAccessDenied("הפתק לא נמצא או הוסר.");
           return;
         }
 
         const noteData = docSnap.data();
+        const viewTokens = noteData.viewTokens || [];
+        const editTokens = noteData.editTokens || [];
+
+        let isViewValid = token && viewTokens.includes(token);
+        let isEditValid = token && editTokens.includes(token);
+
+        // תמיכה בקישורי Legacy ישנים אם קיימים
+        if (!token && noteData.isShared) {
+          isViewValid = true; 
+        }
+
+        if (!isViewValid && !isEditValid) {
+          showAccessDenied("קישור זה פג תוקף או אינו תקף עוד (השיתוף בוטל).");
+          return;
+        }
+
+        const effectiveEdit = isEditValid;
+        currentSharedMode = effectiveEdit ? 'edit' : 'view';
+
         document.getElementById('single-note-cat').innerText = noteData.category || 'כללי';
         document.getElementById('single-note-date').innerText = noteData.date || '';
 
@@ -913,10 +934,6 @@
         const textarea = document.getElementById('single-note-textarea');
         const saveBtn = document.getElementById('single-note-save-btn');
         const titleDisplay = document.getElementById('single-note-title-display');
-
-        // קביעת המצב בפועל: רק אם הקישור מוגדר כ-edit וגם הפתק לא הוגדר כצפייה בלבד
-        const effectiveEdit = (mode === 'edit' && noteData.shareMode !== 'view');
-        currentSharedMode = effectiveEdit ? 'edit' : 'view';
 
         if (effectiveEdit) {
           document.title = `${noteData.title || 'פתק'} - משותף לעריכה | הפנקס`;
@@ -974,13 +991,17 @@
         }
       }).catch(err => {
         console.error(err);
-        document.getElementById('single-note-container').innerHTML = `
-          <div style="text-align: center; padding: 40px; display: flex; flex-direction: column; gap: 16px;">
-            <h2 style="color: #be123c;">אין הרשאת גישה לפתק</h2>
-            <p style="color: var(--text-muted);">השיתוף עבור פתק זה הופסק או שהקישור אינו תקף.</p>
-          </div>
-        `;
+        showAccessDenied("שגיאה בטעינת הפתק.");
       });
+    }
+
+    function showAccessDenied(msg) {
+      document.getElementById('single-note-container').innerHTML = `
+        <div style="text-align: center; padding: 40px; display: flex; flex-direction: column; gap: 16px;">
+          <h2 style="color: #be123c;">אין הרשאת גישה לפתק</h2>
+          <p style="color: var(--text-muted);">${msg}</p>
+        </div>
+      `;
     }
 
     window.saveSingleSharedNote = async function() {
@@ -1178,7 +1199,8 @@
           pinned: false,
           archived: false,
           isShared: false,
-          shareMode: null,
+          viewTokens: [],
+          editTokens: [],
           isLocked: false,
           isPublic: false
         });
@@ -1696,16 +1718,16 @@
     function generateNotesHTML(notesArray) {
       let html = '';
       notesArray.forEach(note => {
-        const { id, title, text, date, category, urgent, pinned, isShared, shareMode, isPublic, lastEditedBy, imageUrl, linkUrl, linkTitle, isLocked } = note;
+        const { id, title, text, date, category, urgent, pinned, isShared, viewTokens, editTokens, isPublic, lastEditedBy, imageUrl, linkUrl, linkTitle, isLocked } = note;
         const catName = category || 'כללי';
         const colors = getCategoryColor(catName);
         const cardVars = `style="--cat-bg-color: ${colors.bg}; --cat-border-color: ${colors.border}; --cat-text-color: ${colors.text};"`;
         
         let sharedTag = '';
-        if (isShared) {
-          sharedTag = shareMode === 'view' 
-            ? `<span class="shared-badge" style="background:#f1f5f9; color:#334155; border-color:#cbd5e1;">👁️ משותף (צפייה)</span>`
-            : `<span class="shared-badge">✏️ משותף (עריכה)</span>`;
+        const vCount = (viewTokens || []).length;
+        const eCount = (editTokens || []).length;
+        if (isShared && (vCount > 0 || eCount > 0)) {
+          sharedTag = `<span class="shared-badge">🔗 פעיל (${vCount} צפייה, ${eCount} עריכה)</span>`;
         }
 
         const publicTag = isPublic ? `<span class="shared-badge" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">🌐 מפורסם</span>` : '';
@@ -1728,7 +1750,7 @@
                        <button class="cat-dropdown-item" onclick="promptAndAddCategoryForNote(event, '${id}')"><span>➕ קטגוריה חדשה...</span></button>`;
 
         const shareBtnHTML = isShared 
-          ? `<button class="dropdown-item" onclick="stopSharingNote('${id}')">🔒 הפסק שיתוף</button>`
+          ? `<button class="dropdown-item danger" onclick="stopSharingNote('${id}')">🔒 הפסק את כל השיתופים</button>`
           : '';
           
         const publicBtnText = isPublic ? '🌐 הסר פרסום' : '🌐 פרסם';
@@ -2103,7 +2125,8 @@
             pinned: false, 
             archived: false, 
             isShared: false,
-            shareMode: null,
+            viewTokens: [],
+            editTokens: [],
             isLocked: isLocked,
             isPublic: false
           });
@@ -2171,7 +2194,8 @@
                 pinned: note.pinned || false, 
                 archived: note.archived || false,
                 isShared: false,
-                shareMode: null,
+                viewTokens: [],
+                editTokens: [],
                 isLocked: note.isLocked || false,
                 isPublic: note.isPublic || false 
               });
