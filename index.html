@@ -557,13 +557,12 @@
         <!-- כפתור טשטוש מהיר בסרגל העליון -->
         <button class="gear-menu-trigger" onclick="togglePrivacyBlur()" title="מצב טשטוש מהיר" aria-label="הפעל או בטל טשטוש פתקים" id="privacy-btn-top">👁️</button>
 
-        <!-- תפריט גלגל שיניים מרכזי -->
+        <!-- תפריט גלגל שיניים מרכזי (ללא כפילות של מרכז שליטה בפנים) -->
         <div class="master-dropdown-wrapper" onclick="event.stopPropagation()">
           <button class="gear-menu-trigger" onclick="toggleMasterMenu(event)" title="אפשרויות וניהול" aria-label="תפריט ניהול והגדרות">⚙️</button>
           
           <div class="master-dropdown-menu" id="master-dropdown">
             <span class="notes-counter-badge" id="notes-counter">מחשב...</span>
-            <button class="btn btn-secondary" onclick="toggleSidebar(); closeAllDropdowns();">🧭 מרכז שליטה וקישורים</button>
             <button class="btn btn-secondary" onclick="exportBackup(); closeAllDropdowns();">💾 גיבוי נתונים</button>
             <button class="btn btn-secondary" onclick="triggerImport(); closeAllDropdowns();">📥 ייבוא נתונים</button>
             <input type="file" id="import-file-input" style="display: none" accept=".json" aria-label="קובץ ייבוי גיבוי" onchange="importBackup(event)">
