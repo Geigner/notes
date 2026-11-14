@@ -108,7 +108,7 @@
     .header-right, .header-left {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     h1 { font-size: 1.3rem; font-weight: 600; color: #1e293b; letter-spacing: -0.3px; }
@@ -134,6 +134,12 @@
       cursor: pointer;
       transition: background 0.2s, transform 0.2s;
       color: #334155;
+      position: relative;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .gear-menu-trigger:hover {
       background: #cbd5e1;
@@ -145,39 +151,36 @@
       100% { opacity: 1; transform: translateY(0); }
     }
 
-    .header-actions-dropdown { 
-      display: none; 
+    .master-dropdown-menu {
+      display: none;
       position: absolute;
       top: 120%;
-      left: 0; 
+      left: 0;
       background: white;
       border: 1px solid var(--border);
       border-radius: 12px;
       box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
       padding: 10px;
-      z-index: 200;
-      gap: 8px; 
-      flex-direction: column; 
-      align-items: stretch;
-      min-width: 180px;
+      z-index: 250;
+      min-width: 200px;
+      flex-direction: column;
+      gap: 6px;
     }
-
-    .header-actions-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-    
-    .header-actions-wrapper .header-actions-dropdown.active {
+    .master-dropdown-menu.active {
       display: flex;
       animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    .notes-counter-badge { font-size: 0.80rem; color: #334155; background: #e2e8f0; padding: 6px 12px; border-radius: 8px; font-weight: 600; text-align: center; }
+    .master-dropdown-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .notes-counter-badge { font-size: 0.80rem; color: #334155; background: #e2e8f0; padding: 6px 12px; border-radius: 8px; font-weight: 600; text-align: center; margin-bottom: 4px; }
     
     .btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-    .btn-secondary { font-size: 0.85rem; color: #334155; font-weight: 600; padding: 8px 14px; border-radius: 8px; background: white; border: 1px solid var(--border); box-shadow: var(--shadow); width: 100%; text-align: right; justify-content: flex-start; }
-    .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
+    .btn-secondary { font-size: 0.85rem; color: #334155; font-weight: 600; padding: 8px 12px; border-radius: 8px; background: white; border: 1px solid var(--border); width: 100%; text-align: right; justify-content: flex-start; gap: 8px; }
+    .btn-secondary:hover { background: #f8fafc; border-color: #94a3b8; color: var(--primary); }
 
     .search-dropdown-wrapper { position: relative; display: inline-block; }
     .search-trigger-btn { background: white; border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; font-size: 1rem; cursor: pointer; box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
@@ -227,9 +230,11 @@
     .cat-chip.urgent-chip.active { background: var(--urgent); color: white; border-color: var(--urgent); }
     .cat-chip.shared-chip { border-color: #bbf7d0; background: #f0fdf4; color: #166534; }
     .cat-chip.shared-chip.active { background: #15803d; color: white; border-color: #15803d; }
+    .cat-chip.public-chip { border-color: #bae6fd; background: #e0f2fe; color: #0369a1; }
+    .cat-chip.public-chip.active { background: #0284c7; color: white; border-color: #0284c7; }
     .cat-delete-btn { background: none; border: none; color: inherit; font-size: 0.8rem; cursor: pointer; padding: 0 2px; }
 
-    /* פאנל צדדי ממוקם בצד שמאל - התאמה למסכי מובייל */
+    /* פאנל צדדי מתקדם נפתח מצד שמאל */
     .sidebar {
       position: fixed;
       top: 0;
@@ -259,7 +264,6 @@
     }
     .sidebar-title { font-size: 1.1rem; font-weight: 700; color: #1e293b; }
     
-    /* קבוצה מתקפלת (Accordion) */
     .accordion-section {
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -283,14 +287,14 @@
     .accordion-content {
       max-height: 0;
       overflow: hidden;
-      transition: max-height 0.3s ease, padding 0.3s ease;
+      transition: max-height 0.35s ease, padding 0.35s ease;
       padding: 0 10px;
       display: flex;
       flex-direction: column;
       gap: 8px;
     }
     .accordion-section.open .accordion-content {
-      max-height: 400px;
+      max-height: 500px;
       padding: 10px;
     }
 
@@ -369,12 +373,13 @@
     .cat-dropdown-item { padding: 6px 12px; font-size: 0.8rem; color: var(--text-main); background: none; border: none; width: 100%; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
     .cat-dropdown-item:hover { background: #f8fafc; color: var(--primary); }
 
-    .shared-badge { font-size: 0.7rem; color: #15803d; background: #dcfce7; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; border: 1px solid #bbf7d0; }
+    .shared-badge { font-size: 0.75rem; color: #15803d; background: #dcfce7; padding: 3px 8px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; border: 1px solid #bbf7d0; }
     .edited-by-badge { font-size: 0.7rem; color: #0369a1; background: #e0f2fe; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; }
     .locked-badge { font-size: 0.7rem; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; border: 1px solid #fde68a; }
 
     .inline-textarea { width: 100%; flex: 1; border: 1px solid transparent; background: transparent; font-size: 0.95rem; line-height: 1.5; resize: none; outline: none; color: var(--text-main); font-family: 'Assistant', sans-serif; padding: 2px; border-radius: 4px; transition: border-color 0.2s, background 0.2s; min-height: 80px; }
     .inline-textarea:focus { border-color: var(--border); background: #fafafa; }
+    .inline-textarea[readonly] { background: #f8fafc; cursor: default; border-color: #e2e8f0; }
 
     .checklist-container { display: flex; flex-direction: column; gap: 6px; margin: 4px 0; flex: 1; }
     .checklist-row { display: flex; align-items: flex-start; gap: 8px; font-size: 0.95rem; line-height: 1.4; color: var(--text-main); cursor: pointer; user-select: none; }
@@ -391,7 +396,7 @@
 
     .menu-wrapper { position: relative; display: inline-block; }
     .menu-btn { background: none; border: none; font-size: 1.1rem; color: #475569; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
-    .dropdown-menu { position: absolute; top: 100%; left: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: none; z-index: 50; min-width: 170px; padding: 4px 0; }
+    .dropdown-menu { position: absolute; top: 100%; left: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: none; z-index: 50; min-width: 195px; padding: 4px 0; }
     .dropdown-menu.show { display: block; }
     .dropdown-item { padding: 8px 14px; font-size: 0.85rem; color: var(--text-main); background: none; border: none; width: 100%; text-align: right; cursor: pointer; display: flex; align-items: center; gap: 8px; }
     .dropdown-item:hover { background: #f8fafc; color: var(--primary); }
@@ -418,7 +423,6 @@
     .btn-fullscreen { font-size: 0.85rem; color: #334155; padding: 4px 10px; border-radius: 16px; background: #f1f5f9; font-weight: 600; cursor: pointer; border: none; }
 
     .textarea-wrapper { position: relative; width: 100%; }
-    /* תיקון רקע לבן אטום וטקסט קריא לחלוטין */
     textarea.modal-textarea { width: 100%; height: 160px; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; padding-bottom: 40px; font-size: 0.95rem; resize: none; outline: none; color: var(--text-main); background-color: #ffffff; }
     .voice-btn { position: absolute; bottom: 10px; left: 10px; background: #f1f5f9; border: 1px solid var(--border); border-radius: 50%; width: 34px; height: 34px; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     
@@ -430,7 +434,6 @@
     .form-group label { font-size: 0.8rem; font-weight: 600; color: #475569; }
     select, input[type="text"], input[type="password"] { padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.9rem; outline: none; background: white; color: var(--text-main); }
 
-    /* פאנלי אופציות נפרדים ש נפתחים רק בלחיצה */
     .option-panel { display: none; flex-direction: column; gap: 8px; padding: 10px; background: #fafafa; border: 1px solid var(--border); border-radius: var(--radius); margin-top: 4px; animation: slideDown 0.2s ease; }
     .option-panel.show { display: flex; }
 
@@ -440,7 +443,7 @@
     .btn-cancel { background: #f1f5f9; color: var(--text-main); border: none; cursor: pointer; }
 
     #single-note-container { display: none; max-width: 650px; margin: 40px auto; background: white; border-radius: 16px; padding: 24px; box-shadow: var(--shadow-hover); border: 1px solid var(--border); flex-direction: column; gap: 16px; }
-    .single-note-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+    .single-note-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; flex-wrap: wrap; gap: 8px; }
 
     .locked-card-prompt { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 10px; text-align: center; flex: 1; }
     .locked-card-prompt input { width: 100%; max-width: 200px; text-align: center; }
@@ -454,7 +457,7 @@
 </head>
 <body onclick="closeAllDropdowns(event)">
 
-  <!-- פאנל צדדי נפתח מצד שמאל -->
+  <!-- פאנל צדדי נפתח מצד שמאל (מרכז שליטה) -->
   <aside class="sidebar" id="app-sidebar" onclick="event.stopPropagation()">
     <div class="sidebar-header">
       <span class="sidebar-title">🧭 מרכז שליטה</span>
@@ -485,7 +488,6 @@
       <div class="accordion-content">
         <div style="display: flex; flex-direction: column; gap: 6px;" id="links-container"></div>
         
-        <!-- טופס הוספת קישור מותאם למובייל -->
         <div class="add-link-form">
           <div class="link-inputs-row">
             <input type="text" id="new-link-title" placeholder="שם הקישור" style="flex: 1;">
@@ -511,8 +513,9 @@
 
   <div id="single-note-container">
     <div class="single-note-header">
-      <div>
+      <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
         <span id="single-note-cat" class="cat-badge">כללי</span>
+        <span id="single-note-mode-badge" class="shared-badge"></span>
         <span id="single-note-edited" class="edited-by-badge" style="display:none;"></span>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
@@ -524,14 +527,14 @@
       </div>
     </div>
     <div style="flex: 1; display:flex; flex-direction:column; gap:10px;">
-      <h2 id="single-note-title-display" style="font-size: 1.2rem; font-weight: 700; color: #1e293b; display: none;"></h2>
+      <h2 id="single-note-title-display" style="font-size: 1.25rem; font-weight: 700; color: #1e293b; display: none;"></h2>
       <div id="single-note-secure-wrapper" style="flex:1; display:flex; flex-direction:column;">
         <label for="single-note-textarea" style="display:none;">תוכן הפתק המשותף</label>
-        <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 220px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); background-color: #ffffff;"></textarea>
+        <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 220px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius);"></textarea>
         <div id="single-note-link-area"></div>
         <div id="single-note-img-area"></div>
       </div>
-      <button id="single-note-save-btn" class="btn btn-submit" style="padding: 10px; width: 100%; border-radius: var(--radius);" onclick="saveSingleSharedNote()">שמור שינויים בפתק</button>
+      <button id="single-note-save-btn" class="btn btn-submit" style="padding: 12px; width: 100%; border-radius: var(--radius); display: none; font-size: 1rem;" onclick="saveSingleSharedNote()">💾 שמור שינויים בפתק</button>
     </div>
   </div>
 
@@ -548,19 +551,24 @@
       <div class="header-clock" id="live-clock" title="שעה ותאריך נוכחיים">טוען שעון...</div>
 
       <div class="header-left">
-        <button class="gear-menu-trigger" onclick="toggleSidebar(event)" title="פתח מרכז שליטה וקישורים">🧭</button>
-        <button class="gear-menu-trigger" onclick="togglePrivacyBlur()" title="הסתר/הצג פתקים (טשטוש מהיר)" id="privacy-btn">👁️</button>
-        
-        <div class="header-actions-wrapper" onclick="event.stopPropagation()">
-          <button class="gear-menu-trigger" onclick="toggleHeaderMenu(event)" title="אפשרויות ניהול" aria-label="תפריט ניהול והגדרות">⚙️</button>
-          <div class="header-actions-dropdown" id="header-dropdown">
+        <!-- כפתור פתיחת מרכז שליטה בצד שמאל -->
+        <button class="gear-menu-trigger" onclick="toggleSidebar()" title="מרכז שליטה" aria-label="פתח מרכז שליטה">🧭</button>
+
+        <!-- כפתור טשטוש מהיר בסרגל העליון -->
+        <button class="gear-menu-trigger" onclick="togglePrivacyBlur()" title="מצב טשטוש מהיר" aria-label="הפעל או בטל טשטוש פתקים" id="privacy-btn-top">👁️</button>
+
+        <!-- תפריט גלגל שיניים מרכזי (ללא כפילות של מרכז שליטה בפנים) -->
+        <div class="master-dropdown-wrapper" onclick="event.stopPropagation()">
+          <button class="gear-menu-trigger" onclick="toggleMasterMenu(event)" title="אפשרויות וניהול" aria-label="תפריט ניהול והגדרות">⚙️</button>
+          
+          <div class="master-dropdown-menu" id="master-dropdown">
             <span class="notes-counter-badge" id="notes-counter">מחשב...</span>
-            <button class="btn btn-secondary" onclick="exportBackup()">💾 גיבוי</button>
-            <button class="btn btn-secondary" onclick="triggerImport()">📥 ייבוא</button>
+            <button class="btn btn-secondary" onclick="exportBackup(); closeAllDropdowns();">💾 גיבוי נתונים</button>
+            <button class="btn btn-secondary" onclick="triggerImport(); closeAllDropdowns();">📥 ייבוא נתונים</button>
             <input type="file" id="import-file-input" style="display: none" accept=".json" aria-label="קובץ ייבוי גיבוי" onchange="importBackup(event)">
             <button class="btn btn-secondary" id="manage-cat-btn" onclick="toggleCategoryManagement()">⚙️ ניהול קטגוריות</button>
-            <button class="btn btn-secondary" id="archive-view-btn" onclick="toggleArchiveView()">ארכיון</button>
-            <button class="btn btn-secondary" onclick="logoutFromGoogle()">🚪 התנתק</button>
+            <button class="btn btn-secondary" id="archive-view-btn" onclick="toggleArchiveView()">📦 ארכיון</button>
+            <button class="btn btn-secondary" onclick="logoutFromGoogle()" style="color: #be123c;">🚪 התנתק מהמערכת</button>
           </div>
         </div>
       </div>
@@ -608,7 +616,6 @@
 
   <div class="overlay" id="note-modal" onclick="if(event.target===this) closeModal()">
     <div class="modal" id="modal-box">
-      <!-- שורה עליונה מעודכנת: קטגוריה במקום הכותרת המיותרת, בתוספת כפתורי פלוס/מינוס ומסך מלא -->
       <div class="modal-header-actions">
         <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
           <select id="note-cat-select" style="font-size: 0.85rem; padding: 4px 8px; width: 140px;" aria-label="בחר קטגוריה לפתק"></select>
@@ -633,7 +640,6 @@
         <button class="voice-btn" id="voice-record-btn" onclick="toggleVoiceRecognition()" aria-label="הקלטה קולית">🎤</button>
       </div>
 
-      <!-- שורת כלים מינימליסטית המציגה כפתורים נפרדים שכל אחד פותח את האזור שלו בלבד -->
       <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
         <button class="btn" style="font-size: 0.8rem; color: #334155; background: #f1f5f9; border: 1px solid var(--border); padding: 5px 10px; border-radius: var(--radius); cursor: pointer;" onclick="addChecklistItemToModal()">
           ☑️ משימה
@@ -649,7 +655,6 @@
         </button>
       </div>
 
-      <!-- פאנל תמונה נפרד -->
       <div class="option-panel" id="panel-img">
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <label class="btn" style="font-size: 0.8rem; color: #334155; background: white; border: 1px solid var(--border); padding: 5px 10px; border-radius: var(--radius); cursor: pointer;">
@@ -664,7 +669,6 @@
         </div>
       </div>
 
-      <!-- פאנל קישור נפרד -->
       <div class="option-panel" id="panel-link">
         <div style="display: flex; gap: 6px;">
           <input type="text" id="modal-link-title" placeholder="כותרת הקישור (אופציונלי)" style="flex: 1; font-size: 0.85rem; padding: 6px;" aria-label="כותרת הקישור" dir="rtl">
@@ -672,7 +676,6 @@
         </div>
       </div>
 
-      <!-- פאנל נעילה נפרד -->
       <div class="option-panel" id="panel-lock">
         <div style="display: flex; gap: 8px; align-items: center;">
           <label style="font-size: 0.8rem; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 4px; cursor: pointer;">
@@ -696,7 +699,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, deleteDoc, onSnapshot, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -726,6 +729,7 @@
     let unsubscribeTasks = null;
     let unsubscribeLinks = null;
     let activeSharedNoteId = null;
+    let currentSharedMode = 'view';
     let currentImageBase64 = null;
     let unlockedNotes = {};
     let pendingTaskIdToConvert = null;
@@ -753,6 +757,7 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const sharedNoteId = urlParams.get('noteId');
+    const tokenParam = urlParams.get('token');
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' || e.key === 'Esc') {
@@ -791,7 +796,7 @@
           return;
         }
         
-        const hasOpenDropdowns = document.querySelectorAll('.dropdown-menu.show, .cat-dropdown-menu.show, .header-actions-dropdown.active, .search-popup-input.active').length > 0;
+        const hasOpenDropdowns = document.querySelectorAll('.dropdown-menu.show, .cat-dropdown-menu.show, .master-dropdown-menu.active, .search-popup-input.active').length > 0;
         if (hasOpenDropdowns) {
           closeAllDropdowns();
           return;
@@ -810,7 +815,7 @@
       document.getElementById('single-note-container').style.display = 'flex';
       
       activeSharedNoteId = sharedNoteId;
-      listenToSingleSharedNote(sharedNoteId);
+      listenToSingleSharedNote(sharedNoteId, tokenParam);
     } else {
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -840,73 +845,127 @@
       });
     }
 
+    function generateRandomToken() {
+      return Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
+    }
+
     window.shareNoteViaWhatsApp = async function(id, isEditable) {
       closeAllDropdowns();
       const note = allNotes.find(n => n.id === id);
       if (!note) return;
 
-      if (isEditable) {
-        try {
-          await updateDoc(doc(db, "notes", id), { isShared: true });
-        } catch (err) {
-          console.error(err);
-        }
+      const tokenType = isEditable ? 'edit' : 'view';
+      const newToken = generateRandomToken();
+      const fullToken = `${tokenType}_${newToken}`;
+
+      try {
+        showToast("יוצר קישור מאובטח חדש...");
+        const fieldToUpdate = isEditable ? 'editTokens' : 'viewTokens';
+        const existingTokens = note[fieldToUpdate] || [];
+
+        await updateDoc(doc(db, "notes", id), { 
+          isShared: true,
+          [fieldToUpdate]: [...existingTokens, fullToken]
+        });
+      } catch (err) {
+        console.error("שגיאה ביצירת טוקן שיתוף:", err);
+        alert("שגיאה ביצירת קישור מאובטח.");
+        return;
       }
 
       const baseUrl = window.location.origin + window.location.pathname;
-      const noteLink = `${baseUrl}?noteId=${id}`;
+      const noteLink = `${baseUrl}?noteId=${id}&token=${fullToken}`;
       const noteTitle = note.title ? `"${note.title}"` : 'פתק מהפנקס';
 
       let message = '';
       if (isEditable) {
-        message = `שלום! שיתפתי איתך פתק לעריכה בפנקס (${noteTitle}).\nתוכל/י לצפות ולערוך אותו בקישור הבא:\n${noteLink}`;
+        message = `✏️ *שיתוף פתק לעריכה* (${noteTitle})\nתוכל/י לצפות ולערוך את הפתק בקישור הבא:\n${noteLink}`;
       } else {
-        message = `שלום! שיתפתי איתך פתק לצפייה בלבד בפנקס (${noteTitle}).\nתוכל/י לצפות בו בקישור הבא:\n${noteLink}`;
+        message = `👁️ *שיתוף פתק לצפייה בלבד* (${noteTitle})\nתוכל/י לצפות בפתק בקישור הבא:\n${noteLink}`;
       }
 
       const encodedMessage = encodeURIComponent(message);
       const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
       
       window.open(whatsappUrl, '_blank');
-      showToast("קישור השיתוף נפתח בוואטצאפ!");
+      showToast(isEditable ? "קישור לעריכה מוכן בוואטסאפ!" : "קישור לצפייה בלבד מוכן בוואטסאפ!");
     }
 
     window.stopSharingNote = async function(id) {
       closeAllDropdowns();
       try {
-        await updateDoc(doc(db, "notes", id), { isShared: false });
-        showToast("השיתוף הופסק בהצלחה");
+        await updateDoc(doc(db, "notes", id), { 
+          isShared: false,
+          viewTokens: [],
+          editTokens: []
+        });
+        showToast("כל הקישורים והשיתופים בוטלו בהצלחה");
       } catch (err) { console.error(err); }
     }
 
-    function listenToSingleSharedNote(noteId) {
+    function listenToSingleSharedNote(noteId, token) {
       const docRef = doc(db, "notes", noteId);
       getDoc(docRef).then(async (docSnap) => {
         if (!docSnap.exists()) {
-          document.getElementById('single-note-container').innerHTML = `
-            <div style="text-align: center; padding: 40px; display: flex; flex-direction: column; gap: 16px;">
-              <h2 style="color: #be123c;">הפתק לא נמצא</h2>
-              <p style="color: var(--text-muted);">יתכן שהפתק הוסר או שכתובת הקישור אינה נכונה.</p>
-            </div>
-          `;
+          showAccessDenied("הפתק לא נמצא או הוסר.");
           return;
         }
 
         const noteData = docSnap.data();
+        const viewTokens = noteData.viewTokens || [];
+        const editTokens = noteData.editTokens || [];
+
+        let isViewValid = token && viewTokens.includes(token);
+        let isEditValid = token && editTokens.includes(token);
+
+        if (!token && noteData.isShared) {
+          isViewValid = true; 
+        }
+
+        if (!isViewValid && !isEditValid) {
+          showAccessDenied("קישור זה פג תוקף או אינו תקף עוד (השיתוף בוטל).");
+          return;
+        }
+
+        const effectiveEdit = isEditValid;
+        currentSharedMode = effectiveEdit ? 'edit' : 'view';
+
         document.getElementById('single-note-cat').innerText = noteData.category || 'כללי';
         document.getElementById('single-note-date').innerText = noteData.date || '';
 
+        const modeBadge = document.getElementById('single-note-mode-badge');
+        const textarea = document.getElementById('single-note-textarea');
+        const saveBtn = document.getElementById('single-note-save-btn');
         const titleDisplay = document.getElementById('single-note-title-display');
-        if (noteData.title) {
-          titleDisplay.innerText = noteData.title;
-          titleDisplay.style.display = 'block';
+
+        if (effectiveEdit) {
+          document.title = `${noteData.title || 'פתק'} - משותף לעריכה | הפנקס`;
+          modeBadge.innerText = '✏️ משותף לעריכה';
+          modeBadge.style.background = '#dcfce7';
+          modeBadge.style.color = '#166534';
+          modeBadge.style.borderColor = '#bbf7d0';
+          textarea.readOnly = false;
+          textarea.style.backgroundColor = '#ffffff';
+          saveBtn.style.display = 'block';
+        } else {
+          document.title = `${noteData.title || 'פתק'} - לצפייה בלבד | הפנקס`;
+          modeBadge.innerText = '👁️ צפייה בלבד';
+          modeBadge.style.background = '#f1f5f9';
+          modeBadge.style.color = '#334155';
+          modeBadge.style.borderColor = '#cbd5e1';
+          textarea.readOnly = true;
+          textarea.style.backgroundColor = '#f8fafc';
+          saveBtn.style.display = 'none';
         }
 
-        const textarea = document.getElementById('single-note-textarea');
+        const statusPrefix = effectiveEdit ? '[לעריכה] ' : '[צפייה בלבד] ';
+        titleDisplay.innerText = statusPrefix + (noteData.title || 'פתק משותף');
+        titleDisplay.style.display = 'block';
+
         let displayedText = noteData.text || '';
 
         if (noteData.isLocked) {
-          const pass = prompt("פתק זה נעול בסיסמה. אנא הזן סיסמה לצפייה ועריכה:");
+          const pass = prompt("פתק זה נעול בסיסמה. אנא הזן סיסמה לצפייה:");
           try {
             const bytes = CryptoJS.AES.decrypt(noteData.text, pass);
             displayedText = bytes.toString(CryptoJS.enc.Utf8);
@@ -935,11 +994,26 @@
         }
       }).catch(err => {
         console.error(err);
+        showAccessDenied("שגיאה בטעינת הפתק.");
       });
+    }
+
+    function showAccessDenied(msg) {
+      document.getElementById('single-note-container').innerHTML = `
+        <div style="text-align: center; padding: 40px; display: flex; flex-direction: column; gap: 16px;">
+          <h2 style="color: #be123c;">אין הרשאת גישה לפתק</h2>
+          <p style="color: var(--text-muted);">${msg}</p>
+        </div>
+      `;
     }
 
     window.saveSingleSharedNote = async function() {
       if (!activeSharedNoteId) return;
+      if (currentSharedMode !== 'edit') {
+        alert("פתק זה משותף לצפייה בלבד ולא ניתן לערוך אותו.");
+        return;
+      }
+
       const textarea = document.getElementById('single-note-textarea');
       let newText = textarea.value.trim();
 
@@ -984,8 +1058,7 @@
       signOut(auth);
     }
 
-    window.toggleSidebar = function(event) {
-      if (event) event.stopPropagation();
+    window.toggleSidebar = function() {
       const sidebar = document.getElementById('app-sidebar');
       sidebar.classList.toggle('open');
       document.body.classList.toggle('sidebar-open');
@@ -1129,6 +1202,8 @@
           pinned: false,
           archived: false,
           isShared: false,
+          viewTokens: [],
+          editTokens: [],
           isLocked: false,
           isPublic: false
         });
@@ -1223,9 +1298,7 @@
 
     window.togglePrivacyBlur = function() {
       document.body.classList.toggle('privacy-mode');
-      const btn = document.getElementById('privacy-btn');
       const isBlurred = document.body.classList.contains('privacy-mode');
-      btn.innerText = isBlurred ? '👁️‍🗨️' : '👁️';
       showToast(isBlurred ? "הפתקים טושטשו להגנת פרטיות" : "הטשטוש הוסר");
     }
 
@@ -1254,12 +1327,10 @@
       const targetPanel = document.getElementById(`panel-${type}`);
       const isOpen = targetPanel.classList.contains('show');
 
-      // סגור את כולם תחילה
       panelImg.classList.remove('show');
       panelLink.classList.remove('show');
       panelLock.classList.remove('show');
 
-      // אם הוא לא היה פתוח, פתח אותו
       if (!isOpen) {
         targetPanel.classList.add('show');
         if (type === 'link') {
@@ -1370,9 +1441,9 @@
       if (btn) btn.innerText = '🎤';
     }
 
-    window.toggleHeaderMenu = function(event) {
+    window.toggleMasterMenu = function(event) {
       event.stopPropagation();
-      const dropdown = document.getElementById('header-dropdown');
+      const dropdown = document.getElementById('master-dropdown');
       const willOpen = !dropdown.classList.contains('active');
       closeAllDropdowns();
       if (willOpen) dropdown.classList.add('active');
@@ -1398,44 +1469,59 @@
       let counterText = `${activeCount} פעילים | ${archivedCount} בארכיון`;
       if (sharedCount > 0) counterText += ` | 🔗 ${sharedCount} משותפים`;
       if (publicCount > 0) counterText += ` | 🌐 ${publicCount} מפורסמים`;
-      document.getElementById('notes-counter').innerText = counterText;
+      const counterEl = document.getElementById('notes-counter');
+      if (counterEl) counterEl.innerText = counterText;
     }
 
     window.toggleCategoryManagement = function() {
       isManagingCategories = !isManagingCategories;
       const btn = document.getElementById('manage-cat-btn');
-      btn.innerText = isManagingCategories ? '⚙️ סיום ניהול' : '⚙️ ניהול קטגוריות';
+      if (btn) btn.innerText = isManagingCategories ? '⚙️ סיום ניהול' : '⚙️ ניהול קטגוריות';
       renderCategories();
     }
 
     window.renderCategories = function() {
       const container = document.getElementById('categories-container');
+      if (!container) return;
       container.innerHTML = '';
+
+      const activeNotes = allNotes.filter(n => !n.archived);
+      const allCount = activeNotes.length;
+      const urgentCount = activeNotes.filter(n => n.urgent === 'דחוף').length;
+      const sharedCount = activeNotes.filter(n => n.isShared === true).length;
+      const publicCount = activeNotes.filter(n => n.isPublic === true).length;
 
       const allChip = document.createElement('div');
       allChip.className = `cat-chip ${currentCategory === 'הכל' ? 'active' : ''}`;
-      allChip.innerText = 'הכל';
+      allChip.innerText = `הכל (${allCount})`;
       allChip.onclick = () => { currentCategory = 'הכל'; renderCategories(); renderNotes(); };
       container.appendChild(allChip);
 
       const urgentChip = document.createElement('div');
       urgentChip.className = `cat-chip urgent-chip ${currentCategory === '⭐ דחוף' ? 'active' : ''}`;
-      urgentChip.innerText = '⭐ דחוף';
+      urgentChip.innerText = `⭐ דחוף (${urgentCount})`;
       urgentChip.onclick = () => { currentCategory = '⭐ דחוף'; renderCategories(); renderNotes(); };
       container.appendChild(urgentChip);
 
       const sharedChip = document.createElement('div');
       sharedChip.className = `cat-chip shared-chip ${currentCategory === '🔗 משותפים' ? 'active' : ''}`;
-      sharedChip.innerText = '🔗 משותפים';
+      sharedChip.innerText = `🔗 משותפים (${sharedCount})`;
       sharedChip.onclick = () => { currentCategory = '🔗 משותפים'; renderCategories(); renderNotes(); };
       container.appendChild(sharedChip);
 
+      const publicChip = document.createElement('div');
+      publicChip.className = `cat-chip public-chip ${currentCategory === '🌐 מפורסמים' ? 'active' : ''}`;
+      publicChip.innerText = `🌐 מפורסמים (${publicCount})`;
+      publicChip.onclick = () => { currentCategory = '🌐 מפורסמים'; renderCategories(); renderNotes(); };
+      container.appendChild(publicChip);
+
       categories.forEach(c => {
+        const catCount = activeNotes.filter(n => (n.category || 'כללי') === c).length;
         const colors = getCategoryColor(c);
         const chip = document.createElement('div');
         chip.className = `cat-chip ${currentCategory === c ? 'active' : ''}`;
         
-        let chipContent = `<span>${c}</span>`;
+        let chipContent = `<span>${c} (${catCount})</span>`;
         if (isManagingCategories && c !== 'כללי') {
           chipContent += `<button class="cat-delete-btn" onclick="event.stopPropagation(); deleteCategory('${c}')" title="מחק קטגוריה">✕</button>`;
         }
@@ -1460,7 +1546,10 @@
         container.appendChild(chip);
       });
 
-      document.getElementById('note-cat-select').innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+      const noteCatSelect = document.getElementById('note-cat-select');
+      if (noteCatSelect) {
+        noteCatSelect.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+      }
     }
 
     window.renameCategory = async function(oldName) {
@@ -1508,6 +1597,7 @@
 
       if (currentCategory === '⭐ דחוף') filtered = filtered.filter(note => note.urgent === 'דחוף');
       else if (currentCategory === '🔗 משותפים') filtered = filtered.filter(note => note.isShared === true);
+      else if (currentCategory === '🌐 מפורסמים') filtered = filtered.filter(note => note.isPublic === true);
       else if (currentCategory !== 'הכל') filtered = filtered.filter(note => (note.category || 'כללי') === currentCategory);
 
       if (searchQuery !== "") {
@@ -1645,12 +1735,18 @@
     function generateNotesHTML(notesArray) {
       let html = '';
       notesArray.forEach(note => {
-        const { id, title, text, date, category, urgent, pinned, isShared, isPublic, lastEditedBy, imageUrl, linkUrl, linkTitle, isLocked } = note;
+        const { id, title, text, date, category, urgent, pinned, isShared, viewTokens, editTokens, isPublic, lastEditedBy, imageUrl, linkUrl, linkTitle, isLocked } = note;
         const catName = category || 'כללי';
         const colors = getCategoryColor(catName);
         const cardVars = `style="--cat-bg-color: ${colors.bg}; --cat-border-color: ${colors.border}; --cat-text-color: ${colors.text};"`;
         
-        const sharedTag = isShared ? `<span class="shared-badge">🔗 משותף</span>` : '';
+        let sharedTag = '';
+        const vCount = (viewTokens || []).length;
+        const eCount = (editTokens || []).length;
+        if (isShared && (vCount > 0 || eCount > 0)) {
+          sharedTag = `<span class="shared-badge">🔗 פעיל (${vCount} צפייה, ${eCount} עריכה)</span>`;
+        }
+
         const publicTag = isPublic ? `<span class="shared-badge" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">🌐 מפורסם</span>` : '';
         const lockedTag = isLocked ? `<span class="locked-badge">🔒 נעול</span>` : '';
         const editedByTag = lastEditedBy ? `<span class="edited-by-badge">✏️ ${lastEditedBy}</span>` : '';
@@ -1671,10 +1767,10 @@
                        <button class="cat-dropdown-item" onclick="promptAndAddCategoryForNote(event, '${id}')"><span>➕ קטגוריה חדשה...</span></button>`;
 
         const shareBtnHTML = isShared 
-          ? `<button class="dropdown-item" onclick="stopSharingNote('${id}')">🔒 הפסק שיתוף</button>`
+          ? `<button class="dropdown-item danger" onclick="stopSharingNote('${id}')">🔒 הפסק את כל השיתופים</button>`
           : '';
           
-        const publicBtnText = isPublic ? '🌐 הסר פרסום  ' : '🌐 פרסם  ';
+        const publicBtnText = isPublic ? '🌐 הסר פרסום' : '🌐 פרסם';
 
         const contentHTML = renderNoteContent(id, text, isLocked);
         const showSaveInline = !isLocked || unlockedNotes[id];
@@ -1703,8 +1799,8 @@
                     <button class="dropdown-item" onclick="toggleUrgent('${id}')">${urgent === 'דחוף' ? '☆ הסר דחוף' : '⭐ סמן כדחוף'}</button>
                     <button class="dropdown-item" onclick="togglePublicStatus('${id}')">${publicBtnText}</button>
                     <button class="dropdown-item" onclick="downloadSingleNote('${id}')">📥 הורד כקובץ TXT</button>
-                    <button class="dropdown-item" onclick="shareNoteViaWhatsApp('${id}', false)">💬 שיתוף בוואטצאפ (צפייה)</button>
-                    <button class="dropdown-item" onclick="shareNoteViaWhatsApp('${id}', true)">💬 שיתוף בוואטצאפ (עריכה)</button>
+                    <button class="dropdown-item" onclick="shareNoteViaWhatsApp('${id}', false)">👁️ שיתוף בוואטצאפ (צפייה)</button>
+                    <button class="dropdown-item" onclick="shareNoteViaWhatsApp('${id}', true)">✏️ שיתוף בוואטצאפ (עריכה)</button>
                     ${shareBtnHTML}
                     <button class="dropdown-item" onclick="toggleArchive('${id}')">${currentView === 'active' ? '📦 לארכיון' : '📤 שחזר'}</button>
                     <button class="dropdown-item danger" onclick="deleteNote('${id}')">🗑️ מחיקה</button>
@@ -1827,12 +1923,12 @@
 
     window.closeAllDropdowns = function() {
       document.querySelectorAll('.dropdown-menu, .cat-dropdown-menu').forEach(menu => menu.classList.remove('show'));
-      document.getElementById('header-dropdown')?.classList.remove('active');
+      document.getElementById('master-dropdown')?.classList.remove('active');
       document.getElementById('search-input')?.classList.remove('active');
     }
 
     window.getCategoryColor = function(catName) {
-      if (catName === 'הכל' || catName === '⭐ דחוף' || catName === '🔗 משותפים') return { bg: '#f8fafc', border: '#cbd5e1', text: '#334155' };
+      if (catName === 'הכל' || catName === '⭐ דחוף' || catName === '🔗 משותפים' || catName === '🌐 מפורסמים') return { bg: '#f8fafc', border: '#cbd5e1', text: '#334155' };
       let hash = 0;
       for (let i = 0; i < catName.length; i++) { hash = catName.charCodeAt(i) + ((hash << 5) - hash); }
       const hue = Math.abs(hash % 360);
@@ -1846,18 +1942,27 @@
       const textareaEl = document.getElementById('note-text-input');
       if (textareaEl) textareaEl.style.fontSize = `${currentModalFontSize}rem`;
 
-      document.getElementById('note-title-input').value = '';
-      textareaEl.value = '';
-      document.getElementById('modal-link-title').value = '';
-      document.getElementById('modal-link-url').value = '';
-      document.getElementById('modal-secure-toggle').checked = false;
-      document.getElementById('modal-secure-password').value = '';
-      document.getElementById('modal-pass-container').style.display = 'none';
-      document.getElementById('note-cat-select').value = categories[0] || 'כללי';
-      document.getElementById('modal-img-preview-box').classList.remove('show');
-      document.getElementById('remove-img-btn').style.display = 'none';
+      const titleInput = document.getElementById('note-title-input');
+      if (titleInput) titleInput.value = '';
+      if (textareaEl) textareaEl.value = '';
+      const linkTitleEl = document.getElementById('modal-link-title');
+      if (linkTitleEl) linkTitleEl.value = '';
+      const linkUrlEl = document.getElementById('modal-link-url');
+      if (linkUrlEl) linkUrlEl.value = '';
+      const secureToggle = document.getElementById('modal-secure-toggle');
+      if (secureToggle) secureToggle.checked = false;
+      const securePass = document.getElementById('modal-secure-password');
+      if (securePass) securePass.value = '';
+      const passContainer = document.getElementById('modal-pass-container');
+      if (passContainer) passContainer.style.display = 'none';
+      const noteCatSelect = document.getElementById('note-cat-select');
+      if (noteCatSelect) noteCatSelect.value = categories[0] || 'כללי';
       
-      // סגירת כל פאנלי האופציות בפתיחה חדשה
+      const previewBox = document.getElementById('modal-img-preview-box');
+      if (previewBox) previewBox.classList.remove('show');
+      const removeImgBtn = document.getElementById('remove-img-btn');
+      if (removeImgBtn) removeImgBtn.style.display = 'none';
+      
       document.getElementById('panel-img').classList.remove('show');
       document.getElementById('panel-link').classList.remove('show');
       document.getElementById('panel-lock').classList.remove('show');
@@ -1920,7 +2025,6 @@
         removeBtn.style.display = 'none';
       }
 
-      // סגירת כל הפאנלים או פתיחת פאנל רלוונטי לפי הנתונים הקיימים
       document.getElementById('panel-img').classList.remove('show');
       document.getElementById('panel-link').classList.remove('show');
       document.getElementById('panel-lock').classList.remove('show');
@@ -2038,6 +2142,8 @@
             pinned: false, 
             archived: false, 
             isShared: false,
+            viewTokens: [],
+            editTokens: [],
             isLocked: isLocked,
             isPublic: false
           });
@@ -2104,6 +2210,9 @@
                 urgent: note.urgent || 'רגיל', 
                 pinned: note.pinned || false, 
                 archived: note.archived || false,
+                isShared: false,
+                viewTokens: [],
+                editTokens: [],
                 isLocked: note.isLocked || false,
                 isPublic: note.isPublic || false 
               });
@@ -2122,24 +2231,27 @@
         if (!categories.includes(name)) {
           categories.push(name);
           renderCategories();
-          document.getElementById('note-cat-select').value = name;
+          const noteCatSelect = document.getElementById('note-cat-select');
+          if (noteCatSelect) noteCatSelect.value = name;
         }
       }
     }
 
     window.toggleArchiveView = function() {
       currentView = currentView === 'active' ? 'archived' : 'active';
-      document.getElementById('archive-view-btn').innerText = currentView === 'active' ? 'ארכיון' : 'פתקים פעילים';
+      const archiveBtn = document.getElementById('archive-view-btn');
+      if (archiveBtn) archiveBtn.innerText = currentView === 'active' ? '📦 ארכיון' : '📄 פתקים פעילים';
       renderNotes();
     }
 
     window.toggleFullscreenModal = function() {
       const modal = document.getElementById('modal-box');
-      modal.classList.toggle('fullscreen-mode');
+      if (modal) modal.classList.toggle('fullscreen-mode');
     }
 
     window.showToast = function(msg) {
       const toast = document.getElementById('toast');
+      if (!toast) return;
       toast.innerText = msg;
       toast.style.display = 'block';
       setTimeout(() => { toast.style.display = 'none'; }, 2500);
