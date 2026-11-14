@@ -837,11 +837,14 @@
       const note = allNotes.find(n => n.id === id);
       if (!note) return;
 
+      // אם מדובר בשיתוף לעריכה, נעדכן קודם את isShared ל-true במסד הנתונים
       if (isEditable) {
         try {
           await updateDoc(doc(db, "notes", id), { isShared: true });
         } catch (err) {
-          console.error(err);
+          console.error("שגיאה בעדכון מצב שיתוף:", err);
+          alert("שגיאה בעדכון הרשאות השיתוף בשרת.");
+          return;
         }
       }
 
