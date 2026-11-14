@@ -108,7 +108,7 @@
     .header-right, .header-left {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     h1 { font-size: 1.3rem; font-weight: 600; color: #1e293b; letter-spacing: -0.3px; }
@@ -549,7 +549,10 @@
       <div class="header-clock" id="live-clock" title="שעה ותאריך נוכחיים">טוען שעון...</div>
 
       <div class="header-left">
-        <!-- כפתור טשטוש מהיר בסרגל העליון ליד גלגל השיניים -->
+        <!-- כפתור פתיחת מרכז שליטה בצד שמאל -->
+        <button class="gear-menu-trigger" onclick="toggleSidebar()" title="מרכז שליטה" aria-label="פתח מרכז שליטה">🧭</button>
+
+        <!-- כפתור טשטוש מהיר בסרגל העליון -->
         <button class="gear-menu-trigger" onclick="togglePrivacyBlur()" title="מצב טשטוש מהיר" aria-label="הפעל או בטל טשטוש פתקים" id="privacy-btn-top">👁️</button>
 
         <!-- תפריט גלגל שיניים מרכזי -->
@@ -914,7 +917,6 @@
         let isViewValid = token && viewTokens.includes(token);
         let isEditValid = token && editTokens.includes(token);
 
-        // תמיכה בקישורי Legacy ישנים אם קיימים
         if (!token && noteData.isShared) {
           isViewValid = true; 
         }
@@ -1482,30 +1484,37 @@
       if (!container) return;
       container.innerHTML = '';
 
+      // חישוב מספר פתקים לפי מצב (פעילים בלבד בארכיון הפעיל)
+      const activeNotes = allNotes.filter(n => !n.archived);
+      const allCount = activeNotes.length;
+      const urgentCount = activeNotes.filter(n => n.urgent === 'דחוף').length;
+      const sharedCount = activeNotes.filter(n => n.isShared === true).length;
+
       const allChip = document.createElement('div');
       allChip.className = `cat-chip ${currentCategory === 'הכל' ? 'active' : ''}`;
-      allChip.innerText = 'הכל';
+      allChip.innerText = `הכל (${allCount})`;
       allChip.onclick = () => { currentCategory = 'הכל'; renderCategories(); renderNotes(); };
       container.appendChild(allChip);
 
       const urgentChip = document.createElement('div');
       urgentChip.className = `cat-chip urgent-chip ${currentCategory === '⭐ דחוף' ? 'active' : ''}`;
-      urgentChip.innerText = '⭐ דחוף';
+      urgentChip.innerText = `⭐ דחוף (${urgentCount})`;
       urgentChip.onclick = () => { currentCategory = '⭐ דחוף'; renderCategories(); renderNotes(); };
       container.appendChild(urgentChip);
 
       const sharedChip = document.createElement('div');
       sharedChip.className = `cat-chip shared-chip ${currentCategory === '🔗 משותפים' ? 'active' : ''}`;
-      sharedChip.innerText = '🔗 משותפים';
+      sharedChip.innerText = `🔗 משותפים (${sharedCount})`;
       sharedChip.onclick = () => { currentCategory = '🔗 משותפים'; renderCategories(); renderNotes(); };
       container.appendChild(sharedChip);
 
       categories.forEach(c => {
+        const catCount = activeNotes.filter(n => (n.category || 'כללי') === c).length;
         const colors = getCategoryColor(c);
         const chip = document.createElement('div');
         chip.className = `cat-chip ${currentCategory === c ? 'active' : ''}`;
         
-        let chipContent = `<span>${c}</span>`;
+        let chipContent = `<span>${c} (${catCount})</span>`;
         if (isManagingCategories && c !== 'כללי') {
           chipContent += `<button class="cat-delete-btn" onclick="event.stopPropagation(); deleteCategory('${c}')" title="מחק קטגוריה">✕</button>`;
         }
