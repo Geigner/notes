@@ -371,12 +371,13 @@
     .cat-dropdown-item { padding: 6px 12px; font-size: 0.8rem; color: var(--text-main); background: none; border: none; width: 100%; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
     .cat-dropdown-item:hover { background: #f8fafc; color: var(--primary); }
 
-    .shared-badge { font-size: 0.7rem; color: #15803d; background: #dcfce7; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; border: 1px solid #bbf7d0; }
+    .shared-badge { font-size: 0.75rem; color: #15803d; background: #dcfce7; padding: 3px 8px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; border: 1px solid #bbf7d0; }
     .edited-by-badge { font-size: 0.7rem; color: #0369a1; background: #e0f2fe; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; }
     .locked-badge { font-size: 0.7rem; color: #b45309; background: #fef3c7; padding: 2px 6px; border-radius: 8px; font-weight: 600; display: inline-block; margin-right: 4px; border: 1px solid #fde68a; }
 
     .inline-textarea { width: 100%; flex: 1; border: 1px solid transparent; background: transparent; font-size: 0.95rem; line-height: 1.5; resize: none; outline: none; color: var(--text-main); font-family: 'Assistant', sans-serif; padding: 2px; border-radius: 4px; transition: border-color 0.2s, background 0.2s; min-height: 80px; }
     .inline-textarea:focus { border-color: var(--border); background: #fafafa; }
+    .inline-textarea[readonly] { background: #f8fafc; cursor: default; border-color: #e2e8f0; }
 
     .checklist-container { display: flex; flex-direction: column; gap: 6px; margin: 4px 0; flex: 1; }
     .checklist-row { display: flex; align-items: flex-start; gap: 8px; font-size: 0.95rem; line-height: 1.4; color: var(--text-main); cursor: pointer; user-select: none; }
@@ -393,7 +394,7 @@
 
     .menu-wrapper { position: relative; display: inline-block; }
     .menu-btn { background: none; border: none; font-size: 1.1rem; color: #475569; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
-    .dropdown-menu { position: absolute; top: 100%; left: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: none; z-index: 50; min-width: 170px; padding: 4px 0; }
+    .dropdown-menu { position: absolute; top: 100%; left: 0; background: white; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); display: none; z-index: 50; min-width: 185px; padding: 4px 0; }
     .dropdown-menu.show { display: block; }
     .dropdown-item { padding: 8px 14px; font-size: 0.85rem; color: var(--text-main); background: none; border: none; width: 100%; text-align: right; cursor: pointer; display: flex; align-items: center; gap: 8px; }
     .dropdown-item:hover { background: #f8fafc; color: var(--primary); }
@@ -440,7 +441,7 @@
     .btn-cancel { background: #f1f5f9; color: var(--text-main); border: none; cursor: pointer; }
 
     #single-note-container { display: none; max-width: 650px; margin: 40px auto; background: white; border-radius: 16px; padding: 24px; box-shadow: var(--shadow-hover); border: 1px solid var(--border); flex-direction: column; gap: 16px; }
-    .single-note-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+    .single-note-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; flex-wrap: wrap; gap: 8px; }
 
     .locked-card-prompt { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 10px; text-align: center; flex: 1; }
     .locked-card-prompt input { width: 100%; max-width: 200px; text-align: center; }
@@ -510,9 +511,9 @@
 
   <div id="single-note-container">
     <div class="single-note-header">
-      <div>
+      <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
         <span id="single-note-cat" class="cat-badge">כללי</span>
-        <span id="single-note-mode-badge" class="shared-badge" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;"></span>
+        <span id="single-note-mode-badge" class="shared-badge"></span>
         <span id="single-note-edited" class="edited-by-badge" style="display:none;"></span>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
@@ -524,14 +525,14 @@
       </div>
     </div>
     <div style="flex: 1; display:flex; flex-direction:column; gap:10px;">
-      <h2 id="single-note-title-display" style="font-size: 1.2rem; font-weight: 700; color: #1e293b; display: none;"></h2>
+      <h2 id="single-note-title-display" style="font-size: 1.25rem; font-weight: 700; color: #1e293b; display: none;"></h2>
       <div id="single-note-secure-wrapper" style="flex:1; display:flex; flex-direction:column;">
         <label for="single-note-textarea" style="display:none;">תוכן הפתק המשותף</label>
-        <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 220px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius); background-color: #ffffff;"></textarea>
+        <textarea id="single-note-textarea" class="inline-textarea" style="font-size: 1.1rem; min-height: 220px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius);"></textarea>
         <div id="single-note-link-area"></div>
         <div id="single-note-img-area"></div>
       </div>
-      <button id="single-note-save-btn" class="btn btn-submit" style="padding: 10px; width: 100%; border-radius: var(--radius); display: none;" onclick="saveSingleSharedNote()">שמור שינויים בפתק</button>
+      <button id="single-note-save-btn" class="btn btn-submit" style="padding: 12px; width: 100%; border-radius: var(--radius); display: none; font-size: 1rem;" onclick="saveSingleSharedNote()">💾 שמור שינויים בפתק</button>
     </div>
   </div>
 
@@ -724,6 +725,7 @@
     let unsubscribeTasks = null;
     let unsubscribeLinks = null;
     let activeSharedNoteId = null;
+    let currentSharedMode = 'view';
     let currentImageBase64 = null;
     let unlockedNotes = {};
     let pendingTaskIdToConvert = null;
@@ -751,7 +753,7 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const sharedNoteId = urlParams.get('noteId');
-    const sharedMode = urlParams.get('mode') || 'view'; // ברירת מחדל צפייה אם לא צוין
+    const sharedMode = urlParams.get('mode') || 'view';
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' || e.key === 'Esc') {
@@ -809,6 +811,7 @@
       document.getElementById('single-note-container').style.display = 'flex';
       
       activeSharedNoteId = sharedNoteId;
+      currentSharedMode = sharedMode;
       listenToSingleSharedNote(sharedNoteId, sharedMode);
     } else {
       onAuthStateChanged(auth, async (user) => {
@@ -844,41 +847,47 @@
       const note = allNotes.find(n => n.id === id);
       if (!note) return;
 
-      // מעדכן את השרת תחילה לציון שיתוף
-      if (isEditable) {
-        try {
-          showToast("מעדכן הרשאות שיתוף מול השרת...");
-          await updateDoc(doc(db, "notes", id), { isShared: true });
-        } catch (err) {
-          console.error("שגיאה בעדכון מצב שיתוף:", err);
-          alert("שגיאה בעדכון הרשאות השיתוף.");
-          return;
-        }
+      const modeStr = isEditable ? 'edit' : 'view';
+
+      // תמיד מסמנים isShared: true כדי שהשרת יאפשר לקרוא את תוכן הפתק
+      // ושומרים את shareMode כדי לשקף אם השיתוף הוא לצפייה או לעריכה
+      try {
+        showToast("מעדכן הרשאות שיתוף מול השרת...");
+        await updateDoc(doc(db, "notes", id), { 
+          isShared: true,
+          shareMode: modeStr
+        });
+      } catch (err) {
+        console.error("שגיאה בעדכון מצב שיתוף:", err);
+        alert("שגיאה בעדכון הרשאות השיתוף.");
+        return;
       }
 
-      const modeStr = isEditable ? 'edit' : 'view';
       const baseUrl = window.location.origin + window.location.pathname;
       const noteLink = `${baseUrl}?noteId=${id}&mode=${modeStr}`;
       const noteTitle = note.title ? `"${note.title}"` : 'פתק מהפנקס';
 
       let message = '';
       if (isEditable) {
-        message = `שלום! שיתפתי איתך פתק לעריכה בפנקס (${noteTitle}).\nתוכל/י לצפות ולערוך אותו בקישור הבא:\n${noteLink}`;
+        message = `✏️ *שיתוף פתק לעריכה* (${noteTitle})\nתוכל/י לצפות ולערוך את הפתק בקישור הבא:\n${noteLink}`;
       } else {
-        message = `שלום! שיתפתי איתך פתק לצפייה בלבד בפנקס (${noteTitle}).\nתוכל/י לצפות בו בקישור הבא:\n${noteLink}`;
+        message = `👁️ *שיתוף פתק לצפייה בלבד* (${noteTitle})\nתוכל/י לצפות בפתק בקישור הבא:\n${noteLink}`;
       }
 
       const encodedMessage = encodeURIComponent(message);
       const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
       
       window.open(whatsappUrl, '_blank');
-      showToast("קישור השיתוף מוכן ונפתח בוואטצאפ!");
+      showToast(isEditable ? "קישור לעריכה מוכן בוואטסאפ!" : "קישור לצפייה בלבד מוכן בוואטסאפ!");
     }
 
     window.stopSharingNote = async function(id) {
       closeAllDropdowns();
       try {
-        await updateDoc(doc(db, "notes", id), { isShared: false });
+        await updateDoc(doc(db, "notes", id), { 
+          isShared: false,
+          shareMode: null
+        });
         showToast("השיתוף הופסק בהצלחה");
       } catch (err) { console.error(err); }
     }
@@ -903,28 +912,35 @@
         const modeBadge = document.getElementById('single-note-mode-badge');
         const textarea = document.getElementById('single-note-textarea');
         const saveBtn = document.getElementById('single-note-save-btn');
+        const titleDisplay = document.getElementById('single-note-title-display');
 
-        if (mode === 'edit') {
+        // קביעת המצב בפועל: רק אם הקישור מוגדר כ-edit וגם הפתק לא הוגדר כצפייה בלבד
+        const effectiveEdit = (mode === 'edit' && noteData.shareMode !== 'view');
+        currentSharedMode = effectiveEdit ? 'edit' : 'view';
+
+        if (effectiveEdit) {
+          document.title = `${noteData.title || 'פתק'} - משותף לעריכה | הפנקס`;
           modeBadge.innerText = '✏️ משותף לעריכה';
           modeBadge.style.background = '#dcfce7';
           modeBadge.style.color = '#166534';
           modeBadge.style.borderColor = '#bbf7d0';
           textarea.readOnly = false;
+          textarea.style.backgroundColor = '#ffffff';
           saveBtn.style.display = 'block';
         } else {
+          document.title = `${noteData.title || 'פתק'} - לצפייה בלבד | הפנקס`;
           modeBadge.innerText = '👁️ צפייה בלבד';
           modeBadge.style.background = '#f1f5f9';
           modeBadge.style.color = '#334155';
           modeBadge.style.borderColor = '#cbd5e1';
           textarea.readOnly = true;
+          textarea.style.backgroundColor = '#f8fafc';
           saveBtn.style.display = 'none';
         }
 
-        const titleDisplay = document.getElementById('single-note-title-display');
-        if (noteData.title) {
-          titleDisplay.innerText = noteData.title;
-          titleDisplay.style.display = 'block';
-        }
+        const statusPrefix = effectiveEdit ? '[לעריכה] ' : '[צפייה בלבד] ';
+        titleDisplay.innerText = statusPrefix + (noteData.title || 'פתק משותף');
+        titleDisplay.style.display = 'block';
 
         let displayedText = noteData.text || '';
 
@@ -958,11 +974,22 @@
         }
       }).catch(err => {
         console.error(err);
+        document.getElementById('single-note-container').innerHTML = `
+          <div style="text-align: center; padding: 40px; display: flex; flex-direction: column; gap: 16px;">
+            <h2 style="color: #be123c;">אין הרשאת גישה לפתק</h2>
+            <p style="color: var(--text-muted);">השיתוף עבור פתק זה הופסק או שהקישור אינו תקף.</p>
+          </div>
+        `;
       });
     }
 
     window.saveSingleSharedNote = async function() {
       if (!activeSharedNoteId) return;
+      if (currentSharedMode !== 'edit') {
+        alert("פתק זה משותף לצפייה בלבד ולא ניתן לערוך אותו.");
+        return;
+      }
+
       const textarea = document.getElementById('single-note-textarea');
       let newText = textarea.value.trim();
 
@@ -1151,6 +1178,7 @@
           pinned: false,
           archived: false,
           isShared: false,
+          shareMode: null,
           isLocked: false,
           isPublic: false
         });
@@ -1668,12 +1696,18 @@
     function generateNotesHTML(notesArray) {
       let html = '';
       notesArray.forEach(note => {
-        const { id, title, text, date, category, urgent, pinned, isShared, isPublic, lastEditedBy, imageUrl, linkUrl, linkTitle, isLocked } = note;
+        const { id, title, text, date, category, urgent, pinned, isShared, shareMode, isPublic, lastEditedBy, imageUrl, linkUrl, linkTitle, isLocked } = note;
         const catName = category || 'כללי';
         const colors = getCategoryColor(catName);
         const cardVars = `style="--cat-bg-color: ${colors.bg}; --cat-border-color: ${colors.border}; --cat-text-color: ${colors.text};"`;
         
-        const sharedTag = isShared ? `<span class="shared-badge">🔗 משותף</span>` : '';
+        let sharedTag = '';
+        if (isShared) {
+          sharedTag = shareMode === 'view' 
+            ? `<span class="shared-badge" style="background:#f1f5f9; color:#334155; border-color:#cbd5e1;">👁️ משותף (צפייה)</span>`
+            : `<span class="shared-badge">✏️ משותף (עריכה)</span>`;
+        }
+
         const publicTag = isPublic ? `<span class="shared-badge" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">🌐 מפורסם</span>` : '';
         const lockedTag = isLocked ? `<span class="locked-badge">🔒 נעול</span>` : '';
         const editedByTag = lastEditedBy ? `<span class="edited-by-badge">✏️ ${lastEditedBy}</span>` : '';
@@ -1697,7 +1731,7 @@
           ? `<button class="dropdown-item" onclick="stopSharingNote('${id}')">🔒 הפסק שיתוף</button>`
           : '';
           
-        const publicBtnText = isPublic ? '🌐 הסר פרסום  ' : '🌐 פרסם  ';
+        const publicBtnText = isPublic ? '🌐 הסר פרסום' : '🌐 פרסם';
 
         const contentHTML = renderNoteContent(id, text, isLocked);
         const showSaveInline = !isLocked || unlockedNotes[id];
@@ -1726,8 +1760,8 @@
                     <button class="dropdown-item" onclick="toggleUrgent('${id}')">${urgent === 'דחוף' ? '☆ הסר דחוף' : '⭐ סמן כדחוף'}</button>
                     <button class="dropdown-item" onclick="togglePublicStatus('${id}')">${publicBtnText}</button>
                     <button class="dropdown-item" onclick="downloadSingleNote('${id}')">📥 הורד כקובץ TXT</button>
-                    <button class="dropdown-item" onclick="shareNoteViaWhatsApp('${id}', false)">💬 שיתוף בוואטצאפ (צפייה)</button>
-                    <button class="dropdown-item" onclick="shareNoteViaWhatsApp('${id}', true)">💬 שיתוף בוואטצאפ (עריכה)</button>
+                    <button class="dropdown-item" onclick="shareNoteViaWhatsApp('${id}', false)">👁️ שיתוף בוואטצאפ (צפייה)</button>
+                    <button class="dropdown-item" onclick="shareNoteViaWhatsApp('${id}', true)">✏️ שיתוף בוואטצאפ (עריכה)</button>
                     ${shareBtnHTML}
                     <button class="dropdown-item" onclick="toggleArchive('${id}')">${currentView === 'active' ? '📦 לארכיון' : '📤 שחזר'}</button>
                     <button class="dropdown-item danger" onclick="deleteNote('${id}')">🗑️ מחיקה</button>
@@ -1965,7 +1999,7 @@
 
     window.closeModal = function() { 
       const modalBox = document.getElementById('modal-box');
-      if (modalBox) modalBox.classList.toggle('fullscreen-mode');
+      if (modalBox) modalBox.classList.remove('fullscreen-mode');
       document.getElementById('note-modal').style.display = 'none'; 
     }
 
@@ -2069,6 +2103,7 @@
             pinned: false, 
             archived: false, 
             isShared: false,
+            shareMode: null,
             isLocked: isLocked,
             isPublic: false
           });
@@ -2135,6 +2170,8 @@
                 urgent: note.urgent || 'רגיל', 
                 pinned: note.pinned || false, 
                 archived: note.archived || false,
+                isShared: false,
+                shareMode: null,
                 isLocked: note.isLocked || false,
                 isPublic: note.isPublic || false 
               });
