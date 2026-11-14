@@ -512,6 +512,7 @@
     <div class="single-note-header">
       <div>
         <span id="single-note-cat" class="cat-badge">כללי</span>
+        <span id="single-note-mode-badge" class="shared-badge" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;"></span>
         <span id="single-note-edited" class="edited-by-badge" style="display:none;"></span>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
@@ -530,7 +531,7 @@
         <div id="single-note-link-area"></div>
         <div id="single-note-img-area"></div>
       </div>
-      <button id="single-note-save-btn" class="btn btn-submit" style="padding: 10px; width: 100%; border-radius: var(--radius);" onclick="saveSingleSharedNote()">שמור שינויים בפתק</button>
+      <button id="single-note-save-btn" class="btn btn-submit" style="padding: 10px; width: 100%; border-radius: var(--radius); display: none;" onclick="saveSingleSharedNote()">שמור שינויים בפתק</button>
     </div>
   </div>
 
@@ -750,6 +751,7 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const sharedNoteId = urlParams.get('noteId');
+    const sharedMode = urlParams.get('mode') || 'view'; // ברירת מחדל צפייה אם לא צוין
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' || e.key === 'Esc') {
@@ -807,7 +809,7 @@
       document.getElementById('single-note-container').style.display = 'flex';
       
       activeSharedNoteId = sharedNoteId;
-      listenToSingleSharedNote(sharedNoteId);
+      listenToSingleSharedNote(sharedNoteId, sharedMode);
     } else {
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -842,7 +844,7 @@
       const note = allNotes.find(n => n.id === id);
       if (!note) return;
 
-      // מעדכן את השרת תחילה ל-isShared: true לפי דרישת פיירביס
+      // מעדכן את השרת תחילה לציון שיתוף
       if (isEditable) {
         try {
           showToast("מעדכן הרשאות שיתוף מול השרת...");
@@ -854,8 +856,9 @@
         }
       }
 
+      const modeStr = isEditable ? 'edit' : 'view';
       const baseUrl = window.location.origin + window.location.pathname;
-      const noteLink = `${baseUrl}?noteId=${id}`;
+      const noteLink = `${baseUrl}?noteId=${id}&mode=${modeStr}`;
       const noteTitle = note.title ? `"${note.title}"` : 'פתק מהפנקס';
 
       let message = '';
@@ -880,7 +883,7 @@
       } catch (err) { console.error(err); }
     }
 
-    function listenToSingleSharedNote(noteId) {
+    function listenToSingleSharedNote(noteId, mode) {
       const docRef = doc(db, "notes", noteId);
       getDoc(docRef).then(async (docSnap) => {
         if (!docSnap.exists()) {
@@ -897,17 +900,36 @@
         document.getElementById('single-note-cat').innerText = noteData.category || 'כללי';
         document.getElementById('single-note-date').innerText = noteData.date || '';
 
+        const modeBadge = document.getElementById('single-note-mode-badge');
+        const textarea = document.getElementById('single-note-textarea');
+        const saveBtn = document.getElementById('single-note-save-btn');
+
+        if (mode === 'edit') {
+          modeBadge.innerText = '✏️ משותף לעריכה';
+          modeBadge.style.background = '#dcfce7';
+          modeBadge.style.color = '#166534';
+          modeBadge.style.borderColor = '#bbf7d0';
+          textarea.readOnly = false;
+          saveBtn.style.display = 'block';
+        } else {
+          modeBadge.innerText = '👁️ צפייה בלבד';
+          modeBadge.style.background = '#f1f5f9';
+          modeBadge.style.color = '#334155';
+          modeBadge.style.borderColor = '#cbd5e1';
+          textarea.readOnly = true;
+          saveBtn.style.display = 'none';
+        }
+
         const titleDisplay = document.getElementById('single-note-title-display');
         if (noteData.title) {
           titleDisplay.innerText = noteData.title;
           titleDisplay.style.display = 'block';
         }
 
-        const textarea = document.getElementById('single-note-textarea');
         let displayedText = noteData.text || '';
 
         if (noteData.isLocked) {
-          const pass = prompt("פתק זה נעול בסיסמה. אנא הזן סיסמה לצפייה ועריכה:");
+          const pass = prompt("פתק זה נעול בסיסמה. אנא הזן סיסמה לצפייה:");
           try {
             const bytes = CryptoJS.AES.decrypt(noteData.text, pass);
             displayedText = bytes.toString(CryptoJS.enc.Utf8);
