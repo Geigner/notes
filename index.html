@@ -135,6 +135,11 @@
       transition: background 0.2s, transform 0.2s;
       color: #334155;
       position: relative;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .gear-menu-trigger:hover {
       background: #cbd5e1;
@@ -146,7 +151,6 @@
       100% { opacity: 1; transform: translateY(0); }
     }
 
-    /* תפריט הגדרות מאוחד (גלגל שיניים) שמרכז את כל הכלים והאפשרויות בצורה נקייה ואינטואיטיבית */
     .master-dropdown-menu {
       display: none;
       position: absolute;
@@ -228,7 +232,7 @@
     .cat-chip.shared-chip.active { background: #15803d; color: white; border-color: #15803d; }
     .cat-delete-btn { background: none; border: none; color: inherit; font-size: 0.8rem; cursor: pointer; padding: 0 2px; }
 
-    /* פאנל צדדי מתקדם נפתח מצד שמאל (אקורדיון נפתח ומתארך לפי הצורך) */
+    /* פאנל צדדי מתקדם נפתח מצד שמאל */
     .sidebar {
       position: fixed;
       top: 0;
@@ -258,7 +262,6 @@
     }
     .sidebar-title { font-size: 1.1rem; font-weight: 700; color: #1e293b; }
     
-    /* קבוצה מתקפלת (Accordion) בתפריט הצד */
     .accordion-section {
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -451,7 +454,7 @@
 </head>
 <body onclick="closeAllDropdowns(event)">
 
-  <!-- פאנל צדדי נפתח מצד שמאל (מרכז שליטה המרכז הכל) -->
+  <!-- פאנל צדדי נפתח מצד שמאל (מרכז שליטה) -->
   <aside class="sidebar" id="app-sidebar" onclick="event.stopPropagation()">
     <div class="sidebar-header">
       <span class="sidebar-title">🧭 מרכז שליטה</span>
@@ -544,14 +547,16 @@
       <div class="header-clock" id="live-clock" title="שעה ותאריך נוכחיים">טוען שעון...</div>
 
       <div class="header-left">
-        <!-- כפתור גלגל שיניים אחד ויחיד המרכז את כל האפשרויות בתפריט נפתח נקי ואינטואיטיבי -->
+        <!-- כפתור טשטוש מהיר בסרגל העליון ליד גלגל השיניים -->
+        <button class="gear-menu-trigger" onclick="togglePrivacyBlur()" title="מצב טשטוש מהיר" aria-label="הפעל או בטל טשטוש פתקים" id="privacy-btn-top">👁️</button>
+
+        <!-- תפריט גלגל שיניים מרכזי -->
         <div class="master-dropdown-wrapper" onclick="event.stopPropagation()">
           <button class="gear-menu-trigger" onclick="toggleMasterMenu(event)" title="אפשרויות וניהול" aria-label="תפריט ניהול והגדרות">⚙️</button>
           
           <div class="master-dropdown-menu" id="master-dropdown">
             <span class="notes-counter-badge" id="notes-counter">מחשב...</span>
             <button class="btn btn-secondary" onclick="toggleSidebar(); closeAllDropdowns();">🧭 מרכז שליטה וקישורים</button>
-            <button class="btn btn-secondary" onclick="togglePrivacyBlur(); closeAllDropdowns();" id="privacy-btn-dropdown">👁️ מצב טשטוש מהיר</button>
             <button class="btn btn-secondary" onclick="exportBackup(); closeAllDropdowns();">💾 גיבוי נתונים</button>
             <button class="btn btn-secondary" onclick="triggerImport(); closeAllDropdowns();">📥 ייבוא נתונים</button>
             <input type="file" id="import-file-input" style="display: none" accept=".json" aria-label="קובץ ייבוי גיבוי" onchange="importBackup(event)">
@@ -837,14 +842,14 @@
       const note = allNotes.find(n => n.id === id);
       if (!note) return;
 
-      // מעדכן את השרת תחילה וממתין לוודא שהשדה נשמר בהתאם לחוקי ה-Firebase שלך
+      // מעדכן את השרת תחילה ל-isShared: true לפי דרישת פיירביס
       if (isEditable) {
         try {
           showToast("מעדכן הרשאות שיתוף מול השרת...");
           await updateDoc(doc(db, "notes", id), { isShared: true });
         } catch (err) {
           console.error("שגיאה בעדכון מצב שיתוף:", err);
-          alert("שגיאה בעדכון הרשאות השיתוף. ודא שחוקי ה-Firebase מעודכנים כראוי.");
+          alert("שגיאה בעדכון הרשאות השיתוף.");
           return;
         }
       }
@@ -1219,8 +1224,6 @@
     window.togglePrivacyBlur = function() {
       document.body.classList.toggle('privacy-mode');
       const isBlurred = document.body.classList.contains('privacy-mode');
-      const blurBtnDropdown = document.getElementById('privacy-btn-dropdown');
-      if (blurBtnDropdown) blurBtnDropdown.innerText = isBlurred ? '👁️‍🗨️ בטל טשטוש' : '👁️ מצב טשטוש מהיר';
       showToast(isBlurred ? "הפתקים טושטשו להגנת פרטיות" : "הטשטוש הוסר");
     }
 
