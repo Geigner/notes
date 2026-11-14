@@ -230,6 +230,8 @@
     .cat-chip.urgent-chip.active { background: var(--urgent); color: white; border-color: var(--urgent); }
     .cat-chip.shared-chip { border-color: #bbf7d0; background: #f0fdf4; color: #166534; }
     .cat-chip.shared-chip.active { background: #15803d; color: white; border-color: #15803d; }
+    .cat-chip.public-chip { border-color: #bae6fd; background: #e0f2fe; color: #0369a1; }
+    .cat-chip.public-chip.active { background: #0284c7; color: white; border-color: #0284c7; }
     .cat-delete-btn { background: none; border: none; color: inherit; font-size: 0.8rem; cursor: pointer; padding: 0 2px; }
 
     /* פאנל צדדי מתקדם נפתח מצד שמאל */
@@ -1484,11 +1486,11 @@
       if (!container) return;
       container.innerHTML = '';
 
-      // חישוב מספר פתקים לפי מצב (פעילים בלבד בארכיון הפעיל)
       const activeNotes = allNotes.filter(n => !n.archived);
       const allCount = activeNotes.length;
       const urgentCount = activeNotes.filter(n => n.urgent === 'דחוף').length;
       const sharedCount = activeNotes.filter(n => n.isShared === true).length;
+      const publicCount = activeNotes.filter(n => n.isPublic === true).length;
 
       const allChip = document.createElement('div');
       allChip.className = `cat-chip ${currentCategory === 'הכל' ? 'active' : ''}`;
@@ -1507,6 +1509,12 @@
       sharedChip.innerText = `🔗 משותפים (${sharedCount})`;
       sharedChip.onclick = () => { currentCategory = '🔗 משותפים'; renderCategories(); renderNotes(); };
       container.appendChild(sharedChip);
+
+      const publicChip = document.createElement('div');
+      publicChip.className = `cat-chip public-chip ${currentCategory === '🌐 מפורסמים' ? 'active' : ''}`;
+      publicChip.innerText = `🌐 מפורסמים (${publicCount})`;
+      publicChip.onclick = () => { currentCategory = '🌐 מפורסמים'; renderCategories(); renderNotes(); };
+      container.appendChild(publicChip);
 
       categories.forEach(c => {
         const catCount = activeNotes.filter(n => (n.category || 'כללי') === c).length;
@@ -1590,6 +1598,7 @@
 
       if (currentCategory === '⭐ דחוף') filtered = filtered.filter(note => note.urgent === 'דחוף');
       else if (currentCategory === '🔗 משותפים') filtered = filtered.filter(note => note.isShared === true);
+      else if (currentCategory === '🌐 מפורסמים') filtered = filtered.filter(note => note.isPublic === true);
       else if (currentCategory !== 'הכל') filtered = filtered.filter(note => (note.category || 'כללי') === currentCategory);
 
       if (searchQuery !== "") {
@@ -1920,7 +1929,7 @@
     }
 
     window.getCategoryColor = function(catName) {
-      if (catName === 'הכל' || catName === '⭐ דחוף' || catName === '🔗 משותפים') return { bg: '#f8fafc', border: '#cbd5e1', text: '#334155' };
+      if (catName === 'הכל' || catName === '⭐ דחוף' || catName === '🔗 משותפים' || catName === '🌐 מפורסמים') return { bg: '#f8fafc', border: '#cbd5e1', text: '#334155' };
       let hash = 0;
       for (let i = 0; i < catName.length; i++) { hash = catName.charCodeAt(i) + ((hash << 5) - hash); }
       const hue = Math.abs(hash % 360);
