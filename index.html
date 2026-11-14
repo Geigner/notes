@@ -837,13 +837,14 @@
       const note = allNotes.find(n => n.id === id);
       if (!note) return;
 
-      // אם מדובר בשיתוף לעריכה, נעדכן קודם את isShared ל-true במסד הנתונים
+      // מעדכן את השרת תחילה וממתין לוודא שהשדה נשמר בהתאם לחוקי ה-Firebase שלך
       if (isEditable) {
         try {
+          showToast("מעדכן הרשאות שיתוף מול השרת...");
           await updateDoc(doc(db, "notes", id), { isShared: true });
         } catch (err) {
           console.error("שגיאה בעדכון מצב שיתוף:", err);
-          alert("שגיאה בעדכון הרשאות השיתוף בשרת.");
+          alert("שגיאה בעדכון הרשאות השיתוף. ודא שחוקי ה-Firebase מעודכנים כראוי.");
           return;
         }
       }
@@ -863,7 +864,7 @@
       const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
       
       window.open(whatsappUrl, '_blank');
-      showToast("קישור השיתוף נפתח בוואטצאפ!");
+      showToast("קישור השיתוף מוכן ונפתח בוואטצאפ!");
     }
 
     window.stopSharingNote = async function(id) {
@@ -1939,7 +1940,7 @@
 
     window.closeModal = function() { 
       const modalBox = document.getElementById('modal-box');
-      if (modalBox) modalBox.classList.remove('fullscreen-mode');
+      if (modalBox) modalBox.classList.toggle('fullscreen-mode');
       document.getElementById('note-modal').style.display = 'none'; 
     }
 
